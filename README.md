@@ -1,225 +1,127 @@
 <div align="center">
 
-<br/>
+# 🎮 SteaMRogue
+### Yeni Nesil Steam Kütüphane, Kilit Açma ve Multiplayer Yama Yöneticisi
 
-<img src="icon.png" width="140" height="140" style="border-radius: 32px; filter: drop-shadow(0 0 35px rgba(124, 58, 237, 0.75)); margin-bottom: 15px;" alt="SteaMRogue Logo" />
-
-# ⚡ SteaMRogue
-### *The Ultimate Next-Gen Steam Library, Game Unlocking & Multiplayer Patching Suite*
-
-<p align="center">
-  <b>A modern, high-octane desktop application engineered to give you absolute control over your Steam gaming experience.</b><br/>
-  Featuring native Steam drive selection, automated OnlineFix multiplayer patch injection, multi-host high-speed mirrors, and silent zero-friction auto-updates.
-</p>
-
-<br/>
-
-[![Latest Release](https://img.shields.io/github/v/release/mythoscd/SteaMRogue?style=for-the-badge&color=7c3aed&label=Release&logo=github)](https://github.com/mythoscd/SteaMRogue/releases)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-0078D4?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases)
-[![Stack](https://img.shields.io/badge/Tech-Electron%20%2B%20Python-blueviolet?style=for-the-badge&logo=electron)](https://github.com/mythoscd/SteaMRogue)
-[![Updates](https://img.shields.io/badge/Auto--Updates-100%25%20Automated-10B981?style=for-the-badge&logo=speedtest)](https://github.com/mythoscd/SteaMRogue)
-[![License](https://img.shields.io/badge/Status-Active%20%26%20Maintained-06B6D4?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
-
-<br/>
+[![Release](https://img.shields.io/github/v/release/mythoscd/SteaMRogue?style=for-the-badge&color=7c3aed&label=S%C3%BCr%C3%BCm)](https://github.com/mythoscd/SteaMRogue/releases)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases)
+[![License](https://img.shields.io/badge/Durum-Aktif%20%26%20G%C3%BCncel-brightgreen?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
+[![Auto Update](https://img.shields.io/badge/Otomatik%20G%C3%BCncelleme-Aktif-orange?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue)
 
 <p align="center">
-  <a href="#-quick-download"><b>📥 Quick Download</b></a> •
-  <a href="#-why-steamrogue"><b>🔥 Why SteaMRogue?</b></a> •
-  <a href="#-key-features"><b>✨ Features</b></a> •
-  <a href="#-how-it-works"><b>⚙️ Architecture</b></a> •
-  <a href="#-user-guide"><b>📖 User Guide</b></a> •
-  <a href="#-faq"><b>❓ FAQ</b></a>
+  <b>SteaMRogue</b>, oyuncuların Steam kütüphanelerini diledikleri gibi yönetmelerini sağlayan, SteamTools altyapısıyla güçlendirilmiş, otomatik OnlineFix çok oyunculu yama desteği ve yerleşik otomatik güncelleme motoruna sahip modern bir masaüstü uygulamasıdır.
 </p>
+
+[📥 En Son Sürümü İndir (v1.0.1)](https://github.com/mythoscd/SteaMRogue/releases/latest) • [✨ Özellikler](#-öne-çıkan-özellikler) • [🚀 Kurulum](#-kurulum) • [📖 Kullanım](#-kullanım-rehberi) • [❓ SSS](#-sıkça-sorulan-sorular-sss)
 
 ---
 
 </div>
 
-<br/>
+## 🌟 Öne Çıkan Özellikler
 
-## 🔥 Why SteaMRogue?
+### 1. 🎯 Orijinal Steam Kütüphanesi & Disk Seçimi
+* Eklenen tüm oyunlar doğrudan Steam istemcinizin kütüphanesine orijinal lisanslı gibi eklenir.
+* Sahte veya diski kısıtlayan manifestler yerine **Steam'in orijinal kurulum ekranını** kullanır.
+* Oyunu yüklerken Steam arayüzünden istediğiniz diski (**C:**, **D:** veya harici SSD) kendiniz özgürce seçebilirsiniz.
+* Disk yetersizliği veya zorunlu C: ataması hataları tamamen tarihe karışır.
 
-Legacy tools and manual methods are tedious, error-prone, and often corrupt your Steam installation folders. **SteaMRogue re-imagines the entire workflow from the ground up:**
+### 2. 🌐 OnlineFix & Çok Oyunculu (Multiplayer) Yama Motoru
+* Kütüphanenizdeki veya aradığınız herhangi bir oyun için OnlineFix veritabanında anında yama taraması yapar.
+* **Gelişmiş Çoklu Hoster Desteği:**
+  * ⚡ **Pixeldrain API** (Yüksek hızlı doğrudan indirme)
+  * 🚀 **Gofile Entegrasyonu** (Token ve salt çözücü ile kesintisiz indirme)
+  * 🛡️ **FileDitch & Alternatif Aynalar**
+* İndirilen yamayı otomatik olarak şifresini çözerek açar ve oyunun kurulu olduğu dizine **tek tıkla entegre eder**. Artık dosyaları elle taşımakla uğraşmanıza gerek yok!
 
-| Feature / Capability | Traditional / Legacy Tools | ⚡ **SteaMRogue** |
-| :--- | :---: | :---: |
-| **Drive Destination Selection** | ❌ Hardcoded to `C:\` (causes *Disk Space Full* errors) | ✅ **Native Steam Drive Picker (`C:`, `D:`, NVMe SSD)** |
-| **Multiplayer Patch Search** | ❌ Manual web surfing through pop-up ad link shorteners | ✅ **Instant In-App Search Engine with direct metadata** |
-| **Download Pipeline** | ❌ Broken rate limits, slow captcha hosts | ✅ **High-speed Pixeldrain API, Gofile & FileDitch mirrors** |
-| **Archive Extraction** | ❌ Manually find archive password, extract via 7-Zip | ✅ **1-Click Auto-Extraction with built-in password dictionary** |
-| **Patch Installation** | ❌ Dragging and dropping files into nested game folders | ✅ **Direct 1-Click Injection straight into the game root** |
-| **App Updates** | ❌ Manually check forums & re-download setup files | ✅ **Built-in Background Delta Updater with 1-click apply** |
-| **User Interface** | ❌ Clunky CLI prompts or outdated Windows 98-style GUIs | ✅ **Gorgeous Cyberpunk Project Lightning Dark Neon UI** |
-| **Antivirus Safety** | ❌ Silent file deletions caused by false positives | ✅ **Integrated Windows Defender Exclusion Assistant** |
+### 3. 🚀 Yerleşik Otomatik Güncelleme (Auto-Update Engine)
+* Uygulama, açılışta ve çalışma esnasında yeni sürümleri GitHub Releases üzerinden sessizce denetler.
+* Yeni bir güncelleme yayınlandığında ekranın sağ alt köşesinde şık bir bildirim kartı belirir ve güncellemeyi arka planda otomatik olarak indirir.
+* Kullanıcı tek bir butona tıklayarak tarayıcı veya link aramadan saniyeler içinde en son sürüme yükseltir.
 
-<br/>
+### 4. 🛡️ Akıllı Güvenlik & İstisna Asistanı
+* Windows Defender ve üçüncü taraf antivirüslerin oluşturduğu yanlış pozitif (false-positive) dosya silme sorunlarına son verir.
+* Steam klasörünüzü tek tıkla Windows Güvenliği İstisnalarına ekleyen yerleşik istisna yardımcısı içerir.
 
----
-
-## ✨ Key Features
-
-### 🎯 1. Native Steam Library & Drive Selection
-* **Zero Drive Locking:** SteaMRogue never forces a predetermined drive or creates dummy ACF state flags that trick Steam into thinking a game is "already installed on C:".
-* **Steam's Official Dialog:** When you click **Install** in Steam, you get Steam's genuine installation prompt: choose **Windows 11 (C:)**, **Secondary Storage (D:)**, or an external drive with complete freedom.
-* Full compatibility with standard Steam shortcut creation (Desktop and Start Menu checkboxes).
-
-### 🌐 2. Automated OnlineFix Multiplayer Engine
-* **Instant Matchmaking Patches:** Search for any multiplayer title and fetch community-verified OnlineFix fixes instantly.
-* **Smart Multi-Hoster Resolver:**
-  * ⚡ **Pixeldrain Direct API:** Ultra-fast, unrestricted downloads.
-  * 🚀 **Gofile Token & Salt Engine:** Automated dynamic negotiation for seamless downloading without browser interaction.
-  * 🛡️ **FileDitch & CDN Mirrors:** High-reliability fallback routes.
-* **Auto-Extract & Inject:** Automatically decrypts archives using standard passphrases (`online-fix.me`), injects game-specific DLLs, and cleans up temporary archives.
-
-### 🚀 3. Silent Zero-Friction Auto-Updates
-* SteaMRogue includes a built-in update daemon connected directly to **GitHub Releases**.
-* When a new build is released, a sleek notification card slides in at the bottom-right corner.
-* Updates download in the background without interrupting your gaming session.
-* Click **"Restart & Update"** to apply the new version in under 3 seconds!
-
-### 🛡️ 4. Antivirus & Defender Helper
-* Game-hooking DLLs (SteamTools / SmokeAPI / OnlineFix) often trigger heuristic *False-Positive* alarms in security suites.
-* SteaMRogue features a dedicated 1-click **"Add Exclusion"** tool to easily whitelist your Steam installation directory in Windows Defender.
-
-### 🎨 5. Project Lightning Dark Neon Interface
-* Fluid responsive interface styled with a deep space violet and neon purple aesthetic.
-* Rich grid views featuring high-resolution cover banners, search filters, and real-time download progress rings.
-
-<br/>
+### 5. 🎨 Modern Project Lightning Arayüzü
+* Göz yormayan, modern, karanlık (dark mode) neon mor/mavi estetiğe sahip tasarım.
+* Kütüphane oyun kapakları, arama filtreleri ve anlık indirme ilerleme çubukları ile donatılmış akıcı kullanıcı deneyimi.
 
 ---
 
-## ⚙️ How It Works
+## 📥 Kurulum
 
-```mermaid
-flowchart TD
-    subgraph User Desktop
-        UI[SteaMRogue UI - Electron]
-        PY[Python Engine - Flask & PyInstaller]
-        UI <-->|Local REST & WebSocket| PY
-    end
+1. **[Releases](https://github.com/mythoscd/SteaMRogue/releases/latest)** sayfasına gidin.
+2. `SteaMRogue Setup X.X.X.exe` dosyasını indirin.
+3. İndirdiğiniz kurulum dosyasına çift tıklayın. Kurulum tamamen sessiz ve otomatiktir; birkaç saniye içinde Masaüstünüze **SteaMRogue** kısayolu eklenecektir.
+4. Uygulamayı çalıştırın ve kütüphanenizi yönetmeye başlayın!
 
-    subgraph Steam Ecosystem
-        STM[Steam Client]
-        LUA[SteamTools Lua Plugin / config]
-        DPT[Depotcache / Manifests]
-        PY -->|Injects Unlock Rules| LUA
-        PY -->|Caches Manifests| DPT
-        LUA -.->|Unlocks in Memory| STM
-    end
-
-    subgraph Cloud & Content Delivery
-        GH[GitHub Releases]
-        OFX[OnlineFix / Multi-Hoster API]
-        UI <-->|Auto-Update Checks| GH
-        PY <-->|Fetches Multiplayer Patches| OFX
-    end
-
-    STM -->|User clicks Install| DRV[Native Steam Drive Selector: C: / D:]
-```
-
-<br/>
+> [!NOTE]
+> SteaMRogue kendi içinde otomatik güncelleme motoruna sahip olduğu için bu kurulumu yalnızca **ilk defa** yapmanız yeterlidir. Gelecekte çıkacak tüm yeni sürümler uygulama içerisinden otomatik olarak güncellenecektir.
 
 ---
 
-## 📥 Quick Download
+## 📖 Kullanım Rehberi
 
-Ready to get started? Download the latest single-file setup executable below:
+### 🎮 Yeni Bir Oyun Eklemek
+1. SteaMRogue'u açın ve üst kısımdaki arama çubuğuna eklemek istediğiniz oyunun adını veya Steam AppID'sini yazın.
+2. Çıkan sonuçtan oyunu seçip **"Kütüphaneye Ekle"** butonuna tıklayın.
+3. İşlem tamamlandığında Steam istemcinizi yeniden başlatın.
+4. Steam Kütüphanenizden oyunu bulun ve mavi **"YÜKLE"** butonuna tıklayın.
+5. Açılan orijinal Steam penceresinden oyunu kurmak istediğiniz diski (C:, D: vb.) seçip indirmeyi başlatın!
 
-<div align="center">
-
-[![Download SteaMRogue](https://img.shields.io/badge/Download-SteaMRogue%20Setup%20v1.0.1%20(.exe)-7c3aed?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/mythoscd/SteaMRogue/releases/latest)
-
-*Compatible with Windows 10 & 11 (64-bit). Portable and installer builds available in [Releases](https://github.com/mythoscd/SteaMRogue/releases).*
-
-</div>
-
-<br/>
-
----
-
-## 📖 User Guide
-
-### 🎮 Adding a Game to Steam
-1. Open **SteaMRogue**.
-2. Type the game name or Steam AppID into the search bar.
-3. Select your game and click **"Add to Library"**.
-4. Once completed, restart your Steam Client.
-5. In your Steam library, click the blue **"INSTALL"** button on the game.
-6. Choose your desired drive (**C:**, **D:**, etc.) in Steam's native prompt and let Steam download the files!
-
-### 🌐 Applying Multiplayer Patches (OnlineFix)
-1. Navigate to the **"OnlineFix"** tab inside SteaMRogue.
-2. Search for the title you wish to play online.
-3. Click **"Download Patch"** and select **"Integrate into Game"**.
-4. SteaMRogue will download the patch, automatically unpack it with the password, and copy files directly into your game's directory.
-5. Launch the game from Steam and invite your friends!
-
-<br/>
+### 🌐 Multiplayer (OnlineFix) Yaması Uygulamak
+1. SteaMRogue içerisinden **"OnlineFix Yamaları"** bölümüne gelin.
+2. Oynamak istediğiniz oyunu aratın.
+3. **"Yamayı İndir"** dedikten sonra açılan pencereden **"Oyuna Entegre Et"** seçeneğini seçin.
+4. Sistem yamayı indirecek, arşivden çıkaracak ve oyun klasörünüze otomatik yerleştirecektir.
+5. Oyunu açıp arkadaşlarınızla birlikte multiplayer oynamaya başlayabilirsiniz!
 
 ---
 
-## ❓ Frequently Asked Questions (FAQ)
+## ❓ Sıkça Sorulan Sorular (SSS)
 
 <details>
-<summary><b>1. Can I choose which drive or folder to install games on?</b></summary>
+<summary><b>1. Oyun yüklerken diski kendim seçebilir miyim?</b></summary>
 <br>
-<b>Absolutely yes!</b> Unlike older tools that locked games into <code>C:\Program Files (x86)\Steam</code>, SteaMRogue leaves the drive allocation entirely to Steam's official installation prompt. You can choose any library drive configured on your PC.
+<b>Evet!</b> SteaMRogue, oyunları diske önceden sabitlemez. Steam'in orijinal yükleme penceresini tetikler; böylece Windows 11 (C:) veya Yeni Birim (D:) gibi istediğiniz diski Steam arayüzünden doğrudan kendiniz seçebilirsiniz.
 </details>
 
 <details>
-<summary><b>2. How do updates work for other players/users?</b></summary>
+<summary><b>2. Yeni bir güncelleme geldiğinde ne yapmam gerekiyor?</b></summary>
 <br>
-Completely hands-free. Because SteaMRogue has a built-in background update engine, every time you or your friends launch the app, it checks GitHub. If an update exists, it automatically downloads and prompts with a <i>"Restart & Update"</i> button. Nobody needs to download manual files from a browser ever again.
+Hiçbir şey yapmanıza gerek yoktur. Uygulamayı açtığınızda sağ altta <i>"Yeni Güncelleme Mevcut!"</i> bildirimi çıkacak ve güncelleme otomatik inecektir. İndirme bittiğinde <i>"Şimdi Güncelle & Yeniden Başlat"</i> butonuna basmanız yeterlidir.
 </details>
 
 <details>
-<summary><b>3. Why does my Antivirus trigger when installing patches?</b></summary>
+<summary><b>3. Antivirüs veya Windows Defender uyarı verirse ne yapmalıyım?</b></summary>
 <br>
-Multiplayer fixes and SteamTools use memory hooking (similar to mod loaders and injectors) to enable multiplayer routing via Steam Spacewar (AppID 480). Antivirus programs often flag these as <i>"Riskware"</i> or <i>"HackTool"</i>. This is a standard false positive. Simply use the <b>"Add Exclusion"</b> button in SteaMRogue to whitelist your Steam directory.
+Oyun kilit açma araçları (SteamTools / SmokeAPI ve OnlineFix DLL dosyaları) oyun kodlarına müdahale ettiği için antivirüsler bazen "Yanlış Pozitif (False Positive)" alarmı verebilir. SteaMRogue Ayarlar menüsünden <b>"İstisna Ekle"</b> butonunu kullanarak Steam klasörünüzü güvenli listeye ekleyebilirsiniz.
 </details>
 
 <details>
-<summary><b>4. Do I need to manually extract archives or enter passwords?</b></summary>
+<summary><b>4. OnlineFix yamalarında şifre girmem gerekiyor mu?</b></summary>
 <br>
-No! SteaMRogue has a built-in extraction engine that tests common dictionary passwords (e.g. <code>online-fix.me</code>) and extracts files automatically into your game root.
+Hayır. SteaMRogue, OnlineFix arşiv şifrelerini (<code>online-fix.me</code> vb.) yerleşik algoritmasıyla otomatik olarak girer ve dosyaları kendisi açar.
 </details>
-
-<br/>
 
 ---
 
-## 💻 System Requirements
+## 💻 Sistem Gereksinimleri
 
-| Specification | Minimum | Recommended |
+| Bileşen | Minimum Gereksinim | Önerilen |
 | :--- | :--- | :--- |
-| **Operating System** | Windows 10 64-bit (Build 19041+) | Windows 11 64-bit (Latest) |
-| **Processor** | Dual-Core 2.0 GHz Intel / AMD | Quad-Core 2.5 GHz or higher |
-| **System Memory (RAM)** | 2 GB RAM | 4 GB RAM or higher |
-| **Storage** | 300 MB for SteaMRogue | NVMe / SSD Storage |
-| **Steam** | Official Steam Client installed | Official Steam Client installed |
-
-<br/>
-
----
-
-## 📜 Legal & Educational Disclaimer
-
-> [!IMPORTANT]
-> **SteaMRogue** is an independent open-source utility developed for personal library organization, modding, and educational research purposes. SteaMRogue is **not affiliated with, endorsed by, or associated with Valve Corporation, Steam, or OnlineFix**. All trademarks, game titles, logos, and digital assets belong to their respective copyright holders. Users are encouraged to support game developers by purchasing original copies of games they enjoy.
-
-<br/>
+| **İşletim Sistemi** | Windows 10 (64-bit) | Windows 11 (64-bit) |
+| **İşlemci** | Çift çekirdekli 1.8 GHz | Dört çekirdekli 2.5 GHz veya üzeri |
+| **Bellek (RAM)** | 2 GB RAM | 4 GB RAM veya üzeri |
+| **Depolama** | 250 MB boş alan | SSD Depolama |
+| **Steam** | Güncel Steam İstemcisi | Güncel Steam İstemcisi |
 
 ---
 
 <div align="center">
 
-### ⭐ Enjoying SteaMRogue? Give it a Star!
-If SteaMRogue made your gaming life easier, please consider starring the repository to help other gamers discover it!
-
-<br/>
-
-Maintained with ❤️ by **[@mythoscd](https://github.com/mythoscd)**  
-*SteaMRogue Project • 2026*
+Geliştirici: **[@mythoscd](https://github.com/mythoscd)**  
+*SteaMRogue Projesi — Tüm Hakları Saklıdır.*
 
 </div>
