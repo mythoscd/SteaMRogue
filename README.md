@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🎮 SteaMRogue
 ### Hepsi Bir Arada Steam Kütüphane Yöneticisi & Multiplayer Yama Platformu
@@ -113,7 +113,7 @@ Evet! SteaMRogue diskinizi zorla C: sürücüsüne kilitlemez. Steam'in orijinal
 
 <div align="center">
 
-🎮 **SteaMRogue** — Kütüphanen, senin kuralların.  
-*Tek uygulama, sınırsız oyun özgürlüğü.*
+🎮 **Senin kütüphanen, senin kuralların.**  
+*SteaMRogue'u beğendiyseniz projeye bir yıldız (⭐) bırakarak destek olabilirsiniz!*
 
 </div>
