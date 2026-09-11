@@ -109,8 +109,13 @@ Tüm yamalar doğrudan resmi OnlineFix kaynaklarından çekilir. Bazı antivirü
 </details>
 
 <details>
-<summary><b>3. İstediğim diske oyun kurabilir miyim?</b></summary>
-Evet! SteaMRogue diskinizi zorla C: sürücüsüne kilitlemez. Steam'in orijinal yükleme penceresi açılır ve Steam'de tanımlı olan dilediğiniz sürücüyü (C:, D:, harici SSD) özgürce seçebilirsiniz.
+<summary><b>3. Oyuna yeni bir güncelleme geldiğinde ne yapmalıyım?</b></summary>
+SteaMRogue her açılışta kütüphanenizdeki oyunların manifestlerini otomatik olarak denetler ve yeniler. Oyuna yeni bir güncelleme geldiğinde doğrudan Steam üzerinden güncellemeyi başlatabilirsiniz. İndirme takılırsa Steam indirme önbelleğini temizlemeniz yeterlidir.
+</details>
+
+<details>
+<summary><b>4. OnlineFix yamasıyla arkadaşlarımla nasıl çok oyunculu oynayabilirim?</b></summary>
+Arkadaşınızla birlikte oynayabilmek için ikinizin de aynı oyuna ve aynı OnlineFix yamasına sahip olması gerekir. Yamayı entegre ettikten sonra oyunu başlatıp Steam arayüzü (Shift + Tab) üzerinden birbirinizi lobiye davet edebilirsiniz.
 </details>
 
 ---
