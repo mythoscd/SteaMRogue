@@ -12,7 +12,7 @@
   <b>SteaMRogue</b>, oyuncuların Steam kütüphanelerini diledikleri gibi yönetmelerini sağlayan, SteamTools altyapısıyla güçlendirilmiş, otomatik OnlineFix çok oyunculu yama desteği ve yerleşik otomatik güncelleme motoruna sahip modern bir masaüstü uygulamasıdır.
 </p>
 
-[📥 En Son Sürümü İndir (v1.0.5)](https://github.com/mythoscd/SteaMRogue/releases/latest) • [✨ Özellikler](#-öne-çıkan-özellikler) • [🚀 Kurulum](#-kurulum) • [📖 Kullanım](#-kullanım-rehberi) • [❓ SSS](#-sıkça-sorulan-sorular-sss)
+[📥 En Son Sürümü İndir (v1.0.6)](https://github.com/mythoscd/SteaMRogue/releases/latest) • [✨ Özellikler](#-öne-çıkan-özellikler) • [🚀 Kurulum](#-kurulum) • [📖 Kullanım](#-kullanım-rehberi) • [❓ SSS](#-sıkça-sorulan-sorular-sss)
 
 ---
 
