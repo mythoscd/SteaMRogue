@@ -95,8 +95,12 @@ Proje 3 temel ilke üzerine inşa edilmiştir:
 ## ❓ Sıkça Sorulan Sorular
 
 <details>
-<summary><b>1. Oyun yüklerken neden internet bağlantısı yok hatası alıyorum?</b></summary>
-Steam açıkken manifest eklendiğinde istemci henüz dosyaları hafızaya almamış olabilir. SteaMRogue arayüzündeki <b>Steam'i Yeniden Başlat</b> butonuna basarak Steam'i tazeleyin ve indirmeyi tekrar başlatın.
+<summary><b>1. Oyun kütüphaneme gelmedi veya indirme başlatırken "İnternet bağlantısı yok" hatası alıyorum?</b></summary>
+Bu durum Steam'in eski indirme önbelleğini tutmasından kaynaklanır. Çözümü çok basittir:
+1. Steam'in sol üst köşesindeki <b>Steam</b> yazısına tıklayıp <b>Ayarlar</b>'a girin.
+2. Sol menüden <b>İndirmeler</b> sekmesine gelin.
+3. Sayfayı çok az aşağı kaydırıp <b>"İndirme Önbelleğini Temizle"</b> butonuna tıklayın.
+4. Steam kendini yeniden başlattığında oyun kütüphanenizde belirecek ve indirme sorunu tamamen çözülecektir.
 </details>
 
 <details>
