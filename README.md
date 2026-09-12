@@ -3,7 +3,7 @@
 # 🎮 SteaMRogue
 ### Hepsi Bir Arada Steam Kütüphane Yöneticisi & Multiplayer Yama Platformu
 
-[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.0.6-7c3aed?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue/releases)
+[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.0.7-7c3aed?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases)
 [![Durum](https://img.shields.io/badge/Durum-Aktif%20%26%20G%C3%BCncel-brightgreen?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
 [![Otomatik Güncelleme](https://img.shields.io/badge/Otomatik%20G%C3%BCncelleme-Aktif-orange?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue)
