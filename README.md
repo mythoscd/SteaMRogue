@@ -3,7 +3,7 @@
 # 🎮 SteaMRogue
 ### Hepsi Bir Arada Steam Kütüphane Yöneticisi & Multiplayer Yama Platformu
 
-[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.0.8-7c3aed?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue/releases)
+[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.0.9-7c3aed?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases)
 [![Durum](https://img.shields.io/badge/Durum-Aktif%20%26%20G%C3%BCncel-brightgreen?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
 [![Otomatik Güncelleme](https://img.shields.io/badge/Otomatik%20G%C3%BCncelleme-Aktif-orange?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue)
@@ -34,6 +34,7 @@ Proje 3 temel ilke üzerine inşa edilmiştir:
 ## ✨ Özellikler
 
 ### 🎮 Steam Kütüphane Entegrasyonu
+* **Doğrudan Steam Linki & AppID Desteği:** Sayısal AppID'nin yanı sıra doğrudan Steam mağaza linklerini (örn: `store.steampowered.com/app/...`) yapıştırarak oyunları tek tıkla bulup ekleyebilir, arama kutusunda canlı kapak ve ad önizlemesini anında görebilirsiniz.
 * **Orijinal Disk Seçimi:** Sahte ACF dosyalarıyla diskinizi C: sürücüsüne zorlamaz; oyunu kurarken Steam'in kendi kurulum penceresinden istediğiniz diski (C, D veya harici SSD) seçebilirsiniz.
 * **Otomatik Manifest & Lua Yönetimi:** Topluluk veritabanlarından (ProjectLightning, SPIN0ZAi, ManifestHub vb.) en güncel manifestleri otomatik çeker ve Steam'e işler.
 * **Canlı Kapak & Görsel Senkronizasyonu:** Oyun kütüphaneniz için yüksek çözünürlüklü kapak görselleri doğrudan Steam CDN üzerinden otomatik çekilir.
