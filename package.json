@@ -1,6 +1,6 @@
 {
   "name": "steamrogue",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "SteamTools Auto Game Adder GUI",
   "main": "main.js",
   "scripts": {
@@ -24,7 +24,8 @@
         "nsis"
       ],
       "extraResources": [
-        "SteamTools_Auto_Backend.exe"
+        "SteamTools_Auto_Backend.exe",
+        "steamtools_files"
       ]
     },
     "nsis": {
