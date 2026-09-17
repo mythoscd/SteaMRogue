@@ -64,7 +64,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.0.9"
+APP_VERSION = "1.0.10"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -1073,16 +1073,27 @@ def get_bypass_status():
 
 def get_bundled_steamtools_dir():
     """Returns the path to bundled steamtools_files if available."""
+    candidates = []
     if getattr(sys, 'frozen', False):
-        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        if hasattr(sys, '_MEIPASS'):
+            candidates.append(os.path.join(sys._MEIPASS, "steamtools_files"))
+        exe_dir = os.path.dirname(sys.executable)
+        candidates.append(os.path.join(exe_dir, "steamtools_files"))
+        candidates.append(os.path.join(exe_dir, "..", "steamtools_files"))
+        candidates.append(os.path.join(exe_dir, "resources", "steamtools_files"))
     else:
         base_dir = os.path.dirname(os.path.abspath(__file__))
-    st_dir = os.path.join(base_dir, "steamtools_files")
-    if os.path.isdir(st_dir):
-        return st_dir
+        candidates.append(os.path.join(base_dir, "steamtools_files"))
+    
     local_st = os.path.join(os.path.dirname(os.path.abspath(__file__)), "steamtools_files")
-    if os.path.isdir(local_st):
-        return local_st
+    candidates.append(local_st)
+    
+    for c in candidates:
+        if os.path.isdir(c) and os.path.isfile(os.path.join(c, "OpenSteamTool.dll")):
+            return c
+    for c in candidates:
+        if os.path.isdir(c):
+            return c
     return None
 
 def check_steamtools_installed():
@@ -1108,23 +1119,37 @@ def ensure_steamtools_installed_auto():
             return True
 
         st_dir = get_bundled_steamtools_dir()
-        if not st_dir:
-            logger.info("[SteamTools Auto-Setup] Bundled steamtools_files folder not found, skipping local copy.")
-            return False
-
         import shutil
         target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
         installed_count = 0
+        
+        if st_dir:
+            for f in target_files:
+                src = os.path.join(st_dir, f)
+                dst = os.path.join(config.steam_path, f)
+                if os.path.isfile(src) and not os.path.isfile(dst):
+                    try:
+                        shutil.copy2(src, dst)
+                        installed_count += 1
+                        logger.info(f"[SteamTools Auto-Setup] Auto-installed {f} to {dst}")
+                    except Exception as e:
+                        logger.warning(f"[SteamTools Auto-Setup] Failed to copy {f}: {e}")
+        
+        # If OpenSteamTool.dll or others are still missing, fetch directly from GitHub
         for f in target_files:
-            src = os.path.join(st_dir, f)
             dst = os.path.join(config.steam_path, f)
-            if os.path.isfile(src) and not os.path.isfile(dst):
+            if not os.path.isfile(dst):
                 try:
-                    shutil.copy2(src, dst)
-                    installed_count += 1
-                    logger.info(f"[SteamTools Auto-Setup] Auto-installed {f} to {dst}")
-                except Exception as e:
-                    logger.warning(f"[SteamTools Auto-Setup] Failed to copy {f}: {e}")
+                    url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
+                    r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=20)
+                    if r.status_code == 200 and len(r.content) > 1000:
+                        with open(dst, "wb") as out_f:
+                            out_f.write(r.content)
+                        installed_count += 1
+                        logger.info(f"[SteamTools Auto-Setup] Auto-downloaded {f} from GitHub to {dst}")
+                except Exception as ex:
+                    logger.warning(f"[SteamTools Auto-Setup] Failed downloading {f}: {ex}")
+
         logger.info(f"[SteamTools Auto-Setup] Auto-setup complete ({installed_count} files installed).")
         return True
     except Exception as e:
@@ -1147,20 +1172,21 @@ def install_steamtools():
             "message": "SteamTools zaten kurulu ve Steam üzerinde aktif durumda!"
         })
 
+    target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+    copied = 0
+
     # 1. Try installing from bundled files first (0ms, 100% offline guaranteed)
     st_dir = get_bundled_steamtools_dir()
     if st_dir:
         try:
             import shutil
-            target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
-            copied = 0
             for f in target_files:
                 src = os.path.join(st_dir, f)
                 dst = os.path.join(config.steam_path, f)
                 if os.path.isfile(src):
                     shutil.copy2(src, dst)
                     copied += 1
-            if copied > 0:
+            if copied >= len(target_files):
                 logger.info(f"SteamTools successfully installed from bundled files ({copied} files).")
                 return jsonify({
                     "success": True,
@@ -1170,65 +1196,24 @@ def install_steamtools():
         except Exception as err:
             logger.warning(f"Bundled copy failed, falling back to download: {err}")
 
-    # 2. Fallback to download from Dropbox if bundled files not found
+    # 2. Fallback: Download complete DLL set from official GitHub repository
     try:
-        url = "https://www.dropbox.com/scl/fo/kd6qy4kca8qgx679o2g18/AJD_YjPCPRyLsMUCKZTkcfE?rlkey=tkdu1ytkp23ml7ibbkzrcekm8&st=kq2z32bt&dl=1"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        logger.info("Downloading SteamTools plugins ZIP from Dropbox...")
-        
-        try:
-            response = requests.get(url, headers=headers, timeout=45)
-        except requests.exceptions.SSLError:
-            response = requests.get(url, headers=headers, timeout=45, verify=False)
-            
-        if response.status_code != 200:
-            return jsonify({"success": False, "error": f"Download failed (HTTP {response.status_code})"})
-            
-        import tempfile
-        import zipfile
-        
-        temp_zip = os.path.join(tempfile.gettempdir(), "steamtools.zip")
-        with open(temp_zip, "wb") as f:
-            f.write(response.content)
-            
-        logger.info("Extracting SteamTools DLLs...")
-        target_files = {"dwmapi.dll", "xinput1_4.dll", "opensteamtool.dll"}
-        extracted_count = 0
-        
-        with zipfile.ZipFile(temp_zip, "r") as zip_ref:
-            for member in zip_ref.namelist():
-                basename = os.path.basename(member).lower()
-                if basename in target_files:
-                    dest_path = os.path.join(config.steam_path, os.path.basename(member))
-                    with zip_ref.open(member) as source, open(dest_path, "wb") as target:
-                        target.write(source.read())
-                    logger.info(f"Extracted {basename} to {dest_path}")
-                    extracted_count += 1
-                elif basename.endswith(".zip"):
-                    inner_temp_dir = os.path.join(tempfile.gettempdir(), "steamtools_inner")
-                    os.makedirs(inner_temp_dir, exist_ok=True)
-                    zip_ref.extract(member, inner_temp_dir)
-                    inner_zip_path = os.path.join(inner_temp_dir, member)
-                    
-                    with zipfile.ZipFile(inner_zip_path, "r") as inner_zip:
-                        for inner_member in inner_zip.namelist():
-                            inner_basename = os.path.basename(inner_member).lower()
-                            if inner_basename in target_files:
-                                dest_path = os.path.join(config.steam_path, os.path.basename(inner_member))
-                                with inner_zip.open(inner_member) as source, open(dest_path, "wb") as target:
-                                    target.write(source.read())
-                                logger.info(f"Extracted inner {inner_basename} to {dest_path}")
-                                extracted_count += 1
-                                
-        try:
-            os.remove(temp_zip)
-        except Exception:
-            pass
-            
-        if extracted_count > 0:
-            return jsonify({"success": True, "already_installed": False, "message": f"SteamTools başarıyla kuruldu ({extracted_count} dosya)!"})
+        logger.info("Downloading SteamTools DLLs from GitHub...")
+        for f in target_files:
+            dst = os.path.join(config.steam_path, f)
+            if not os.path.isfile(dst):
+                url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
+                r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=30)
+                if r.status_code == 200 and len(r.content) > 1000:
+                    with open(dst, "wb") as out_f:
+                        out_f.write(r.content)
+                    copied += 1
+                    logger.info(f"Downloaded {f} to {dst}")
+
+        if copied > 0:
+            return jsonify({"success": True, "already_installed": False, "message": f"SteamTools başarıyla kuruldu ({copied} dosya)!"})
         else:
-            return jsonify({"success": False, "error": "Paket içerisinde SteamTools DLL dosyaları bulunamadı."})
+            return jsonify({"success": False, "error": "SteamTools dosyaları indirilemedi. İnternet bağlantınızı kontrol edin."})
             
     except Exception as e:
         logger.error(f"Failed to install SteamTools: {e}", exc_info=True)
