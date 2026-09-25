@@ -1052,17 +1052,30 @@ def get_game_details():
 @app.route("/api/bypass_status", methods=["GET"])
 def get_bypass_status():
     if not config.steam_path or not os.path.isdir(config.steam_path):
-        return jsonify({"status": "INACTIVE", "installed": False, "dlls": [], "has_plugins": False})
+        return jsonify({
+            "status": "INACTIVE",
+            "installed": False,
+            "dlls": [],
+            "has_plugins": False,
+            "steam_running": False,
+            "hook_loaded": False
+        })
     
     dlls = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
     installed_dlls = []
     for dll in dlls:
-        if os.path.isfile(os.path.join(config.steam_path, dll)):
+        dll_path = os.path.join(config.steam_path, dll)
+        if os.path.isfile(dll_path):
             installed_dlls.append(dll)
             
     st_plugin = os.path.join(config.steam_path, "config", "stplug-in")
     has_plugins = os.path.isdir(st_plugin) and len(os.listdir(st_plugin)) > 0 if os.path.isdir(st_plugin) else False
     
+    # SteamTools is installed if OpenSteamTool.dll is present AND at least one proxy dll (dwmapi or xinput1_4) is present
+    has_ost = any(d.lower() == "opensteamtool.dll" for d in installed_dlls)
+    has_proxy = any(d.lower() in ["dwmapi.dll", "xinput1_4.dll"] for d in installed_dlls)
+    installed = has_ost and has_proxy
+
     steam_running = validator.is_steam_running()
     hook_loaded = False
     
@@ -1074,7 +1087,6 @@ def get_bypass_status():
         except Exception:
             pass
             
-    installed = len(installed_dlls) > 0
     return jsonify({
         "installed": installed,
         "dlls": installed_dlls,
@@ -1113,12 +1125,16 @@ def check_steamtools_installed():
     """Checks if SteamTools hook DLLs are present in Steam directory."""
     if not config.steam_path or not os.path.isdir(config.steam_path):
         return False, []
-    target_files = ["dwmapi.dll", "xinput1_4.dll", "opensteamtool.dll"]
     present = []
-    for f in os.listdir(config.steam_path):
-        if f.lower() in target_files:
-            present.append(f)
-    is_installed = len(present) >= len(target_files)
+    try:
+        for f in os.listdir(config.steam_path):
+            if f.lower() in ["dwmapi.dll", "xinput1_4.dll", "opensteamtool.dll"]:
+                present.append(f)
+    except Exception:
+        return False, []
+    has_ost = any(f.lower() == "opensteamtool.dll" for f in present)
+    has_proxy = any(f.lower() in ["dwmapi.dll", "xinput1_4.dll"] for f in present)
+    is_installed = has_ost and has_proxy
     return is_installed, present
 
 def ensure_steamtools_installed_auto():
@@ -1196,16 +1212,26 @@ def ensure_steamtools_installed_auto():
 @app.route("/api/install_steamtools", methods=["POST"])
 def install_steamtools():
     if not config.steam_path or not os.path.isdir(config.steam_path):
-        return jsonify({"success": False, "error": "Steam kurulum dizini bulunamadı veya geçersiz."})
+        discovered = config.discover_steam_path()
+        if discovered:
+            config.steam_path = discovered
+            config.save()
+        else:
+            return jsonify({"success": False, "error": "Steam kurulum dizini bulunamadı. Lütfen Ayarlar sekmesinden Steam dizininizi seçin."})
 
-    # Check if already installed
-    is_installed, present = check_steamtools_installed()
-    if is_installed:
-        return jsonify({
-            "success": True,
-            "already_installed": True,
-            "message": "SteamTools zaten kurulu ve Steam üzerinde aktif durumda!"
-        })
+    # If Steam is currently running, terminate it so DLL files are not locked by Windows OS
+    was_steam_running = validator.is_steam_running()
+    if was_steam_running:
+        logger.info("[SteamTools Install] Steam is running. Terminating Steam gracefully before DLL installation...")
+        try:
+            validator.kill_steam()
+            for _ in range(25):
+                time.sleep(0.2)
+                if not validator.is_steam_running():
+                    break
+            time.sleep(0.6)
+        except Exception as e:
+            logger.warning(f"[SteamTools Install] Could not terminate Steam: {e}")
 
     target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
     copied = 0
@@ -1219,10 +1245,13 @@ def install_steamtools():
                 src = os.path.join(st_dir, f)
                 dst = os.path.join(config.steam_path, f)
                 if os.path.isfile(src):
-                    shutil.copy2(src, dst)
-                    copied += 1
+                    try:
+                        shutil.copy2(src, dst)
+                        copied += 1
+                    except Exception as copy_err:
+                        logger.warning(f"Could not copy {f} from bundled: {copy_err}")
             
-            # Copy signature files
+            # Copy signature files (opensteamtool)
             opensteamtool_src = os.path.join(st_dir, "opensteamtool")
             opensteamtool_dst = os.path.join(config.steam_path, "opensteamtool")
             if os.path.isdir(opensteamtool_src):
@@ -1234,43 +1263,107 @@ def install_steamtools():
                             rel_path = os.path.relpath(src_f, opensteamtool_src)
                             dst_f = os.path.join(opensteamtool_dst, rel_path)
                             os.makedirs(os.path.dirname(dst_f), exist_ok=True)
-                            shutil.copy2(src_f, dst_f)
+                            try:
+                                shutil.copy2(src_f, dst_f)
+                            except Exception:
+                                pass
 
+            # Ensure required Steam folders exist
             os.makedirs(os.path.join(config.steam_path, "config", "lua"), exist_ok=True)
             os.makedirs(os.path.join(config.steam_path, "config", "depotcache"), exist_ok=True)
             os.makedirs(os.path.join(config.steam_path, "depotcache"), exist_ok=True)
-
-            if copied >= len(target_files):
-                logger.info(f"SteamTools successfully installed from bundled files ({copied} files).")
-                return jsonify({
-                    "success": True,
-                    "already_installed": False,
-                    "message": "SteamTools kancası başarıyla kuruldu ve aktifleştirildi!"
-                })
         except Exception as err:
-            logger.warning(f"Bundled copy failed, falling back to download: {err}")
+            logger.warning(f"Bundled copy encountered issue: {err}")
 
-    # 2. Fallback: Download complete DLL set from official GitHub repository
+    # Verify if installed now
+    is_installed, present = check_steamtools_installed()
+
+    # 2. Fallback: Download complete DLL set from official GitHub repository if missing
+    if not is_installed:
+        try:
+            logger.info("Some SteamTools DLLs missing, attempting fallback download from GitHub...")
+            for f in target_files:
+                dst = os.path.join(config.steam_path, f)
+                if not os.path.isfile(dst) or os.path.getsize(dst) < 1000:
+                    url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
+                    r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=30)
+                    if r.status_code == 200 and len(r.content) > 1000:
+                        with open(dst, "wb") as out_f:
+                            out_f.write(r.content)
+                        copied += 1
+                        logger.info(f"Downloaded {f} to {dst}")
+        except Exception as e:
+            logger.warning(f"Fallback download error: {e}")
+
+    # Re-verify after all attempts
+    is_installed, present = check_steamtools_installed()
+    if is_installed:
+        msg = "SteamTools kancası başarıyla kuruldu ve aktifleştirildi!"
+        if was_steam_running:
+            msg += "\n\nKancanın devreye girmesi için Steam kapatıldı. Lütfen Steam'i şimdi tekrar başlatın veya arayüzdeki 'Steam\\'i Yeniden Başlat' butonuna tıklayın."
+        return jsonify({
+            "success": True,
+            "already_installed": False,
+            "was_steam_running": was_steam_running,
+            "message": msg
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error": "SteamTools dosyaları Steam dizinine yerleştirilemedi. Lütfen Steam'in tamamen kapalı olduğundan ve antivirüsünüzün (Windows Defender) engellemediğinden emin olun."
+        })
+
+# %%
+# API Endpoint: POST /api/clear_steam_cache
+@app.route("/api/clear_steam_cache", methods=["POST"])
+def clear_steam_cache():
+    if not config.steam_path or not os.path.isdir(config.steam_path):
+        return jsonify({"success": False, "error": "Steam kurulum dizini bulunamadı."})
+    
     try:
-        logger.info("Downloading SteamTools DLLs from GitHub...")
-        for f in target_files:
-            dst = os.path.join(config.steam_path, f)
-            if not os.path.isfile(dst):
-                url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
-                r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=30)
-                if r.status_code == 200 and len(r.content) > 1000:
-                    with open(dst, "wb") as out_f:
-                        out_f.write(r.content)
-                    copied += 1
-                    logger.info(f"Downloaded {f} to {dst}")
+        # 1. Kill steam if running
+        was_running = validator.is_steam_running()
+        if was_running:
+            validator.kill_steam()
+            for _ in range(25):
+                time.sleep(0.2)
+                if not validator.is_steam_running():
+                    break
+            time.sleep(0.8)
 
-        if copied > 0:
-            return jsonify({"success": True, "already_installed": False, "message": f"SteamTools başarıyla kuruldu ({copied} dosya)!"})
-        else:
-            return jsonify({"success": False, "error": "SteamTools dosyaları indirilemedi. İnternet bağlantınızı kontrol edin."})
-            
+        # 2. Clear corrupted ticket/manifest files from depotcache
+        cleared_items = 0
+        depotcache = os.path.join(config.steam_path, "depotcache")
+        if os.path.isdir(depotcache):
+            for f in os.listdir(depotcache):
+                if f.endswith(".manifest") or f.endswith(".vdf"):
+                    try:
+                        os.remove(os.path.join(depotcache, f))
+                        cleared_items += 1
+                    except Exception:
+                        pass
+
+        # Clear appcache httpcache
+        httpcache = os.path.join(config.steam_path, "appcache", "httpcache")
+        if os.path.isdir(httpcache):
+            try:
+                import shutil
+                shutil.rmtree(httpcache, ignore_errors=True)
+                cleared_items += 1
+            except Exception:
+                pass
+
+        # 3. Clean steam restart
+        steam_exe = os.path.join(config.steam_path, "steam.exe")
+        if os.path.isfile(steam_exe):
+            subprocess.Popen([steam_exe], cwd=config.steam_path)
+
+        return jsonify({
+            "success": True,
+            "message": "Steam indirme önbelleği başarıyla temizlendi ve Steam yeniden başlatıldı! Oyun indirme sorununuz çözülmüştür."
+        })
     except Exception as e:
-        logger.error(f"Failed to install SteamTools: {e}", exc_info=True)
+        logger.error(f"Failed to clear steam cache: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 # %%

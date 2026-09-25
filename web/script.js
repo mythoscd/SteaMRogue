@@ -381,6 +381,57 @@ function initAppLogic() {
             });
     });
 
+    // Restart Steam (from Settings box)
+    const btnRestartST = document.getElementById("btn-restart-st");
+    if (btnRestartST) {
+        btnRestartST.addEventListener("click", () => {
+            loadingMessage.textContent = "Steam istemcisi yeniden başlatılıyor...";
+            loadingOverlay.classList.add("active");
+            fetch("/api/restart_steam", { method: "POST" })
+                .then(res => res.json())
+                .then(data => {
+                    loadingOverlay.classList.remove("active");
+                    if (data.success) {
+                        alert("Steam başarıyla yeniden başlatıldı!");
+                        setTimeout(updateSteamToolsStatus, 2000);
+                    } else {
+                        alert("Yeniden başlatma başarısız: " + data.error);
+                    }
+                })
+                .catch(err => {
+                    loadingOverlay.classList.remove("active");
+                    alert("Hata: " + err);
+                });
+        });
+    }
+
+    // Clear Steam Download Cache
+    const btnClearCacheST = document.getElementById("btn-clear-cache-st");
+    if (btnClearCacheST) {
+        btnClearCacheST.addEventListener("click", async () => {
+            if (!await window.showCustomConfirm("Steam indirme önbelleği temizlenip Steam yeniden başlatılacak. Bu işlem 'İnternet bağlantısı yok' hatalarını çözer. Devam edilsin mi?")) {
+                return;
+            }
+            loadingMessage.textContent = "Steam indirme önbelleği temizleniyor ve Steam yeniden başlatılıyor...";
+            loadingOverlay.classList.add("active");
+            fetch("/api/clear_steam_cache", { method: "POST" })
+                .then(res => res.json())
+                .then(data => {
+                    loadingOverlay.classList.remove("active");
+                    if (data.success) {
+                        alert(data.message || "İndirme önbelleği temizlendi ve Steam yeniden başlatıldı!");
+                        setTimeout(updateSteamToolsStatus, 2000);
+                    } else {
+                        alert("Önbellek temizleme başarısız: " + data.error);
+                    }
+                })
+                .catch(err => {
+                    loadingOverlay.classList.remove("active");
+                    alert("Hata: " + err);
+                });
+        });
+    }
+
     // Nuke / Self-Destruct System
     const btnSelfDestruct = document.getElementById("btn-self-destruct");
     const nukeModal = document.getElementById("nuke-confirm-modal");
@@ -647,10 +698,15 @@ function initAppLogic() {
                         badge.className = "status-badge status-warning";
                         badge.style.backgroundColor = "#eab308";
                         badge.style.color = "#000000";
-                    } else {
-                        badge.textContent = "ACTIVE";
+                    } else if (data.steam_running && data.hook_loaded) {
+                        badge.textContent = "AKTİF";
                         badge.className = "status-badge status-active";
                         badge.style.backgroundColor = "#2e7d32";
+                        badge.style.color = "#ffffff";
+                    } else {
+                        badge.textContent = "KURULU (STEAM KAPALI)";
+                        badge.className = "status-badge status-active";
+                        badge.style.backgroundColor = "#2563eb";
                         badge.style.color = "#ffffff";
                     }
                     
@@ -658,20 +714,25 @@ function initAppLogic() {
                         dllsList.textContent = data.dlls.join(", ");
                         dllsList.style.color = "#81c784";
                     } else {
-                        dllsList.textContent = "None";
+                        dllsList.textContent = "Yok";
                         dllsList.style.color = "var(--text-secondary)";
                     }
                 } else {
-                    badge.textContent = "INACTIVE";
+                    badge.textContent = "PASİF";
                     badge.className = "status-badge status-inactive";
                     badge.style.backgroundColor = "#8c2020";
                     badge.style.color = "#ffffff";
-                    dllsList.textContent = "None";
+                    dllsList.textContent = "Yok";
                     dllsList.style.color = "var(--text-secondary)";
                 }
             })
             .catch(err => {
                 console.error("Error fetching bypass status:", err);
+                badge.textContent = "PASİF";
+                badge.className = "status-badge status-inactive";
+                badge.style.backgroundColor = "#8c2020";
+                badge.style.color = "#ffffff";
+                dllsList.textContent = "Yok";
             });
     }
 
