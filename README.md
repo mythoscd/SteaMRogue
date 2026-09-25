@@ -34,11 +34,12 @@ Proje 3 temel ilke üzerine inşa edilmiştir:
 ## ✨ Özellikler
 
 ### 🎮 Steam Kütüphane Entegrasyonu
-* **Doğrudan Steam Linki & AppID Desteği:** Sayısal AppID'nin yanı sıra doğrudan Steam mağaza linklerini (örn: `store.steampowered.com/app/...`) yapıştırarak oyunları tek tıkla bulup ekleyebilir, arama kutusunda canlı kapak ve ad önizlemesini anında görebilirsiniz.
+* **İsimle Arama, Steam Linki & AppID Desteği:** Sayısal AppID'nin yanı sıra doğrudan oyun adını yazarak aratabilir veya doğrudan Steam mağaza linklerini (örn: `store.steampowered.com/app/...`) yapıştırarak oyunları tek tıkla bulup ekleyebilirsiniz.
+* **Gelişmiş Kapak & Bilgi Çözümleme:** Yetişkin / yaş doğrulamalı (Cyberpunk 2077 vb.) veya paket yönlendirmeli (Counter-Strike 2, Terraria vb.) oyunların kapak ve ad bilgileri Steam Store API üzerinden eksiksiz çekilir.
 * **Orijinal Disk Seçimi:** Sahte ACF dosyalarıyla diskinizi C: sürücüsüne zorlamaz; oyunu kurarken Steam'in kendi kurulum penceresinden istediğiniz diski (C, D veya harici SSD) seçebilirsiniz.
 * **Otomatik Manifest & Lua Yönetimi:** Topluluk veritabanlarından (ProjectLightning, SPIN0ZAi, ManifestHub vb.) en güncel manifestleri otomatik çeker ve Steam'e işler.
-* **Canlı Kapak & Görsel Senkronizasyonu:** Oyun kütüphaneniz için yüksek çözünürlüklü kapak görselleri doğrudan Steam CDN üzerinden otomatik çekilir.
-* **Tek Tıkla Steam Yeniden Başlatıcı:** Steam istemcisini hiçbir onay kutusuyla uğraştırmadan tek tıkla kapatıp açar.
+* **Çevrimdışı Kanca & İmza Motoru:** OpenSteamTool `.toml` imza dosyaları kuruluma tam gömülüdür; internet kısıtlamalarında veya sıfır kurulumlarda kanca sorunsuz çalışır.
+* **Tek Tıkla Steam Yeniden Başlatıcı:** Steam istemcisini onay kutularıyla uğraşmadan tek tıkla kapatıp açar ve kütüphaneyi yeniler.
 
 ### 🌐 OnlineFix Çok Oyunculu (Multiplayer) Desteği
 * Kütüphanenizdeki veya aradığınız herhangi bir oyun için OnlineFix veritabanında anında yama taraması yapar.
@@ -83,10 +84,9 @@ Proje 3 temel ilke üzerine inşa edilmiştir:
 ## 📦 Kurulum
 
 ### 💻 Windows Kurulumu
-1. **[Releases](https://github.com/mythoscd/SteaMRogue/releases/latest)** sayfasına gidin.
-2. En son `SteaMRogue-Setup-1.x.x.exe` dosyasını indirin.
-3. İndirdiğiniz dosyaya çift tıklayın. Kurulum tamamen sessiz ve otomatiktir; saniyeler içinde masaüstünüze **SteaMRogue** kısayolu eklenecektir.
-4. Uygulama otomatik olarak `%localappdata%\Programs\steamtools-auto` dizinine kurulur, yönetici yetkisi istemez.
+1. **[En Son Sürümü İndir (v1.1.1)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.1/SteaMRogue-Setup-1.1.1.exe)** veya tüm sürümler için **[Releases](https://github.com/mythoscd/SteaMRogue/releases)** sayfasına gidin.
+2. İndirdiğiniz **`SteaMRogue-Setup-1.1.1.exe`** dosyasına çift tıklayın. Kurulum tamamen sessiz ve otomatiktir; saniyeler içinde masaüstünüze **SteaMRogue** kısayolu eklenecektir.
+3. Uygulama otomatik olarak `%localappdata%\Programs\steamtools-auto` dizinine kurulur, yönetici yetkisi istemez.
 
 > [!TIP]
 > SteaMRogue yerleşik otomatik güncelleme motoruna sahiptir. Kurulumu bir kez yaptıktan sonra gelecekteki tüm yeni sürümler uygulama içinden tek tıkla otomatik olarak alınır.
