@@ -3,7 +3,7 @@
 # 🎮 SteaMRogue
 ### Hepsi Bir Arada Steam Kütüphane Yöneticisi, OnlineFix Multiplayer & Otomatik Güncelleme Platformu
 
-[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.1.1-7c3aed?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue/releases)
+[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.1.2-7c3aed?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-0078D6?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases/latest)
 [![Teknoloji](https://img.shields.io/badge/Mimari-Electron%20%2B%20Python%203.14-success?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
 [![Otomatik Güncelleme](https://img.shields.io/badge/Otomatik%20G%C3%BCncelleme-Aktif%20(In--App)-orange?style=for-the-badge&logo=electron)](https://github.com/mythoscd/SteaMRogue)
@@ -25,11 +25,11 @@ SteaMRogue, bağımsız tek tık kurulum yürütücüsü (NSIS) ile birlikte gel
 
 ### 📥 1. İndirme
 En son kararlı sürümü doğrudan aşağıdaki bağlantıdan edinebilirsiniz:
-* ⬇️ **[SteaMRogue-Setup-1.1.1.exe (Doğrudan İndir)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.1/SteaMRogue-Setup-1.1.1.exe)**
+* ⬇️ **[SteaMRogue-Setup-1.1.2.exe (Doğrudan İndir)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.2/SteaMRogue-Setup-1.1.2.exe)**
 * 📋 Tüm geçmiş ve güncel sürümler için: **[GitHub Releases](https://github.com/mythoscd/SteaMRogue/releases)**
 
 ### ⚡ 2. Kurulum
-1. İndirdiğiniz `SteaMRogue-Setup-1.1.1.exe` dosyasını çalıştırın.
+1. İndirdiğiniz `SteaMRogue-Setup-1.1.2.exe` dosyasını çalıştırın.
 2. Kurulum otomatik olarak tamamlanır ve masaüstünüze **SteaMRogue** kısayolu eklenir.
 3. Uygulama açıldığında Steam istemcinizi otomatik olarak algılar ve kullanıma hazır hale gelir.
 
