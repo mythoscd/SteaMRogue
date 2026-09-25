@@ -1,129 +1,174 @@
 <div align="center">
 
 # 🎮 SteaMRogue
-### Hepsi Bir Arada Steam Kütüphane Yöneticisi & Multiplayer Yama Platformu
+### Hepsi Bir Arada Steam Kütüphane Yöneticisi, OnlineFix Multiplayer & Otomatik Güncelleme Platformu
 
-[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.1.1-7c3aed?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue/releases)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases)
-[![Durum](https://img.shields.io/badge/Durum-Aktif%20%26%20G%C3%BCncel-brightgreen?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
-[![Otomatik Güncelleme](https://img.shields.io/badge/Otomatik%20G%C3%BCncelleme-Aktif-orange?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue)
+[![Sürüm](https://img.shields.io/badge/S%C3%BCr%C3%BCm-v1.1.1-7c3aed?style=for-the-badge&logo=github)](https://github.com/mythoscd/SteaMRogue/releases)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-0078D6?style=for-the-badge&logo=windows)](https://github.com/mythoscd/SteaMRogue/releases/latest)
+[![Teknoloji](https://img.shields.io/badge/Mimari-Electron%20%2B%20Python%203.14-success?style=for-the-badge)](https://github.com/mythoscd/SteaMRogue)
+[![Otomatik Güncelleme](https://img.shields.io/badge/Otomatik%20G%C3%BCncelleme-Aktif%20(In--App)-orange?style=for-the-badge&logo=electron)](https://github.com/mythoscd/SteaMRogue)
+[![Lisans](https://img.shields.io/badge/Lisans-MIT-informational?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  Steam kütüphanenizi yönetin, oyunları orijinal lisanslı gibi ekleyin, çok oyunculu (OnlineFix) yamalarını tek tıkla kurun ve indirimleri takip edin — hepsi tek bir modern masaüstü uygulamasında.
+  <b>SteaMRogue</b>, Steam kütüphanenizi tek tıkla zenginleştiren, oyunları orijinal disk seçim penceresiyle entegre eden, çok oyunculu (OnlineFix) yamalarını otomatik indirip kuran ve yerleşik güncelleme motoruyla daima en son sürümde kalan yeni nesil masaüstü platformudur.
 </p>
 
-[🚀 Genel Bakış](#-genel-bakış) • [✨ Özellikler](#-özellikler) • [🛠️ Teknoloji Altyapısı](#️-teknoloji-altyapısı) • [📋 Sistem Gereksinimleri](#-sistem-gereksinimleri) • [📦 Kurulum](#-kurulum) • [❓ SSS](#-sıkça-sorulan-sorular)
+[🚀 Hızlı Başlangıç](#-hızlı-başlangıç--kurulum) • [✨ Öne Çıkan Özellikler](#-öne-çıkan-özellikler) • [🛠️ Teknoloji Mimarisi](#️-teknoloji-mimarisi) • [❓ Sıkça Sorulan Sorular (SSS)](#-sıkça-sorulan-sorular-sss) • [📦 Sürümler](https://github.com/mythoscd/SteaMRogue/releases)
 
 ---
 
 </div>
 
-## 🚀 Genel Bakış
+## 🚀 Hızlı Başlangıç & Kurulum
 
-**SteaMRogue**, oyuncuların ihtiyaç duyduğu her şeyi tek çatı altında toplayan modern bir oyun ve kütüphane platformudur.
+SteaMRogue, bağımsız tek tık kurulum yürütücüsü (NSIS) ile birlikte gelir. Yönetici (UAC) yetkisi gerektirmez ve doğrudan kullanıcı dizinine kurulur.
 
-Steam kütüphanenize doğrudan oyun entegre edin, kilitleri açın, çok oyunculu oyunlar için OnlineFix yamalarını otomatik indirip kurun ve Steam indirimlerini kaçırmayın.
+### 📥 1. İndirme
+En son kararlı sürümü doğrudan aşağıdaki bağlantıdan edinebilirsiniz:
+* ⬇️ **[SteaMRogue-Setup-1.1.1.exe (Doğrudan İndir)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.1/SteaMRogue-Setup-1.1.1.exe)**
+* 📋 Tüm geçmiş ve güncel sürümler için: **[GitHub Releases](https://github.com/mythoscd/SteaMRogue/releases)**
 
-Proje 3 temel ilke üzerine inşa edilmiştir:
-* ⚡ **Hızlı:** Hafif ve akıcı mimari, anında tepki süresi.
-* 🎮 **Basit:** Karışık dosya kopyalama işleri yok, her şey tek tıkla.
-* 💚 **Tamamen Ücretsiz:** Reklamsız, aboneliksiz, oyuncular için bağımsız ekosistem.
+### ⚡ 2. Kurulum
+1. İndirdiğiniz `SteaMRogue-Setup-1.1.1.exe` dosyasını çalıştırın.
+2. Kurulum otomatik olarak tamamlanır ve masaüstünüze **SteaMRogue** kısayolu eklenir.
+3. Uygulama açıldığında Steam istemcinizi otomatik olarak algılar ve kullanıma hazır hale gelir.
 
----
-
-## ✨ Özellikler
-
-### 🎮 Steam Kütüphane Entegrasyonu
-* **İsimle Arama, Steam Linki & AppID Desteği:** Sayısal AppID'nin yanı sıra doğrudan oyun adını yazarak aratabilir veya doğrudan Steam mağaza linklerini (örn: `store.steampowered.com/app/...`) yapıştırarak oyunları tek tıkla bulup ekleyebilirsiniz.
-* **Gelişmiş Kapak & Bilgi Çözümleme:** Yetişkin / yaş doğrulamalı (Cyberpunk 2077 vb.) veya paket yönlendirmeli (Counter-Strike 2, Terraria vb.) oyunların kapak ve ad bilgileri Steam Store API üzerinden eksiksiz çekilir.
-* **Orijinal Disk Seçimi:** Sahte ACF dosyalarıyla diskinizi C: sürücüsüne zorlamaz; oyunu kurarken Steam'in kendi kurulum penceresinden istediğiniz diski (C, D veya harici SSD) seçebilirsiniz.
-* **Otomatik Manifest & Lua Yönetimi:** Topluluk veritabanlarından (ProjectLightning, SPIN0ZAi, ManifestHub vb.) en güncel manifestleri otomatik çeker ve Steam'e işler.
-* **Çevrimdışı Kanca & İmza Motoru:** OpenSteamTool `.toml` imza dosyaları kuruluma tam gömülüdür; internet kısıtlamalarında veya sıfır kurulumlarda kanca sorunsuz çalışır.
-* **Tek Tıkla Steam Yeniden Başlatıcı:** Steam istemcisini onay kutularıyla uğraşmadan tek tıkla kapatıp açar ve kütüphaneyi yeniler.
-
-### 🌐 OnlineFix Çok Oyunculu (Multiplayer) Desteği
-* Kütüphanenizdeki veya aradığınız herhangi bir oyun için OnlineFix veritabanında anında yama taraması yapar.
-* **Gelişmiş İndirme Desteği:**
-  * ⚡ **Pixeldrain:** Yüksek hızlı doğrudan indirme.
-  * 🚀 **Gofile:** Otomatik token ve salt çözücü ile kesintisiz indirme.
-  * 🛡️ **FileDitch & Alternatif Sunucular**
-* **Otomatik Entegrasyon:** İndirilen yamayı otomatik olarak açar ve oyun dizinine kurar; dosyaları elle taşımakla uğraşmazsınız.
-
-### 🛠️ Yerleşik Araçlar & Güvenlik
-* **SteamTools Motoru:** En güncel SteamTools DLL bileşenlerini (`dwmapi.dll`, `xinput1_4.dll`, `OpenSteamTool.dll`) otomatik denetler ve entegre eder.
-* **Windows Defender Asistanı:** Yanlış virüs uyarılarını (false-positive) önlemek için Steam ve SteaMRogue klasörlerini tek tıkla Windows Güvenliği İstisnalarına ekler.
-* **Yerleşik Otomatik Güncelleme:** Yeni bir sürüm çıktığında uygulama içinde bildirim verir ve tek tıkla kendisini en güncel sürüme yükseltir.
+> [!TIP]
+> **Yerleşik Otomatik Güncelleme (In-App Auto-Update):**  
+> Kurulumu bir kez yaptıktan sonra manuel olarak yeni sürüm aramanıza gerek yoktur. SteaMRogue her açılışta güncellemeleri arka planda denetler ve yeni bir sürüm çıktığında tek tıkla kendisini günceller.
 
 ---
 
-## 🛠️ Teknoloji Altyapısı
+## ✨ Öne Çıkan Özellikler
 
-| Bileşen | Kullanılan Teknoloji |
-|---|---|
-| **Arayüz (Frontend)** | Electron, HTML5, CSS3, Modern Vanilla JavaScript |
-| **Arka Plan (Backend)** | Python 3.14 (Flask API, PyInstaller) |
-| **Veritabanı & Önbellek** | SQLite3 / Yerel JSON Cache |
-| **İndirme & Arşiv Motoru** | Requests, Özel Çözücüler, Native Zip & UnRAR |
-| **Dağıtım & Paketleme** | NSIS Installer, GitHub Releases |
+### 🎮 1. Akıllı Steam Kütüphane Entegrasyonu
+* **Çok Yönlü Arama & Ekleme:** Sayısal **AppID**, doğrudan **Oyun Adı** veya tarayıcınızdan kopyaladığınız **Steam Mağaza Linkleri** (`store.steampowered.com/app/...`) ile anında oyun arayıp ekleyin.
+* **Yaş Kısıtlamalı & Yetişkin İçerik Desteği:** Steam Store API üzerindeki yaş doğrulamalı (*Cyberpunk 2077*, *Ready or Not*, *GTA V* vb.) veya paket yönlendirmeli (*Counter-Strike 2*, *Terraria* vb.) tüm oyunların kapak resimleri ve meta verileri eksiksiz işlenir.
+* **Serbest Disk Seçimi:** Sahte ACF yapılandırmalarıyla sisteminizi C: sürücüsüne zorlamaz; oyunu kurarken Steam'in kendi kurulum penceresinden istediğiniz diski (C, D veya harici SSD) seçebilirsiniz.
+* **Otomatik Manifest & Lua Yönetimi:** Topluluk veritabanlarından (ProjectLightning, SPIN0ZAi, ManifestHub vb.) en güncel manifestleri otomatik çeker ve kütüphanenize işler.
+* **Çevrimdışı Kanca & İmza Motoru:** OpenSteamTool `.toml` imza dosyaları kurulum paketine tam gömülüdür; sıfır kurulumlarda veya ağ kısıtlamalarında kanca sorunsuz çalışır.
+* **Tek Tıkla Steam Yeniden Başlatıcı:** Kütüphane değişikliklerinin anında geçerli olması için Steam istemcisini arka plan kilitlenmelerine yol açmadan tek tıkla güvenle yeniden başlatır.
+
+### 🌐 2. OnlineFix Çok Oyunculu (Multiplayer) Desteği
+* **Doğrudan Veritabanı Taraması:** Kütüphanenizdeki veya aradığınız herhangi bir oyun için OnlineFix altyapısında anında çok oyunculu yama taraması yapar.
+* **Yüksek Hızlı İndiriciler:**
+  * ⚡ **Pixeldrain:** Yüksek hızlı doğrudan indirme motoru.
+  * 🚀 **Gofile:** Otomatik token ve sunucu çözücü ile kesintisiz indirme.
+  * 🛡️ **FileDitch & Alternatif Aynalar:** Kesintisiz yedek indirme hatları.
+* **Otomatik Kurulum & Entegrasyon:** İndirilen çok oyunculu yamaları otomatik arşivden çıkarır ve oyun dizinine uygular.
+
+### 🛡️ 3. Güvenlik & Sistem Uyumluluğu
+* **SteamTools Entegrasyonu:** En güncel SteamTools DLL bileşenlerini (`OpenSteamTool.dll`, `dwmapi.dll`, `xinput1_4.dll`) otomatik denetler ve entegre eder.
+* **Windows Defender Asistanı:** Çok oyunculu crack ve kanca dosyalarının antivirüs tarafından yanlış pozitif (false-positive) olarak engellenmesini önlemek için tek tıkla Windows Defender İstisnası oluşturur.
+* **Hafif ve Kararlı:** Minimum CPU ve RAM kullanımıyla sisteminizi yormadan arka planda veya ön planda akıcı çalışır.
+
+---
+
+## 🛠️ Teknoloji Mimarisi
+
+SteaMRogue, masaüstü deneyimini modern web teknolojilerinin esnekliği ve Python'ın veri işleme gücüyle birleştirir:
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   SteaMRogue UI                        │
+│         Electron 33 • HTML5 • Modern CSS • JS          │
+└──────────────────────────┬─────────────────────────────┘
+                           │ IPC / REST API (Port 5000)
+┌──────────────────────────▼─────────────────────────────┐
+│                 Python Arka Plan Motoru                │
+│    Flask API • Manifest & Steam Store Parser • SQLite   │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+       ┌───────────────────┴───────────────────┐
+       ▼                                       ▼
+┌──────────────┐                       ┌──────────────┐
+│ Steam Client │                       │  OnlineFix   │
+│  (Hook/DLL)  │                       │  (Multiplayer)│
+└──────────────┘                       └──────────────┘
+```
+
+| Bileşen | Teknoloji | Açıklama |
+|---|---|---|
+| **Kullanıcı Arayüzü (Frontend)** | Electron 33, HTML5, CSS3, Vanilla JS | Siberpunk mor neon temalı modern, akıcı ve duyarlı arayüz |
+| **Arka Plan Çekirdeği (Backend)** | Python 3.14 (Flask API, PyInstaller) | Manifest ayrıştırma, Steam Store API, çoklu indirme motoru |
+| **Otomatik Güncelleme** | Electron Updater & GitHub Releases | Uygulama içi tek tıkla arka plan güncellemesi |
+| **Veritabanı & Önbellek** | SQLite3 / Yerel JSON Cache | Hızlı arama ve önbellek mekanizması |
+| **Paketleyici & Kurulum** | NSIS Installer (x64) | Sessiz, kullanıcı odaklı bağımsız kurulum |
 
 ---
 
 ## 📋 Sistem Gereksinimleri
 
-| Gereksinim | Windows |
+| Gereksinim | Detay |
 |---|---|
-| **İşletim Sistemi** | Windows 10 / 11 (64-bit) |
-| **Mimari** | x64 |
-| **Steam İstemcisi** | Kurulu olmalıdır |
-| **Yönetici Yetkisi** | Kurulum için gerekmez (`%localappdata%`) |
-| **Disk Alanı** | ~150 MB (Uygulama) + İndirmeler |
-| **İnternet Bağlantısı** | Manifestler ve yama indirmeleri için gereklidir |
+| **İşletim Sistemi** | Windows 10 / Windows 11 (64-bit) |
+| **İşlemci / Mimari** | x64 Uyumlu İşlemci |
+| **Steam** | Resmi Steam istemcisi kurulu olmalıdır |
+| **Yönetici İzni** | Gerekmez (Kullanıcı profiline özel kurulum) |
+| **Disk Alanı** | ~150 MB (Uygulama) + Oyun & Yama İndirmeleri |
+| **Ağ** | Manifest ve yama indirmeleri için aktif internet bağlantısı |
 
 ---
 
-## 📦 Kurulum
+## ❓ Sıkça Sorulan Sorular (SSS)
 
-### 💻 Windows Kurulumu
-1. **[En Son Sürümü İndir (v1.1.1)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.1/SteaMRogue-Setup-1.1.1.exe)** veya tüm sürümler için **[Releases](https://github.com/mythoscd/SteaMRogue/releases)** sayfasına gidin.
-2. İndirdiğiniz **`SteaMRogue-Setup-1.1.1.exe`** dosyasına çift tıklayın. Kurulum tamamen sessiz ve otomatiktir; saniyeler içinde masaüstünüze **SteaMRogue** kısayolu eklenecektir.
-3. Uygulama otomatik olarak `%localappdata%\Programs\steamtools-auto` dizinine kurulur, yönetici yetkisi istemez.
+<details>
+<summary><b>1. Oyunu ekledim ancak indirme başlarken "İnternet bağlantısı yok" veya "Lisans yok" diyor?</b></summary>
+<br>
 
-> [!TIP]
-> SteaMRogue yerleşik otomatik güncelleme motoruna sahiptir. Kurulumu bir kez yaptıktan sonra gelecekteki tüm yeni sürümler uygulama içinden tek tıkla otomatik olarak alınır.
+Bu durum tamamen Steam istemcisinin eski indirme önbelleğini tutmasından kaynaklanır. Çözümü çok basittir:
+1. Steam'in sol üst köşesindeki **Steam** menüsüne tıklayın ve **Ayarlar**'a girin.
+2. Sol taraftaki menüden **İndirmeler** sekmesine geçin.
+3. Sayfayı aşağı kaydırarak **"İndirme Önbelleğini Temizle"** butonuna basın.
+4. Steam yeniden başladığında oyun kütüphanenizde belirecek ve indirme sorunsuz şekilde başlayacaktır.
+</details>
+
+<details>
+<summary><b>2. OnlineFix yamasıyla arkadaşlarımla nasıl oynarım?</b></summary>
+<br>
+
+Arkadaşınızla çok oyunculu oynayabilmek için:
+1. İkinizin de aynı oyunu Steam kütüphanesine eklemiş olması gerekir.
+2. SteaMRogue arayüzünden ilgili oyun için **OnlineFix yamasını** indirip uygulayın.
+3. Oyunu Steam üzerinden başlatın ve Steam arayüzü (**Shift + Tab**) aracılığıyla arkadaşınızı lobiye davet edin.
+</details>
+
+<details>
+<summary><b>3. Antivirüs veya Windows Defender uyarı verirse ne yapmalıyım?</b></summary>
+<br>
+
+Çok oyunculu crack ve kanca dosyaları (SteamTools DLL'leri), oyun fonksiyonlarını yönlendirdikleri için bazı antivirüsler tarafından yanlış pozitif (*false-positive*) olarak algılanabilir. SteaMRogue arayüzündeki **"Defender İstisnası Ekle"** butonunu kullanarak Steam ve uygulama klasörlerini güvenli istisnalara ekleyebilirsiniz.
+</details>
+
+<details>
+<summary><b>4. Oyuna yeni bir yama veya güncelleme geldiğinde ne yapmalıyım?</b></summary>
+<br>
+
+SteaMRogue, kütüphanenizdeki oyunların manifestlerini otomatik olarak senkronize eder. Oyuna resmi güncelleme geldiğinde doğrudan Steam üzerinden indirmeyi başlatabilirsiniz. Herhangi bir takılma durumunda Steam indirme önbelleğini temizlemeniz yeterlidir.
+</details>
+
+<details>
+<summary><b>5. Otomatik güncelleme nasıl çalışır?</b></summary>
+<br>
+
+SteaMRogue başlatıldığında GitHub üzerindeki en son sürümü kontrol eder. Yeni bir sürüm bulunduğunda arka planda indirilir ve ana ekranda **"Güncelleme Hazır"** bildirimi belirir. Butona tıkladığınızda uygulama saniyeler içinde kendini güncelleyip yeniden başlar.
+</details>
 
 ---
 
-## ❓ Sıkça Sorulan Sorular
+## 🤝 Katkıda Bulunma & Destek
 
-<details>
-<summary><b>1. Oyun kütüphaneme gelmedi veya indirme başlatırken "İnternet bağlantısı yok" hatası alıyorum?</b></summary>
-Bu durum Steam'in eski indirme önbelleğini tutmasından kaynaklanır. Çözümü çok basittir:
-1. Steam'in sol üst köşesindeki <b>Steam</b> yazısına tıklayıp <b>Ayarlar</b>'a girin.
-2. Sol menüden <b>İndirmeler</b> sekmesine gelin.
-3. Sayfayı çok az aşağı kaydırıp <b>"İndirme Önbelleğini Temizle"</b> butonuna tıklayın.
-4. Steam kendini yeniden başlattığında oyun kütüphanenizde belirecek ve indirme sorunu tamamen çözülecektir.
-</details>
+SteaMRogue açık bir projedir. Geri bildirimleriniz, önerileriniz ve katkılarınız projeyi daha ileriye taşımaktadır.
 
-<details>
-<summary><b>2. İndirdiğim OnlineFix yamaları güvenli mi?</b></summary>
-Tüm yamalar doğrudan resmi OnlineFix kaynaklarından çekilir. Bazı antivirüs yazılımları çok oyunculu crack ve DLL dosyalarını yanlış pozitif (false-positive) olarak algılayabilir. Bu durumda arayüzdeki "Dışlamayı Uygula" özelliğini kullanabilirsiniz.
-</details>
-
-<details>
-<summary><b>3. Oyuna yeni bir güncelleme geldiğinde ne yapmalıyım?</b></summary>
-SteaMRogue her açılışta kütüphanenizdeki oyunların manifestlerini otomatik olarak denetler ve yeniler. Oyuna yeni bir güncelleme geldiğinde doğrudan Steam üzerinden güncellemeyi başlatabilirsiniz. İndirme takılırsa Steam indirme önbelleğini temizlemeniz yeterlidir.
-</details>
-
-<details>
-<summary><b>4. OnlineFix yamasıyla arkadaşlarımla nasıl çok oyunculu oynayabilirim?</b></summary>
-Arkadaşınızla birlikte oynayabilmek için ikinizin de aynı oyuna ve aynı OnlineFix yamasına sahip olması gerekir. Yamayı entegre ettikten sonra oyunu başlatıp Steam arayüzü (Shift + Tab) üzerinden birbirinizi lobiye davet edebilirsiniz.
-</details>
+* 🐛 Bir hata mı buldunuz? [GitHub Issues](https://github.com/mythoscd/SteaMRogue/issues) üzerinden bildirin.
+* 💡 Yeni bir özellik mi öneriyorsunuz? Bir öneri konusu açın veya Pull Request gönderin.
+* ⭐ Projeyi beğendiyseniz sağ üst köşeden bir **Yıldız (Star)** bırakmayı unutmayın!
 
 ---
 
 <div align="center">
 
 🎮 **Senin kütüphanen, senin kuralların.**  
-*SteaMRogue'u beğendiyseniz projeye bir yıldız (⭐) bırakarak destek olabilirsiniz!*
+Made with ❤️ by [mythoscd](https://github.com/mythoscd)
 
 </div>

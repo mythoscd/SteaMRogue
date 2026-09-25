@@ -1,7 +1,7 @@
 {
   "name": "steamrogue",
-  "version": "1.1.0",
-  "description": "SteamTools Auto Game Adder GUI",
+  "version": "1.1.1",
+  "description": "Hepsi Bir Arada Steam Kütüphane Yöneticisi, OnlineFix Multiplayer Entegrasyonu & Otomatik Güncelleme Platformu",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

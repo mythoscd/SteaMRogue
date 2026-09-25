@@ -64,7 +64,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.0.10"
+APP_VERSION = "1.1.1"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -1063,11 +1063,24 @@ def get_bypass_status():
     st_plugin = os.path.join(config.steam_path, "config", "stplug-in")
     has_plugins = os.path.isdir(st_plugin) and len(os.listdir(st_plugin)) > 0 if os.path.isdir(st_plugin) else False
     
+    steam_running = validator.is_steam_running()
+    hook_loaded = False
+    
+    if steam_running and installed:
+        try:
+            output = subprocess.check_output('tasklist /m OpenSteamTool.dll /fo csv /nh', shell=True, encoding="utf-8", errors="ignore")
+            if "steam.exe" in output.lower():
+                hook_loaded = True
+        except Exception:
+            pass
+            
     installed = len(installed_dlls) > 0
     return jsonify({
         "installed": installed,
         "dlls": installed_dlls,
         "has_plugins": has_plugins,
+        "steam_running": steam_running,
+        "hook_loaded": hook_loaded,
         "status": "ACTIVE" if installed else "INACTIVE"
     })
 
@@ -1134,21 +1147,43 @@ def ensure_steamtools_installed_auto():
                         logger.info(f"[SteamTools Auto-Setup] Auto-installed {f} to {dst}")
                     except Exception as e:
                         logger.warning(f"[SteamTools Auto-Setup] Failed to copy {f}: {e}")
+            
+            # Recursively copy opensteamtool signature files
+            opensteamtool_src = os.path.join(st_dir, "opensteamtool")
+            opensteamtool_dst = os.path.join(config.steam_path, "opensteamtool")
+            if os.path.isdir(opensteamtool_src):
+                try:
+                    os.makedirs(opensteamtool_dst, exist_ok=True)
+                    for root, _, files in os.walk(opensteamtool_src):
+                        for f in files:
+                            if f.endswith(".toml"):
+                                src_f = os.path.join(root, f)
+                                rel_path = os.path.relpath(src_f, opensteamtool_src)
+                                dst_f = os.path.join(opensteamtool_dst, rel_path)
+                                os.makedirs(os.path.dirname(dst_f), exist_ok=True)
+                                shutil.copy2(src_f, dst_f)
+                except Exception as e:
+                    logger.warning(f"[SteamTools Auto-Setup] Failed to copy opensteamtool signature files: {e}")
         
         # If OpenSteamTool.dll or others are still missing, fetch directly from GitHub
         for f in target_files:
             dst = os.path.join(config.steam_path, f)
-            if not os.path.isfile(dst):
+            if not os.path.isfile(dst) or os.path.getsize(dst) < 10000:
                 try:
                     url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
                     r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=20)
-                    if r.status_code == 200 and len(r.content) > 1000:
+                    if r.status_code == 200 and len(r.content) > 10000:
                         with open(dst, "wb") as out_f:
                             out_f.write(r.content)
                         installed_count += 1
                         logger.info(f"[SteamTools Auto-Setup] Auto-downloaded {f} from GitHub to {dst}")
                 except Exception as ex:
                     logger.warning(f"[SteamTools Auto-Setup] Failed downloading {f}: {ex}")
+
+        # Ensure required Steam folders exist for stplug-in
+        os.makedirs(os.path.join(config.steam_path, "config", "lua"), exist_ok=True)
+        os.makedirs(os.path.join(config.steam_path, "config", "depotcache"), exist_ok=True)
+        os.makedirs(os.path.join(config.steam_path, "depotcache"), exist_ok=True)
 
         logger.info(f"[SteamTools Auto-Setup] Auto-setup complete ({installed_count} files installed).")
         return True
@@ -1186,6 +1221,25 @@ def install_steamtools():
                 if os.path.isfile(src):
                     shutil.copy2(src, dst)
                     copied += 1
+            
+            # Copy signature files
+            opensteamtool_src = os.path.join(st_dir, "opensteamtool")
+            opensteamtool_dst = os.path.join(config.steam_path, "opensteamtool")
+            if os.path.isdir(opensteamtool_src):
+                os.makedirs(opensteamtool_dst, exist_ok=True)
+                for root, _, files in os.walk(opensteamtool_src):
+                    for f in files:
+                        if f.endswith(".toml"):
+                            src_f = os.path.join(root, f)
+                            rel_path = os.path.relpath(src_f, opensteamtool_src)
+                            dst_f = os.path.join(opensteamtool_dst, rel_path)
+                            os.makedirs(os.path.dirname(dst_f), exist_ok=True)
+                            shutil.copy2(src_f, dst_f)
+
+            os.makedirs(os.path.join(config.steam_path, "config", "lua"), exist_ok=True)
+            os.makedirs(os.path.join(config.steam_path, "config", "depotcache"), exist_ok=True)
+            os.makedirs(os.path.join(config.steam_path, "depotcache"), exist_ok=True)
+
             if copied >= len(target_files):
                 logger.info(f"SteamTools successfully installed from bundled files ({copied} files).")
                 return jsonify({
@@ -1615,8 +1669,37 @@ def add_game():
     appid = validator.extract_appid(raw_appid)
     
     if not appid:
-        return jsonify({"success": False, "error": "AppID veya geçerli Steam linki gereklidir"})
+        return jsonify({"success": False, "error": "AppID, geçerli Steam linki veya oyun adı gereklidir"})
         
+    resolved_name = f"Steam App {appid}"
+    
+    if not appid.isdigit():
+        # Try to resolve name to AppID via Steam API
+        results = SteamAPI.search_store(raw_appid)
+        if results and len(results) > 0:
+            appid = results[0]["id"]
+            resolved_name = results[0]["name"]
+        else:
+            return jsonify({"success": False, "error": f"'{raw_appid}' aramasına uygun oyun bulunamadı."})
+    else:
+        # Try to get the name from cache or details
+        cache_path = get_cache_path()
+        with _names_cache_lock:
+            current_cache = {}
+            if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
+                try:
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        current_cache = json.load(f)
+                except Exception:
+                    pass
+            cached = current_cache.get(appid)
+            if cached and isinstance(cached, dict) and cached.get("name") != f"Steam App {appid}":
+                resolved_name = cached.get("name")
+            else:
+                details = SteamAPI.get_app_details(appid)
+                if details:
+                    resolved_name = details.get("name", resolved_name)
+                    
     try:
         # Check validation of AppID first
         appid = validator.validate_appid(appid)
@@ -1634,7 +1717,7 @@ def add_game():
     thread = threading.Thread(target=add_game_thread_worker, args=(appid,), daemon=True)
     thread.start()
     
-    return jsonify({"success": True})
+    return jsonify({"success": True, "appid": appid, "name": resolved_name})
 
 # %%
 # API Endpoint: GET /api/add_status

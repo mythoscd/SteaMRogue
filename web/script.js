@@ -608,7 +608,11 @@ function initAppLogic() {
                         loadingOverlay.classList.remove("active");
                         appidInput.value = "";
                         loadLibrary(); // Reload list
-                        alert("Oyun başarıyla eklendi!\n\nDeğişikliklerin görünmesi için yukarıdaki 'Steam'i Yeniden Başlat' butonuna tıklayarak Steam'i yeniden başlatabilirsiniz.");
+                        showCustomConfirm("Oyun kütüphaneye eklendi!\n\nSteam'de hemen görünmesi için Steam'i şimdi yeniden başlatmak ister misiniz?").then((yes) => {
+                            if (yes) {
+                                btnRestartSteam.click();
+                            }
+                        });
                     } else if (data.status === "failed") {
                         clearInterval(pollInterval);
                         loadingOverlay.classList.remove("active");
@@ -638,10 +642,17 @@ function initAppLogic() {
             .then(res => res.json())
             .then(data => {
                 if (data.installed) {
-                    badge.textContent = "ACTIVE";
-                    badge.className = "status-badge status-active";
-                    badge.style.backgroundColor = "#2e7d32";
-                    badge.style.color = "#ffffff";
+                    if (data.steam_running && !data.hook_loaded) {
+                        badge.textContent = "YENİDEN BAŞLATMA GEREKLİ";
+                        badge.className = "status-badge status-warning";
+                        badge.style.backgroundColor = "#eab308";
+                        badge.style.color = "#000000";
+                    } else {
+                        badge.textContent = "ACTIVE";
+                        badge.className = "status-badge status-active";
+                        badge.style.backgroundColor = "#2e7d32";
+                        badge.style.color = "#ffffff";
+                    }
                     
                     if (data.dlls && data.dlls.length > 0) {
                         dllsList.textContent = data.dlls.join(", ");
