@@ -88,16 +88,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. API & DATA CONTROLLERS
     initAppLogic();
 
-    // Sync version badge dynamically from backend
-    fetch('/api/health')
-        .then(r => r.json())
-        .then(data => {
-            if (data && data.version) {
-                const badge = document.querySelector('.version-badge');
-                if (badge) badge.textContent = `v${data.version}`;
-            }
-        })
-        .catch(() => {});
+    // Sync version badge dynamically from Electron core or backend
+    const updateVersionBadges = (ver) => {
+        if (!ver) return;
+        const cleanVer = ver.replace(/^v/, '');
+        const topBadge = document.getElementById("app-version-badge") || document.querySelector('.version-badge');
+        if (topBadge) topBadge.textContent = `v${cleanVer}`;
+        const settingsBadge = document.getElementById("settings-app-version-badge");
+        if (settingsBadge) settingsBadge.textContent = `v${cleanVer}`;
+    };
+
+    if (window.electronAPI && typeof window.electronAPI.getAppVersion === 'function') {
+        window.electronAPI.getAppVersion().then(updateVersionBadges).catch(() => {});
+    } else {
+        fetch('/api/health')
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.version) updateVersionBadges(data.version);
+            })
+            .catch(() => {});
+    }
 
     requestAnimationFrame(() => {
         if (window.electronAPI && window.electronAPI.sendRendererReady) {
