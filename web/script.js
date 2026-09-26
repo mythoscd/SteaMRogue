@@ -4,7 +4,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     // CUSTOM ALERT / CONFIRM GLOBAL OVERRIDES
-    function showCustomAlert(message) {
+    function showCustomAlert(message, title = "SteaMRogue") {
         return new Promise((resolve) => {
             const modal = document.getElementById("custom-alert-modal");
             const msgEl = document.getElementById("custom-modal-message");
@@ -13,17 +13,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const btnClose = document.getElementById("custom-alert-close");
             const titleEl = document.getElementById("custom-modal-title");
 
-            titleEl.textContent = "SteaMRogue";
-            msgEl.textContent = message;
-            btnCancel.style.display = "none";
-            btnConfirm.textContent = "Tamam";
+            if (titleEl) titleEl.textContent = title || "SteaMRogue";
+            if (msgEl) msgEl.textContent = message;
+            if (btnCancel) btnCancel.style.display = "none";
+            if (btnConfirm) btnConfirm.textContent = "Tamam";
 
-            modal.classList.add("active");
+            if (modal) modal.classList.add("active");
 
             const close = () => {
-                modal.classList.remove("active");
-                btnConfirm.removeEventListener("click", onOk);
-                btnClose.removeEventListener("click", close);
+                if (modal) modal.classList.remove("active");
+                if (btnConfirm) btnConfirm.removeEventListener("click", onOk);
+                if (btnClose) btnClose.removeEventListener("click", close);
                 resolve();
             };
 
@@ -31,12 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 close();
             };
 
-            btnConfirm.addEventListener("click", onOk);
-            btnClose.addEventListener("click", close);
+            if (btnConfirm) btnConfirm.addEventListener("click", onOk);
+            if (btnClose) btnClose.addEventListener("click", close);
         });
     }
 
-    function showCustomConfirm(message) {
+    function showCustomConfirm(message, title = "Onay Gerekli", okText = "Tamam", cancelText = "İptal") {
         return new Promise((resolve) => {
             const modal = document.getElementById("custom-alert-modal");
             const msgEl = document.getElementById("custom-modal-message");
@@ -45,19 +45,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const btnClose = document.getElementById("custom-alert-close");
             const titleEl = document.getElementById("custom-modal-title");
 
-            titleEl.textContent = "Onay Gerekli";
-            msgEl.textContent = message;
-            btnCancel.style.display = "block";
-            btnConfirm.textContent = "Tamam";
-            btnCancel.textContent = "İptal";
+            if (titleEl) titleEl.textContent = title || "Onay Gerekli";
+            if (msgEl) msgEl.textContent = message;
+            if (btnCancel) {
+                btnCancel.style.display = "block";
+                btnCancel.textContent = cancelText || "İptal";
+            }
+            if (btnConfirm) btnConfirm.textContent = okText || "Tamam";
 
-            modal.classList.add("active");
+            if (modal) modal.classList.add("active");
 
             const cleanup = () => {
-                modal.classList.remove("active");
-                btnConfirm.removeEventListener("click", onYes);
-                btnCancel.removeEventListener("click", onNo);
-                btnClose.removeEventListener("click", onNo);
+                if (modal) modal.classList.remove("active");
+                if (btnConfirm) btnConfirm.removeEventListener("click", onYes);
+                if (btnCancel) btnCancel.removeEventListener("click", onNo);
+                if (btnClose) btnClose.removeEventListener("click", onNo);
             };
 
             const onYes = () => {
@@ -70,13 +72,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 resolve(false);
             };
 
-            btnConfirm.addEventListener("click", onYes);
-            btnCancel.addEventListener("click", onNo);
-            btnClose.addEventListener("click", onNo);
+            if (btnConfirm) btnConfirm.addEventListener("click", onYes);
+            if (btnCancel) btnCancel.addEventListener("click", onNo);
+            if (btnClose) btnClose.addEventListener("click", onNo);
         });
     }
 
     window.alert = showCustomAlert;
+    window.showCustomAlert = showCustomAlert;
+    window.confirm = showCustomConfirm;
     window.showCustomConfirm = showCustomConfirm;
 
     // 1. CLOCK LOGIC
@@ -1914,10 +1918,11 @@ function initAppLogic() {
         });
     }
 
-    function cancelOnlinefixDownload() {
+    async function cancelOnlinefixDownload() {
         if (!currentDlTaskId) return;
 
-        if (confirm("İndirme işlemini iptal etmek istediğinize emin misiniz?")) {
+        const wantCancel = await showCustomConfirm("İndirme işlemini iptal etmek istediğinize emin misiniz?", "İndirmeyi İptal Et", "Evet, İptal Et", "Devam Et");
+        if (wantCancel) {
             fetch("/api/onlinefix/cancel", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -2077,9 +2082,16 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         });
     }
 
+    let isHotfixAction = false;
+
     if (btnRepairUpdate) {
-        btnRepairUpdate.addEventListener("click", () => {
-            const confirmRepair = confirm("SteaMRogue'un en son sürümü GitHub üzerinden temiz olarak indirilip kurulacak.\n\nBu işlem mevcut dosyalarınızı onarır ve en güncel sürüme yükseltir. Devam etmek istiyor musunuz?");
+        btnRepairUpdate.addEventListener("click", async () => {
+            const confirmRepair = await showCustomConfirm(
+                "SteaMRogue'un en son sürümü GitHub üzerinden temiz olarak indirilip kurulacak.\n\nBu işlem mevcut dosyalarınızı onarır ve en güncel sürüme yükseltir. Devam etmek istiyor musunuz?",
+                "Sürümü Onar & Yeniden Yükle",
+                "Evet, İndir ve Kur",
+                "İptal"
+            );
             if (confirmRepair) {
                 btnRepairUpdate.disabled = true;
                 btnRepairUpdate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İndiriliyor...';
@@ -2131,17 +2143,45 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "#10b981";
             }
             if (isManualCheck) {
-                alert(`✅ SteaMRogue Güncel!\n\nŞu anda en son sürümü (${ver}) kullanıyorsunuz. Yeni bir güncelleme veya yama bulunmuyor.`);
+                showCustomAlert(`Şu anda en son sürümü (${ver}) kullanıyorsunuz. Yeni bir güncelleme bulunmuyor.`, "SteaMRogue Güncel");
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
+            const ver = data.version ? `v${data.version}` : 'v1.1.2';
+            isHotfixAction = true;
             if (updateStatusText) {
-                updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #f59e0b;"></i> GitHub'da mevcut sürüm (v${data.version || ''}) için güncellenmiş yeni bir paket yayınlandı!`;
-                updateStatusText.style.color = "#f59e0b";
+                updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #a78bfa;"></i> GitHub'da güncellenmiş yeni bir paket (${ver}) yayınlandı!`;
+                updateStatusText.style.color = "#a78bfa";
             }
-            const wantHotfix = confirm(`🎉 Yeni Güncelleme / Düzeltme Paketi Yayında!\n\nGitHub üzerinde sürüm v${data.version || ''} için güncellenmiş yeni bir paket bulundu.\n\nŞimdi indirilip kurulsun mu?`);
-            if (wantHotfix && window.electronAPI.repairAndReinstall) {
-                window.electronAPI.repairAndReinstall();
+            if (banner) {
+                banner.style.display = "block";
+                if (progContainer) progContainer.style.display = "none";
+                if (title) title.textContent = "Yeni Güncelleme Mevcut!";
+                if (badge) {
+                    badge.textContent = ver;
+                    badge.style.display = "inline-block";
+                }
+                if (desc) desc.textContent = `GitHub üzerinde ${ver} sürümü için güncellenmiş yeni bir kurulum paketi yayınlandı.`;
+                if (actions) {
+                    actions.style.display = "flex";
+                    btnRestart.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Şimdi İndir & Kur';
+                    btnRestart.disabled = false;
+                }
+                if (icon) icon.className = "fa-solid fa-sparkles";
+                if (iconWrapper) iconWrapper.className = "update-icon-wrapper";
+            }
+            if (isManualCheck) {
+                isManualCheck = false;
+                showCustomConfirm(
+                    `GitHub üzerinde ${ver} sürümü için güncellenmiş yeni bir paket yayınlandı.\n\nŞimdi indirilip kurulsun mu?`,
+                    "Güncelleme Paketi Mevcut",
+                    "Şimdi İndir ve Kur",
+                    "Daha Sonra"
+                ).then((wantHotfix) => {
+                    if (wantHotfix && window.electronAPI.repairAndReinstall) {
+                        window.electronAPI.repairAndReinstall();
+                    }
+                });
             }
         } else if (data.status === "dev-mode") {
             if (updateStatusText) {
@@ -2149,7 +2189,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "#f59e0b";
             }
             if (isManualCheck) {
-                alert("ℹ️ Geliştirici Modu: Uygulama kaynak kodundan çalıştırıldığı için güncelleme kontrolü geliştirici modunda yanıt verdi. Kurulu (.exe) sürümde güncellemeler otomatik olarak indirilir ve uygulanır.");
+                showCustomAlert("Uygulama kaynak kodundan çalıştırıldığı için güncelleme kontrolü geliştirici modunda yanıt verdi. Kurulu (.exe) sürümde güncellemeler otomatik olarak indirilir ve uygulanır.", "Geliştirici Modu");
                 isManualCheck = false;
             }
         } else if (data.status === "available") {
@@ -2186,8 +2226,10 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
             }
         } else if (data.status === "downloaded") {
+            const ver = data.version ? `v${data.version}` : 'v1.1.2';
+            isHotfixAction = false;
             if (updateStatusText) {
-                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (v${data.version || ''})! Yeniden başlatabilirsiniz.`;
+                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (${ver})! Yeniden başlatabilirsiniz.`;
                 updateStatusText.style.color = "#10b981";
             }
             if (banner) {
@@ -2195,11 +2237,15 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (progContainer) progContainer.style.display = "none";
                 if (title) title.textContent = "Kurulum Hazır!";
                 if (badge) {
-                    badge.textContent = `v${data.version || ''}`;
+                    badge.textContent = ver;
                     badge.style.display = "inline-block";
                 }
                 if (desc) desc.textContent = "İndirme tamamlandı. Yenilikleri uygulamak için şimdi yeniden başlatın.";
-                if (actions) actions.style.display = "flex";
+                if (actions) {
+                    actions.style.display = "flex";
+                    btnRestart.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Şimdi Güncelle & Yeniden Başlat';
+                    btnRestart.disabled = false;
+                }
                 if (icon) icon.className = "fa-solid fa-circle-check";
                 if (iconWrapper) iconWrapper.className = "update-icon-wrapper success";
             }
@@ -2210,7 +2256,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "#ef4444";
             }
             if (isManualCheck) {
-                alert(`⚠️ Güncelleme Kontrolü Hatası:\n${data.error || 'Sunucuya veya GitHub releases bağlantısı sağlanamadı.'}`);
+                showCustomAlert(`Güncelleme denetlenirken bir hata oluştu:\n${data.error || 'Sunucuya veya GitHub releases bağlantısı sağlanamadı.'}`, "Güncelleme Hatası");
                 isManualCheck = false;
             }
         }
@@ -2219,9 +2265,16 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
     if (btnRestart) {
         btnRestart.addEventListener("click", () => {
             btnRestart.disabled = true;
-            btnRestart.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yeniden Başlatılıyor...';
-            if (window.electronAPI.restartAndUpdate) {
-                window.electronAPI.restartAndUpdate();
+            if (isHotfixAction) {
+                btnRestart.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İndiriliyor...';
+                if (window.electronAPI.repairAndReinstall) {
+                    window.electronAPI.repairAndReinstall();
+                }
+            } else {
+                btnRestart.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yeniden Başlatılıyor...';
+                if (window.electronAPI.restartAndUpdate) {
+                    window.electronAPI.restartAndUpdate();
+                }
             }
         });
     }
@@ -3102,9 +3155,12 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                     });
                 } else {
                     // Otomatik bulunamadıysa kullanıcıya güvenli fallback sun
-                    const fallbackManual = confirm(
+                    const fallbackManual = await showCustomConfirm(
                         `"${game.name}" oyunu bilgisayarınızdaki Steam kütüphanelerinde (C:, D:, E: vb.) otomatik tespit edilemedi.\n\n` +
-                        `Oyununuz yüklüyse veya farklı bir klasöre kurulduysa, klasörü şimdi kendiniz seçmek ister misiniz?`
+                        `Oyununuz yüklüyse veya farklı bir klasöre kurulduysa, klasörü şimdi kendiniz seçmek ister misiniz?`,
+                        "Oyun Klasörü Bulunamadı",
+                        "Klasörü Seç",
+                        "İptal"
                     );
                     if (fallbackManual) {
                         applyBtnText.textContent = 'Oyun klasörü seçiliyor...';
@@ -3170,9 +3226,12 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
 
         const normalized = destDir.toLowerCase().replace(/\\/g, '/');
         if (!normalized.includes('steamapps/common')) {
-            const proceedAnyway = confirm(
+            const proceedAnyway = await showCustomConfirm(
                 "Seçilen klasör 'steamapps/common' altında görünmüyor:\n\n" + destDir +
-                "\n\nYine de bu klasöre fix uygulamak istediğinize emin misiniz?"
+                "\n\nYine de bu klasöre fix uygulamak istediğinize emin misiniz?",
+                "Klasör Uyarısı",
+                "Yine de Devam Et",
+                "İptal"
             );
             if (!proceedAnyway) {
                 resetApplyBtn();
