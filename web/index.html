@@ -28,7 +28,7 @@
         <header class="app-header">
             <div class="logo-group">
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
-                <span class="version-badge" id="app-version-badge">v1.1.1</span>
+                <span class="version-badge" id="app-version-badge">v1.1.2</span>
             </div>
             <nav class="nav-tabs">
                 <button class="tab-btn active" data-tab="lightning-tools"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
@@ -247,6 +247,30 @@
                 <div class="settings-container">
                     <h2 class="section-title">Uygulama Ayarları</h2>
                     <div class="panel-card">
+                        <div class="settings-group">
+                            <label><i class="fa-solid fa-arrows-rotate" style="color: var(--accent-purple); margin-right: 6px;"></i> SteaMRogue Güncelleme Durumu</label>
+                            <span class="settings-helper" style="margin-bottom: 12px; display: block;">
+                                Uygulama GitHub Releases üzerinden otomatik olarak güncellenir. Dilediğiniz zaman manuel olarak da yeni sürüm kontrolü yapabilirsiniz.
+                            </span>
+                            <div style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <strong style="color: var(--text-primary); font-size: 0.95rem;">Mevcut Sürüm:</strong>
+                                        <span class="status-badge status-active" id="settings-app-version-badge" style="background-color: #7c3aed; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">v1.1.2</span>
+                                    </div>
+                                    <p id="app-update-status-text" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Otomatik güncelleme motoru aktif.</p>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" id="btn-check-app-update" style="padding: 8px 16px; font-size: 0.82rem;">
+                                        <i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle
+                                    </button>
+                                    <button class="btn btn-secondary" id="btn-repair-app-update" style="padding: 8px 16px; font-size: 0.82rem; background-color: rgba(255,255,255,0.08);" title="Sürüm değişmemiş olsa bile GitHub'daki en güncel kurulum dosyasını sıfırdan indirir ve kurar">
+                                        <i class="fa-solid fa-wrench"></i> Son Sürümü Yeniden İndir / Onar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="settings-divider">
                         <div class="settings-group">
                             <label for="steam-path-input">Steam Kurulum Dizini</label>
                             <div class="path-input-wrapper">

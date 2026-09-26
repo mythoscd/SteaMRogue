@@ -62,6 +62,12 @@ En son kararlı sürümü doğrudan aşağıdaki bağlantıdan edinebilirsiniz:
 * **Windows Defender Asistanı:** Çok oyunculu crack ve kanca dosyalarının antivirüs tarafından yanlış pozitif (false-positive) olarak engellenmesini önlemek için tek tıkla Windows Defender İstisnası oluşturur.
 * **Hafif ve Kararlı:** Minimum CPU ve RAM kullanımıyla sisteminizi yormadan arka planda veya ön planda akıcı çalışır.
 
+### 🔄 4. Hibrit Otomatik Güncelleme & Onarım Sistemi
+* **Kesintisiz Arka Plan Taraması:** Uygulama açılışında yeni sürümler otomatik olarak denetlenir ve arka planda güvenle indirilir.
+* **Akıllı Tarih & Hash Algılama:** Sürüm numarası artırılmasa bile (`1.1.2 == 1.1.2`), GitHub üzerindeki en son yayın tarihi ve SHA-512 dosya imzası taranarak en güncel düzeltmeler anında algılanır.
+* **Tek Tıkla Güncelleme & Onarım:** Ayarlar sekmesinde bulunan **"Güncellemeleri Denetle"** ile anlık durum sorgulaması yapabilir, **"Son Sürümü Yeniden İndir / Onar"** butonu ile olası bozulmalarda en son sürüm kurulum paketini tek tıkla temiz olarak kurabilirsiniz.
+* **Tam Dinamik Sürüm Senkronizasyonu:** Arayüzdeki tüm sürüm etiketleri doğrudan Electron çekirdeğinden dinamik beslenir; eski yazı kalması tamamen engellenmiştir.
+
 ---
 
 ## 🛠️ Teknoloji Mimarisi
@@ -91,7 +97,7 @@ SteaMRogue, masaüstü deneyimini modern web teknolojilerinin esnekliği ve Pyth
 |---|---|---|
 | **Kullanıcı Arayüzü (Frontend)** | Electron 33, HTML5, CSS3, Vanilla JS | Siberpunk mor neon temalı modern, akıcı ve duyarlı arayüz |
 | **Arka Plan Çekirdeği (Backend)** | Python 3.14 (Flask API, PyInstaller) | Manifest ayrıştırma, Steam Store API, çoklu indirme motoru |
-| **Otomatik Güncelleme** | Electron Updater & GitHub Releases | Uygulama içi tek tıkla arka plan güncellemesi |
+| **Otomatik Güncelleme** | Electron Updater & GitHub Releases | Hibrit güncelleme motoru (SemVer + Tarih & Hash kontrolü + Manuel onarım) |
 | **Veritabanı & Önbellek** | SQLite3 / Yerel JSON Cache | Hızlı arama ve önbellek mekanizması |
 | **Paketleyici & Kurulum** | NSIS Installer (x64) | Sessiz, kullanıcı odaklı bağımsız kurulum |
 

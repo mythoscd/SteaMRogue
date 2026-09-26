@@ -2028,6 +2028,62 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
     const btnLater = document.getElementById("btn-updater-later");
     const btnClose = document.getElementById("btn-updater-close");
 
+    const btnCheckUpdate = document.getElementById("btn-check-app-update");
+    const btnRepairUpdate = document.getElementById("btn-repair-app-update");
+    const updateStatusText = document.getElementById("app-update-status-text");
+
+    // Dynamic app version initialization from Electron core
+    if (typeof window.electronAPI.getAppVersion === 'function') {
+        window.electronAPI.getAppVersion().then(ver => {
+            if (ver) {
+                const topBadge = document.getElementById("app-version-badge");
+                if (topBadge) topBadge.textContent = `v${ver}`;
+                const settingsBadge = document.getElementById("settings-app-version-badge");
+                if (settingsBadge) settingsBadge.textContent = `v${ver}`;
+            }
+        }).catch(console.error);
+    }
+
+    let isManualCheck = false;
+
+    if (btnCheckUpdate) {
+        btnCheckUpdate.addEventListener("click", () => {
+            isManualCheck = true;
+            btnCheckUpdate.disabled = true;
+            btnCheckUpdate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Denetleniyor...';
+            if (updateStatusText) {
+                updateStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: var(--accent-purple);"></i> GitHub üzerinden yeni sürüm kontrolü yapılıyor...';
+                updateStatusText.style.color = "var(--text-secondary)";
+            }
+            if (window.electronAPI.checkForUpdates) {
+                window.electronAPI.checkForUpdates();
+            }
+            setTimeout(() => {
+                if (btnCheckUpdate.disabled) {
+                    btnCheckUpdate.disabled = false;
+                    btnCheckUpdate.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle';
+                }
+            }, 6000);
+        });
+    }
+
+    if (btnRepairUpdate) {
+        btnRepairUpdate.addEventListener("click", () => {
+            const confirmRepair = confirm("SteaMRogue'un en son sürümü GitHub üzerinden temiz olarak indirilip kurulacak.\n\nBu işlem mevcut dosyalarınızı onarır ve en güncel sürüme yükseltir. Devam etmek istiyor musunuz?");
+            if (confirmRepair) {
+                btnRepairUpdate.disabled = true;
+                btnRepairUpdate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İndiriliyor...';
+                if (updateStatusText) {
+                    updateStatusText.innerHTML = '<i class="fa-solid fa-cloud-arrow-down fa-bounce" style="color: #3b82f6;"></i> En güncel kurulum paketi indiriliyor...';
+                    updateStatusText.style.color = "#3b82f6";
+                }
+                if (window.electronAPI.repairAndReinstall) {
+                    window.electronAPI.repairAndReinstall();
+                }
+            }
+        });
+    }
+
     if (btnClose) {
         btnClose.addEventListener("click", () => {
             if (banner) banner.style.display = "none";
@@ -2041,44 +2097,112 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
     }
 
     window.electronAPI.onUpdaterStatus((data) => {
-        if (!banner) return;
+        if (!data) return;
 
-        if (data.status === "available") {
-            banner.style.display = "block";
-            if (title) title.textContent = "Yeni Güncelleme Mevcut!";
-            if (badge) {
-                badge.textContent = `v${data.version || ''}`;
-                badge.style.display = "inline-block";
+        if (btnCheckUpdate) {
+            btnCheckUpdate.disabled = false;
+            btnCheckUpdate.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle';
+        }
+
+        if (btnRepairUpdate && data.status !== "downloading") {
+            btnRepairUpdate.disabled = false;
+            btnRepairUpdate.innerHTML = '<i class="fa-solid fa-wrench"></i> Son Sürümü Yeniden İndir / Onar';
+        }
+
+        if (data.status === "checking") {
+            if (updateStatusText) {
+                updateStatusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color: #7c3aed;"></i> Güncellemeler denetleniyor...';
+                updateStatusText.style.color = "var(--text-secondary)";
             }
-            if (desc) desc.textContent = "Güncelleme arka planda otomatik indiriliyor...";
-            if (progContainer) progContainer.style.display = "block";
-            if (progBar) progBar.style.width = "0%";
-            if (progPercent) progPercent.textContent = "%0";
-            if (actions) actions.style.display = "none";
-            if (icon) icon.className = "fa-solid fa-cloud-arrow-down fa-bounce";
-            if (iconWrapper) iconWrapper.className = "update-icon-wrapper";
+        } else if (data.status === "not-available") {
+            const ver = data.version ? `v${data.version}` : 'v1.1.2';
+            if (updateStatusText) {
+                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`;
+                updateStatusText.style.color = "#10b981";
+            }
+            if (isManualCheck) {
+                alert(`✅ SteaMRogue Güncel!\n\nŞu anda en son sürümü (${ver}) kullanıyorsunuz. Yeni bir güncelleme veya yama bulunmuyor.`);
+                isManualCheck = false;
+            }
+        } else if (data.status === "hotfix-available") {
+            if (updateStatusText) {
+                updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #f59e0b;"></i> GitHub'da mevcut sürüm (v${data.version || ''}) için güncellenmiş yeni bir paket yayınlandı!`;
+                updateStatusText.style.color = "#f59e0b";
+            }
+            const wantHotfix = confirm(`🎉 Yeni Güncelleme / Düzeltme Paketi Yayında!\n\nGitHub üzerinde sürüm v${data.version || ''} için güncellenmiş yeni bir paket bulundu.\n\nŞimdi indirilip kurulsun mu?`);
+            if (wantHotfix && window.electronAPI.repairAndReinstall) {
+                window.electronAPI.repairAndReinstall();
+            }
+        } else if (data.status === "dev-mode") {
+            if (updateStatusText) {
+                updateStatusText.innerHTML = '<i class="fa-solid fa-code" style="color: #f59e0b;"></i> Geliştirici modu: Canlı repo takibindedir (kurulu sürümde aktiftir).';
+                updateStatusText.style.color = "#f59e0b";
+            }
+            if (isManualCheck) {
+                alert("ℹ️ Geliştirici Modu: Uygulama kaynak kodundan çalıştırıldığı için güncelleme kontrolü geliştirici modunda yanıt verdi. Kurulu (.exe) sürümde güncellemeler otomatik olarak indirilir ve uygulanır.");
+                isManualCheck = false;
+            }
+        } else if (data.status === "available") {
+            if (updateStatusText) {
+                updateStatusText.innerHTML = `<i class="fa-solid fa-cloud-arrow-down" style="color: #3b82f6;"></i> Yeni sürüm bulundu (v${data.version || ''})! İndiriliyor...`;
+                updateStatusText.style.color = "#3b82f6";
+            }
+            if (banner) {
+                banner.style.display = "block";
+                if (title) title.textContent = "Yeni Güncelleme Mevcut!";
+                if (badge) {
+                    badge.textContent = `v${data.version || ''}`;
+                    badge.style.display = "inline-block";
+                }
+                if (desc) desc.textContent = "Güncelleme arka planda otomatik indiriliyor...";
+                if (progContainer) progContainer.style.display = "block";
+                if (progBar) progBar.style.width = "0%";
+                if (progPercent) progPercent.textContent = "%0";
+                if (actions) actions.style.display = "none";
+                if (icon) icon.className = "fa-solid fa-cloud-arrow-down fa-bounce";
+                if (iconWrapper) iconWrapper.className = "update-icon-wrapper";
+            }
         } else if (data.status === "downloading") {
-            banner.style.display = "block";
-            if (progContainer) progContainer.style.display = "block";
             const percent = data.percent || 0;
-            if (progBar) progBar.style.width = `${percent}%`;
-            if (progPercent) progPercent.textContent = `%${percent}`;
-            if (progLabel) progLabel.textContent = "İndiriliyor...";
-            if (desc) desc.textContent = `Yeni sürüm indiriliyor (%${percent})...`;
-        } else if (data.status === "downloaded") {
-            banner.style.display = "block";
-            if (progContainer) progContainer.style.display = "none";
-            if (title) title.textContent = "Güncelleme Hazır!";
-            if (badge) {
-                badge.textContent = `v${data.version || ''}`;
-                badge.style.display = "inline-block";
+            if (updateStatusText) {
+                updateStatusText.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="color: #3b82f6;"></i> Paket indiriliyor: %${percent}`;
             }
-            if (desc) desc.textContent = "İndirme tamamlandı. Yenilikleri uygulamak için şimdi yeniden başlatın.";
-            if (actions) actions.style.display = "flex";
-            if (icon) icon.className = "fa-solid fa-circle-check";
-            if (iconWrapper) iconWrapper.className = "update-icon-wrapper success";
+            if (banner) {
+                banner.style.display = "block";
+                if (progContainer) progContainer.style.display = "block";
+                if (progBar) progBar.style.width = `${percent}%`;
+                if (progPercent) progPercent.textContent = `%${percent}`;
+                if (progLabel) progLabel.textContent = "İndiriliyor...";
+                if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
+            }
+        } else if (data.status === "downloaded") {
+            if (updateStatusText) {
+                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (v${data.version || ''})! Yeniden başlatabilirsiniz.`;
+                updateStatusText.style.color = "#10b981";
+            }
+            if (banner) {
+                banner.style.display = "block";
+                if (progContainer) progContainer.style.display = "none";
+                if (title) title.textContent = "Kurulum Hazır!";
+                if (badge) {
+                    badge.textContent = `v${data.version || ''}`;
+                    badge.style.display = "inline-block";
+                }
+                if (desc) desc.textContent = "İndirme tamamlandı. Yenilikleri uygulamak için şimdi yeniden başlatın.";
+                if (actions) actions.style.display = "flex";
+                if (icon) icon.className = "fa-solid fa-circle-check";
+                if (iconWrapper) iconWrapper.className = "update-icon-wrapper success";
+            }
         } else if (data.status === "error") {
             console.error("AutoUpdater status error:", data.error);
+            if (updateStatusText) {
+                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color: #ef4444;"></i> Güncelleme denetlenemedi: ${data.error || 'Bilinmeyen hata'}`;
+                updateStatusText.style.color = "#ef4444";
+            }
+            if (isManualCheck) {
+                alert(`⚠️ Güncelleme Kontrolü Hatası:\n${data.error || 'Sunucuya veya GitHub releases bağlantısı sağlanamadı.'}`);
+                isManualCheck = false;
+            }
         }
     });
 
