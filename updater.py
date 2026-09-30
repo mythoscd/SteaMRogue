@@ -175,7 +175,7 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
 
     extracted = []
     
-    # 1. First priority: Check bundled files for missing DLLs
+    # 1. First priority: Check bundled files for missing DLLs & opensteamtool patterns
     bundled_dir = _find_bundled_steamtools()
     if bundled_dir and os.path.isdir(bundled_dir):
         for dll_name in _STEAMTOOLS_DLLS:
@@ -186,8 +186,28 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
                     shutil.copy2(src, dst)
                     extracted.append(dll_name)
                     logger.info(f"[Updater] Restored {dll_name} from bundled files to {dst}")
+                except PermissionError:
+                    logger.debug(f"[Updater] {dll_name} is locked (Steam running), skipping overwrite.")
                 except Exception as e:
                     logger.warning(f"[Updater] Failed copying bundled {dll_name}: {e}")
+
+        # Copy opensteamtool signature files
+        opensteamtool_src = os.path.join(bundled_dir, "opensteamtool")
+        opensteamtool_dst = os.path.join(steam_path, "opensteamtool")
+        if os.path.isdir(opensteamtool_src):
+            os.makedirs(opensteamtool_dst, exist_ok=True)
+            for root, _, files in os.walk(opensteamtool_src):
+                for f in files:
+                    if f.endswith(".toml"):
+                        src_f = os.path.join(root, f)
+                        rel_path = os.path.relpath(src_f, opensteamtool_src)
+                        dst_f = os.path.join(opensteamtool_dst, rel_path)
+                        os.makedirs(os.path.dirname(dst_f), exist_ok=True)
+                        if not os.path.isfile(dst_f) or force:
+                            try:
+                                shutil.copy2(src_f, dst_f)
+                            except Exception:
+                                pass
 
     # 2. Check if any target DLL is still missing from Steam
     missing_dlls = []
@@ -211,8 +231,25 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
                     if dll_name not in extracted:
                         extracted.append(dll_name)
                     logger.info(f"[Updater] Successfully downloaded and updated {dll_name}")
+            except PermissionError:
+                logger.debug(f"[Updater] {dll_name} is locked by Steam, skipping online overwrite.")
             except Exception as e:
                 logger.warning(f"[Updater] Failed downloading {dll_name} from GitHub: {e}")
+
+    # 4. Ensure depotcache manifests are synchronized to official depotcache (fixes 'İnternet Yok')
+    config_depotcache = os.path.join(steam_path, "config", "depotcache")
+    depotcache = os.path.join(steam_path, "depotcache")
+    if os.path.isdir(config_depotcache):
+        os.makedirs(depotcache, exist_ok=True)
+        for f in os.listdir(config_depotcache):
+            if f.endswith(".manifest"):
+                src = os.path.join(config_depotcache, f)
+                dst = os.path.join(depotcache, f)
+                if not os.path.isfile(dst) or (os.path.getsize(dst) != os.path.getsize(src)):
+                    try:
+                        shutil.copy2(src, dst)
+                    except Exception:
+                        pass
 
     updated = len(extracted) > 0
     _set_st_status(checked=True, updated=updated, extracted=extracted)

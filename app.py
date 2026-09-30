@@ -1142,6 +1142,12 @@ def ensure_steamtools_installed_auto():
     try:
         if not config.steam_path or not os.path.isdir(config.steam_path):
             return False
+        # Always ensure depotcache manifests are synced between config/depotcache and depotcache
+        try:
+            sync_depotcache_manifests(config.steam_path)
+        except Exception:
+            pass
+
         is_installed, present = check_steamtools_installed()
         if is_installed:
             logger.info("[SteamTools Auto-Setup] SteamTools is already installed and verified.")
@@ -1313,6 +1319,31 @@ def install_steamtools():
             "error": "SteamTools dosyaları Steam dizinine yerleştirilemedi. Lütfen Steam'in tamamen kapalı olduğundan ve antivirüsünüzün (Windows Defender) engellemediğinden emin olun."
         })
 
+def sync_depotcache_manifests(steam_path: str) -> int:
+    """Ensures all .manifest files in config/depotcache are safely mirrored to official depotcache."""
+    if not steam_path or not os.path.isdir(steam_path):
+        return 0
+    config_depotcache = os.path.join(steam_path, "config", "depotcache")
+    depotcache = os.path.join(steam_path, "depotcache")
+    if not os.path.isdir(config_depotcache):
+        return 0
+    os.makedirs(depotcache, exist_ok=True)
+    synced = 0
+    import shutil
+    for f in os.listdir(config_depotcache):
+        if f.lower().endswith(".manifest"):
+            src = os.path.join(config_depotcache, f)
+            dst = os.path.join(depotcache, f)
+            if not os.path.isfile(dst) or (os.path.getsize(dst) != os.path.getsize(src)):
+                try:
+                    shutil.copy2(src, dst)
+                    synced += 1
+                except Exception:
+                    pass
+    if synced > 0:
+        logger.info(f"[depotcache] Synced {synced} manifest files to official depotcache.")
+    return synced
+
 # %%
 # API Endpoint: POST /api/clear_steam_cache
 @app.route("/api/clear_steam_cache", methods=["POST"])
@@ -1321,6 +1352,7 @@ def clear_steam_cache():
         return jsonify({"success": False, "error": "Steam kurulum dizini bulunamadı."})
     
     try:
+        import shutil
         # 1. Kill steam if running
         was_running = validator.is_steam_running()
         if was_running:
@@ -1331,36 +1363,69 @@ def clear_steam_cache():
                     break
             time.sleep(0.8)
 
-        # 2. Clear corrupted ticket/manifest files from depotcache
         cleared_items = 0
+
+        # 2. Clear ONLY temporary ticket files (*.vdf) from depotcache - NEVER DELETE .manifest files!
         depotcache = os.path.join(config.steam_path, "depotcache")
         if os.path.isdir(depotcache):
             for f in os.listdir(depotcache):
-                if f.endswith(".manifest") or f.endswith(".vdf"):
+                if f.lower().endswith(".vdf"):
                     try:
                         os.remove(os.path.join(depotcache, f))
                         cleared_items += 1
                     except Exception:
                         pass
 
-        # Clear appcache httpcache
+        # 3. Clear appcache httpcache (corrupted HTTP chunk manifests)
         httpcache = os.path.join(config.steam_path, "appcache", "httpcache")
         if os.path.isdir(httpcache):
             try:
-                import shutil
                 shutil.rmtree(httpcache, ignore_errors=True)
                 cleared_items += 1
             except Exception:
                 pass
 
-        # 3. Clean steam restart
+        # 4. Clear stuck downloading & temp directories (stuck 0-byte corrupt chunks cause "İnternet Yok")
+        downloading_dir = os.path.join(config.steam_path, "steamapps", "downloading")
+        if os.path.isdir(downloading_dir):
+            try:
+                for item in os.listdir(downloading_dir):
+                    item_p = os.path.join(downloading_dir, item)
+                    if os.path.isdir(item_p):
+                        shutil.rmtree(item_p, ignore_errors=True)
+                    else:
+                        os.remove(item_p)
+                cleared_items += 1
+            except Exception:
+                pass
+
+        temp_dir = os.path.join(config.steam_path, "steamapps", "temp")
+        if os.path.isdir(temp_dir):
+            try:
+                for item in os.listdir(temp_dir):
+                    item_p = os.path.join(temp_dir, item)
+                    if os.path.isdir(item_p):
+                        shutil.rmtree(item_p, ignore_errors=True)
+                    else:
+                        os.remove(item_p)
+                cleared_items += 1
+            except Exception:
+                pass
+
+        # 5. GUARANTEE that all manifests in config/depotcache are restored into depotcache!
+        synced_manifests = sync_depotcache_manifests(config.steam_path)
+
+        # 6. Re-verify SteamTools DLLs and toml signatures in Steam folder
+        ensure_steamtools_installed_auto()
+
+        # 7. Clean steam restart
         steam_exe = os.path.join(config.steam_path, "steam.exe")
         if os.path.isfile(steam_exe):
             subprocess.Popen([steam_exe], cwd=config.steam_path)
 
         return jsonify({
             "success": True,
-            "message": "Steam indirme önbelleği başarıyla temizlendi ve Steam yeniden başlatıldı! Oyun indirme sorununuz çözülmüştür."
+            "message": f"Steam indirme önbelleği temizlendi ({cleared_items} geçici öğe temizlendi, {synced_manifests} manifest geri yüklendi) ve Steam yeniden başlatıldı!\n\nArtık oyunlarınızı sorunsuz indirebilirsiniz."
         })
     except Exception as e:
         logger.error(f"Failed to clear steam cache: {e}")
@@ -2829,19 +2894,52 @@ def api_select_folder():
         return jsonify({"ok": False, "path": None, "error": str(e)})
 
 def get_7z_binary():
-    """Finds 7z.exe from bundled or standard locations."""
-    candidates = [
-        getattr(sys, '_MEIPASS', None) and os.path.join(sys._MEIPASS, '7z.exe'),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), '7z.exe'),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', '7z.exe'),
-        r"C:\Users\mytho\AppData\Roaming\ProjectLightningV5\resources\binaries\win\7z.exe",
-        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto", "resources", "7z.exe"),
-        r"C:\Program Files\7-Zip\7z.exe",
-        r"C:\Program Files (x86)\7-Zip\7z.exe"
-    ]
+    """Finds 7z.exe from bundled or standard locations with automatic fallback."""
+    candidates = []
+    if getattr(sys, 'frozen', False):
+        if hasattr(sys, '_MEIPASS'):
+            candidates.append(os.path.join(sys._MEIPASS, '7z.exe'))
+            candidates.append(os.path.join(sys._MEIPASS, 'resources', '7z.exe'))
+        exe_dir = os.path.dirname(sys.executable)
+        candidates.append(os.path.join(exe_dir, '7z.exe'))
+        candidates.append(os.path.join(exe_dir, 'resources', '7z.exe'))
+        candidates.append(os.path.join(exe_dir, '..', 'resources', '7z.exe'))
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates.append(os.path.join(base_dir, 'resources', '7z.exe'))
+    candidates.append(os.path.join(base_dir, '7z.exe'))
+    candidates.append(os.path.join(base_dir, 'node_modules', 'electron-winstaller', 'vendor', '7z.exe'))
+    candidates.append(os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto", "resources", "7z.exe"))
+    candidates.append(r"C:\Program Files\7-Zip\7z.exe")
+    candidates.append(r"C:\Program Files (x86)\7-Zip\7z.exe")
+
     for c in candidates:
         if c and os.path.isfile(c):
             return c
+
+    # Fallback: Download 7z.exe and 7z.dll to AppData/SteaMRogue/bin if somehow missing
+    try:
+        bin_dir = os.path.join(get_appdata_dir(), "bin")
+        os.makedirs(bin_dir, exist_ok=True)
+        local_7z = os.path.join(bin_dir, "7z.exe")
+        local_dll = os.path.join(bin_dir, "7z.dll")
+        if not os.path.isfile(local_7z):
+            logger.info("[7z] Downloading 7z.exe fallback from GitHub...")
+            r1 = requests.get("https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/resources/7z.exe", headers={"User-Agent": "SteaMRogue"}, timeout=30)
+            if r1.status_code == 200 and len(r1.content) > 10000:
+                with open(local_7z, "wb") as f:
+                    f.write(r1.content)
+        if not os.path.isfile(local_dll):
+            logger.info("[7z] Downloading 7z.dll fallback from GitHub...")
+            r2 = requests.get("https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/resources/7z.dll", headers={"User-Agent": "SteaMRogue"}, timeout=30)
+            if r2.status_code == 200 and len(r2.content) > 10000:
+                with open(local_dll, "wb") as f:
+                    f.write(r2.content)
+        if os.path.isfile(local_7z):
+            return local_7z
+    except Exception as e:
+        logger.warning(f"[7z] Fallback download failed: {e}")
+
     return None
 
 def fetch_nexus_fix_files(appid):

@@ -25,7 +25,8 @@
       ],
       "extraResources": [
         "SteamTools_Auto_Backend.exe",
-        "steamtools_files"
+        "steamtools_files",
+        "resources"
       ]
     },
     "nsis": {
