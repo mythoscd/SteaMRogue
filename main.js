@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 const { spawn } = require('child_process');
 const { autoUpdater } = require('electron-updater');
@@ -12,29 +13,44 @@ let backendProcess = null;
 let mainWindow = null;
 const BACKEND_PORT = 65012;
 
+function findBackendExecutable() {
+    const candidatePaths = [
+        path.join(process.resourcesPath, 'SteamTools_Auto_Backend.exe'),
+        path.join(path.dirname(app.getPath('exe')), 'resources', 'SteamTools_Auto_Backend.exe'),
+        path.join(path.dirname(app.getPath('exe')), 'SteamTools_Auto_Backend.exe'),
+        path.join(__dirname, 'SteamTools_Auto_Backend.exe'),
+        path.join(__dirname, 'dist', 'SteamTools_Auto_Backend.exe'),
+        path.join(__dirname, 'resources', 'SteamTools_Auto_Backend.exe')
+    ];
+    for (const p of candidatePaths) {
+        if (p && fs.existsSync(p)) {
+            return p;
+        }
+    }
+    return null;
+}
+
 function startBackend() {
     console.log("Starting Python backend...");
     const env = { ...process.env, UV_SYSTEM_CERTS: 'true' };
     
-    // Check if we are running from a packaged Electron app
-    const isPackaged = app.isPackaged;
+    const backendExe = findBackendExecutable();
     
-    if (isPackaged) {
-        // When packaged, backend is compiled as SteamTools_Auto_Backend.exe
-        const appDir = path.dirname(app.getPath('exe'));
-        const backendExe = path.join(process.resourcesPath, 'SteamTools_Auto_Backend.exe');
+    if (backendExe) {
+        console.log(`Using compiled backend binary (Zero Dependency): ${backendExe}`);
+        const appDir = path.dirname(backendExe);
         backendProcess = spawn(backendExe, [], {
             cwd: appDir,
             env: env,
-            windowsHide: true
+            windowsHide: false
         });
     } else {
-        // In development, run using 'uv' in shell
+        console.log("No compiled backend binary found, falling back to python / uv (Dev Mode)...");
         backendProcess = spawn('uv', ['run', '--with-requirements', 'requirements.txt', 'python', 'app.py'], {
             cwd: __dirname,
             env: env,
             shell: true,
-            windowsHide: false // Show python window console in dev for debugging
+            windowsHide: false
         });
     }
     
@@ -43,6 +59,12 @@ function startBackend() {
     });
     backendProcess.stderr.on('data', (data) => {
         console.error(`Backend stderr: ${data}`);
+    });
+    backendProcess.on('error', (err) => {
+        console.error(`Backend process failed to start:`, err);
+    });
+    backendProcess.on('exit', (code, signal) => {
+        console.log(`Backend process exited with code ${code}, signal ${signal}`);
     });
 }
 
@@ -76,8 +98,19 @@ function createWindow() {
         return { action: 'deny' };
     });
 
-    // Handle window drag/window actions in borderless custom header
-    mainWindow.loadURL(`http://127.0.0.1:${BACKEND_PORT}/?v=${Date.now()}`);
+    const targetUrl = `http://127.0.0.1:${BACKEND_PORT}/?v=${Date.now()}`;
+
+    // Auto-retry on failed load so slow machine startup never results in a blank/error screen
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+        console.warn(`Initial page load failed (${errorCode}: ${errorDescription}). Retrying in 1s...`);
+        setTimeout(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.loadURL(targetUrl).catch(() => {});
+            }
+        }, 1000);
+    });
+
+    mainWindow.loadURL(targetUrl);
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.maximize();
@@ -395,11 +428,48 @@ ipcMain.on('restart-and-update', () => {
     }
 });
 
+function waitForBackendAndLoad(maxRetries = 60, retryInterval = 250) {
+    let attempts = 0;
+    
+    function checkBackend() {
+        attempts++;
+        const req = http.get(`http://127.0.0.1:${BACKEND_PORT}/api/status`, (res) => {
+            if (res.statusCode === 200 || res.statusCode === 304) {
+                console.log(`Backend is ready after ${attempts * retryInterval}ms. Loading window...`);
+                createWindow();
+            } else {
+                if (attempts < maxRetries) {
+                    setTimeout(checkBackend, retryInterval);
+                } else {
+                    console.warn("Backend took too long to return 200. Creating window anyway.");
+                    createWindow();
+                }
+            }
+        });
+        
+        req.on('error', () => {
+            if (attempts < maxRetries) {
+                setTimeout(checkBackend, retryInterval);
+            } else {
+                console.warn("Backend connection attempts exhausted. Creating window anyway.");
+                createWindow();
+            }
+        });
+        
+        req.setTimeout(400, () => {
+            req.destroy();
+        });
+    }
+    
+    // Initial slight pause then begin pinging
+    setTimeout(checkBackend, 200);
+}
+
 app.whenReady().then(() => {
     startBackend();
     
-    // Give backend 500ms to start before showing BrowserWindow (frontend retry loop will handle connectivity)
-    setTimeout(createWindow, 500);
+    // Actively wait for backend to respond before displaying UI
+    waitForBackendAndLoad();
 
     // Initialize auto-updater
     setupAutoUpdater();

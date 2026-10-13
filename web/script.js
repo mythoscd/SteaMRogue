@@ -369,6 +369,73 @@ function initAppLogic() {
             });
     });
 
+    // Self-Healing: Sistemi Otomatik Tara ve Onar
+    const btnSelfHeal = document.getElementById("btn-self-heal");
+    if (btnSelfHeal) {
+        btnSelfHeal.addEventListener("click", async () => {
+            const healBadge = document.getElementById("self-heal-badge");
+            const healText = document.getElementById("self-heal-status-text");
+            
+            if (healBadge) {
+                healBadge.textContent = "ONARILIYOR...";
+                healBadge.style.backgroundColor = "#eab308";
+            }
+            if (healText) {
+                healText.textContent = "Sistem bileşenleri, Steam kancaları, LUA kayıtları ve önbellekler taranıyor...";
+            }
+            btnSelfHeal.disabled = true;
+
+            try {
+                const res = await fetch("/api/self_heal", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ force: true, restart_steam: false })
+                });
+                const data = await res.json();
+                btnSelfHeal.disabled = false;
+
+                if (data.ok) {
+                    if (healBadge) {
+                        healBadge.textContent = "SAĞLIKLI";
+                        healBadge.style.backgroundColor = "#10b981";
+                    }
+                    const actionList = (data.actions && data.actions.length > 0)
+                        ? "\n\nGerçekleştirilen İşlemler:\n• " + data.actions.join("\n• ")
+                        : "";
+                    if (healText) {
+                        healText.textContent = `${data.actions ? data.actions.length : 0} işlem doğrulandı. Sistem tam kapasite çalışıyor.`;
+                    }
+                    if (typeof window.showCustomAlert === "function") {
+                        await window.showCustomAlert(
+                            "Kendi kendini tamir eden sistem başarıyla çalıştı!" + actionList,
+                            "Otomatik Onarım Başarılı",
+                            "Tamam"
+                        );
+                    } else {
+                        alert("Otomatik Onarım Başarılı:\n" + actionList);
+                    }
+                    updateSteamToolsStatus();
+                } else {
+                    if (healBadge) {
+                        healBadge.textContent = "UYARI";
+                        healBadge.style.backgroundColor = "#ef4444";
+                    }
+                    if (healText) {
+                        healText.textContent = data.error || "Onarım sırasında bir sorunla karşılaşıldı.";
+                    }
+                    alert("Onarım uyarısı: " + (data.error || "Bilinmeyen hata"));
+                }
+            } catch (err) {
+                btnSelfHeal.disabled = false;
+                if (healBadge) {
+                    healBadge.textContent = "HATA";
+                    healBadge.style.backgroundColor = "#ef4444";
+                }
+                alert("Bağlantı hatası: " + err);
+            }
+        });
+    }
+
     // Uninstall SteamTools
     document.getElementById("btn-uninstall-st").addEventListener("click", async () => {
         if (!await window.showCustomConfirm("SteamTools kanca (hook) DLL dosyalarını Steam'den kaldırmak istediğinize emin misiniz?")) {

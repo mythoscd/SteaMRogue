@@ -15,11 +15,27 @@ from logger import logger
 REG_KEY_CU = r"Software\Valve\Steam"
 REG_KEY_LM = r"SOFTWARE\WOW6432Node\Valve\Steam"
 
+def get_default_settings_path() -> str:
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        target_dir = os.path.join(appdata, "SteaMRogue")
+    else:
+        target_dir = os.path.expanduser("~/.steamrogue")
+    os.makedirs(target_dir, exist_ok=True)
+    appdata_file = os.path.join(target_dir, "settings.json")
+    if os.path.isfile("settings.json") and not os.path.isfile(appdata_file):
+        try:
+            import shutil
+            shutil.copy2("settings.json", appdata_file)
+        except Exception:
+            pass
+    return appdata_file
+
 # %%
 @dataclass
 class AppConfig:
     steam_path: str = ""
-    settings_file: str = "settings.json"
+    settings_file: str = field(default_factory=get_default_settings_path)
     manifest_repos: List[str] = field(default_factory=lambda: [
         "https://github.com/LightnigFast/ProjectLightningManifests",
         "https://github.com/SPIN0ZAi/SB_manifest_DB",
@@ -29,17 +45,21 @@ class AppConfig:
     
     def load(self) -> None:
         """Loads configuration from settings.json or searches system defaults."""
-        if os.path.exists(self.settings_file):
+        target_file = self.settings_file
+        if not os.path.exists(target_file) and os.path.exists("settings.json"):
+            target_file = "settings.json"
+
+        if os.path.exists(target_file):
             try:
-                with open(self.settings_file, "r", encoding="utf-8") as f:
+                with open(target_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.steam_path = data.get("steam_path", "")
                     self.manifest_repos = data.get("manifest_repos", self.manifest_repos)
-                    logger.debug(f"Loaded config from {self.settings_file}")
+                    logger.debug(f"Loaded config from {target_file}")
                     if self.steam_path:
                         return
             except Exception as e:
-                logger.error(f"Error loading {self.settings_file}: {e}")
+                logger.error(f"Error loading {target_file}: {e}")
         
         # Discover Steam Path
         discovered = self.discover_steam_path()
@@ -50,8 +70,9 @@ class AppConfig:
             logger.warning("Could not automatically discover Steam path.")
 
     def save(self) -> None:
-        """Saves current configuration to settings.json."""
+        """Saves current configuration to settings.json in AppData."""
         try:
+            os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
             with open(self.settings_file, "w", encoding="utf-8") as f:
                 json.dump(asdict(self), f, indent=4)
                 logger.debug(f"Saved config to {self.settings_file}")

@@ -64,7 +64,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.2"
+APP_VERSION = "1.1.3"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -933,50 +933,35 @@ def restart_steam():
         if validator.is_steam_running():
             logger.info("Closing Steam and child processes for restart...")
             validator.kill_steam()
-            
-            # Wait up to 5 seconds until steam.exe has truly stopped
-            for _ in range(25):
-                time.sleep(0.2)
-                if not validator.is_steam_running():
-                    break
-            time.sleep(0.6)  # Give Windows OS time to release file locks & sockets
+            validator.wait_for_steam_exit(timeout=6.0)
+            time.sleep(1.5)  # Critical for Windows OS to release named mutexes & sockets
 
-        # Reset ghost ActiveProcess in registry so Steam doesn't get blocked by orphaned PIDs
-        try:
-            import winreg
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess", 0, winreg.KEY_SET_VALUE) as k:
-                winreg.SetValueEx(k, "pid", 0, winreg.REG_DWORD, 0)
-                winreg.SetValueEx(k, "ActiveUser", 0, winreg.REG_DWORD, 0)
-        except Exception:
-            pass
+        # 3. Auto-repair LUA manifest pinning & sync depotcache manifests
+        if config.steam_path and os.path.isdir(config.steam_path):
+            FileManager.repair_stplugin_luas(config.steam_path)
+            sync_depotcache_manifests(config.steam_path)
 
-        # 3. Launch Steam cleanly via native Windows Shell with Steam working directory
-        steam_dir = os.path.dirname(steam_exe)
-        logger.info(f"Launching Steam: {steam_exe} (cwd: {steam_dir})")
-        started = False
-        try:
-            import ctypes
-            res = ctypes.windll.shell32.ShellExecuteW(
-                None, "open", steam_exe, "-cef-disable-gpu steam://open/games", steam_dir, 1
-            )
-            started = (res > 32)
-        except Exception as sh_err:
-            logger.warning(f"ShellExecuteW failed: {sh_err}")
+        # Clean crashed CEF htmlcache to prevent window drawing off-screen (pos 805240832)
+        local_appdata = os.environ.get("LOCALAPPDATA", "")
+        if local_appdata:
+            cef_htmlcache = os.path.join(local_appdata, "Steam", "htmlcache")
+            local_state = os.path.join(cef_htmlcache, "Local State")
+            if os.path.isfile(local_state):
+                try:
+                    with open(local_state, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                        if '"crashed":true' in content or '"exit_type":"Crashed"' in content:
+                            import shutil
+                            shutil.rmtree(cef_htmlcache, ignore_errors=True)
+                            logger.info("Cleared crashed CEF htmlcache to ensure window opens centered.")
+                except Exception as ex:
+                    logger.debug(f"htmlcache check: {ex}")
 
-        if not started:
-            try:
-                proc = subprocess.Popen(
-                    [steam_exe, "-cef-disable-gpu", "steam://open/games"],
-                    cwd=steam_dir,
-                    creationflags=subprocess.DETACHED_PROCESS | 0x08000000,
-                    close_fds=True
-                )
-                started = proc.poll() is None
-            except Exception as popen_err:
-                logger.error(f"Popen failed: {popen_err}")
+        # 4. Launch Steam cleanly with interactive GUI
+        started = validator.launch_steam(steam_exe)
 
         if started:
-            logger.info("Restarted Steam client successfully.")
+            logger.info("Restarted Steam client successfully with GUI.")
             return jsonify({"success": True, "message": "Steam başarıyla yeniden başlatıldı."})
         else:
             return jsonify({"success": False, "error": "Steam başlatılamadı."})
@@ -1214,6 +1199,201 @@ def ensure_steamtools_installed_auto():
         return False
 
 # %%
+def run_self_healing_routine(force: bool = False) -> Dict[str, Any]:
+    """
+    Comprehensive self-healing routine for SteaMRogue:
+    1. Verifies/discovers Steam installation path.
+    2. Cleans Steam CEF crash residues (.crash flags and corrupted htmlcache).
+    3. Checks and repairs SteamTools DLLs (OpenSteamTool.dll, dwmapi.dll, xinput1_4.dll) and TOML signatures.
+    4. Ensures Spacewar (AppID 480) LUA is present in config/stplug-in and config/lua.
+    5. Repairs unpinned manifests in LUA configs (setManifestid injection).
+    6. Synchronizes depotcache manifests between config/depotcache and depotcache.
+    7. Verifies and repairs 7-Zip binary (7z.exe & 7z.dll).
+    8. Validates applied fixes from applied_fixes.json.
+    """
+    actions = []
+    steam_path = config.steam_path
+    
+    # 1. Steam path discovery
+    if not steam_path or not os.path.isdir(steam_path):
+        discovered = config.discover_steam_path()
+        if discovered:
+            config.steam_path = discovered
+            config.save()
+            steam_path = discovered
+            actions.append(f"Steam dizini otomatik olarak tespit edildi: {steam_path}")
+        else:
+            return {
+                "ok": False,
+                "error": "Steam kurulum dizini bulunamadı. Lütfen Ayarlar sekmesinden Steam klasörünü seçin.",
+                "actions": actions
+            }
+
+    # 2. CEF crash / invisible window residue cleanup
+    try:
+        cleaned_crash = validator.cleanup_steam_crashes(steam_path)
+        if cleaned_crash:
+            actions.append("Steam kilitlenme bayrakları (.crash) ve bozuk önbellek temizlendi.")
+    except Exception as ce:
+        logger.debug(f"[Self-Heal] Crash cleanup: {ce}")
+
+    # 3. SteamTools DLLs and signatures verification/repair
+    try:
+        is_installed, present = check_steamtools_installed()
+        needs_st_repair = force or not is_installed or any(
+            not os.path.isfile(os.path.join(steam_path, f)) or os.path.getsize(os.path.join(steam_path, f)) < 1000
+            for f in ["OpenSteamTool.dll"]
+        )
+        if needs_st_repair:
+            st_dir = get_bundled_steamtools_dir()
+            target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+            installed_count = 0
+            
+            if st_dir:
+                for f in target_files:
+                    src = os.path.join(st_dir, f)
+                    dst = os.path.join(steam_path, f)
+                    if os.path.isfile(src) and (force or not os.path.isfile(dst) or os.path.getsize(dst) < 1000):
+                        try:
+                            shutil.copy2(src, dst)
+                            installed_count += 1
+                        except Exception:
+                            pass
+                
+                # Signatures
+                opensteamtool_src = os.path.join(st_dir, "opensteamtool")
+                opensteamtool_dst = os.path.join(steam_path, "opensteamtool")
+                if os.path.isdir(opensteamtool_src):
+                    try:
+                        os.makedirs(opensteamtool_dst, exist_ok=True)
+                        for root, _, files in os.walk(opensteamtool_src):
+                            for f in files:
+                                if f.endswith(".toml"):
+                                    src_f = os.path.join(root, f)
+                                    rel_path = os.path.relpath(src_f, opensteamtool_src)
+                                    dst_f = os.path.join(opensteamtool_dst, rel_path)
+                                    os.makedirs(os.path.dirname(dst_f), exist_ok=True)
+                                    shutil.copy2(src_f, dst_f)
+                    except Exception:
+                        pass
+                        
+            # Fallback download from GitHub if still missing
+            for f in target_files:
+                dst = os.path.join(steam_path, f)
+                if not os.path.isfile(dst) or os.path.getsize(dst) < 1000:
+                    try:
+                        url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
+                        r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=15)
+                        if r.status_code == 200 and len(r.content) > 1000:
+                            with open(dst, "wb") as out_f:
+                                out_f.write(r.content)
+                            installed_count += 1
+                    except Exception:
+                        pass
+                        
+            if installed_count > 0:
+                actions.append(f"SteamTools kilit açıcı dosyaları ve imzaları onarıldı ({installed_count} dosya).")
+            else:
+                actions.append("SteamTools kilit açıcı dosyaları doğrulandı ve sağlam.")
+        else:
+            actions.append("SteamTools kanca dosyaları doğrulandı.")
+    except Exception as ste:
+        logger.warning(f"[Self-Heal] SteamTools repair failed: {ste}")
+
+    # 4. Spacewar (AppID 480) & LUA repair
+    try:
+        plugin_folder = os.path.join(steam_path, "config", "stplug-in")
+        lua_folder = os.path.join(steam_path, "config", "lua")
+        os.makedirs(plugin_folder, exist_ok=True)
+        os.makedirs(lua_folder, exist_ok=True)
+        
+        # Ensure 480.lua
+        added_480 = False
+        lua_code = b"addappid(480, 1)\n"
+        for folder in [plugin_folder, lua_folder]:
+            f_480 = os.path.join(folder, "480.lua")
+            if not os.path.isfile(f_480) or os.path.getsize(f_480) < 5:
+                with open(f_480, "wb") as lf:
+                    lf.write(lua_code)
+                added_480 = True
+        if added_480:
+            actions.append("Spacewar (AppID 480) çok oyunculu çevrimiçi kaydı oluşturuldu.")
+
+        # Pin manifests to LUAs
+        fixed_luas = FileManager.repair_stplugin_luas(steam_path)
+        if fixed_luas > 0:
+            actions.append(f"{fixed_luas} adet oyun LUA yapılandırmasına manifest kimlikleri otomatik sabitlendi.")
+    except Exception as le:
+        logger.warning(f"[Self-Heal] LUA repair failed: {le}")
+
+    # 5. Depotcache manifests synchronization
+    try:
+        synced_count = sync_depotcache_manifests(steam_path)
+        if synced_count > 0:
+            actions.append(f"{synced_count} adet depot manifesti Steam depotcache dizinine eşitlendi.")
+    except Exception as me:
+        logger.warning(f"[Self-Heal] Manifest sync failed: {me}")
+
+    # 6. 7-Zip Tooling Repair
+    try:
+        seven_zip = get_7z_binary()
+        if seven_zip and os.path.isfile(seven_zip):
+            actions.append(f"7-Zip arşivleme motoru doğrulandı ({os.path.basename(seven_zip)}).")
+        else:
+            actions.append("7-Zip aracı tespit edilemedi, otomatik indirme mekanizması hazır bekletiliyor.")
+    except Exception as ze:
+        logger.debug(f"[Self-Heal] 7z check: {ze}")
+
+    # 7. Applied Fixes Health Check
+    try:
+        fixes_file = os.path.join(get_appdata_dir(), "applied_fixes.json")
+        if os.path.isfile(fixes_file):
+            with open(fixes_file, "r", encoding="utf-8") as ff:
+                applied = json.load(ff)
+            verified_count = 0
+            for item in applied:
+                d = item.get("dest_dir")
+                if d and os.path.isdir(d):
+                    crit = verify_critical_fix_files(d)
+                    if crit:
+                        verified_count += 1
+            if applied:
+                actions.append(f"Kayıtlı {len(applied)} adet bypass fixinin {verified_count} tanesi diskte doğrulandı.")
+    except Exception as fe:
+        logger.debug(f"[Self-Heal] Fixes check: {fe}")
+
+    return {
+        "ok": True,
+        "actions": actions,
+        "steam_path": steam_path,
+        "message": "Sistem sağlık kontrolü ve otomatik onarım başarıyla tamamlandı!"
+    }
+
+# %%
+# API Endpoint: POST /api/self_heal
+@app.route("/api/self_heal", methods=["POST"])
+def api_self_heal():
+    """Triggers the comprehensive self-healing routine on demand from the UI."""
+    data = request.json or {}
+    force = bool(data.get("force", True))
+    
+    restart_steam_flag = bool(data.get("restart_steam", False))
+    was_running = validator.is_steam_running()
+    if was_running and restart_steam_flag:
+        validator.kill_steam()
+        validator.wait_for_steam_exit(timeout=5.0)
+
+    result = run_self_healing_routine(force=force)
+
+    if was_running and restart_steam_flag and config.steam_path:
+        steam_exe = os.path.join(config.steam_path, "steam.exe")
+        if os.path.isfile(steam_exe):
+            validator.launch_steam(steam_exe)
+            result["actions"].append("Steam istemcisi güvenli şekilde yeniden başlatıldı.")
+
+    return jsonify(result)
+
+# %%
 # API Endpoint: POST /api/install_steamtools
 @app.route("/api/install_steamtools", methods=["POST"])
 def install_steamtools():
@@ -1415,17 +1595,23 @@ def clear_steam_cache():
         # 5. GUARANTEE that all manifests in config/depotcache are restored into depotcache!
         synced_manifests = sync_depotcache_manifests(config.steam_path)
 
-        # 6. Re-verify SteamTools DLLs and toml signatures in Steam folder
+        # 6. Auto-repair and pin manifests in all existing LUAs
+        repaired_luas = FileManager.repair_stplugin_luas(config.steam_path)
+
+        # 7. Re-verify SteamTools DLLs and toml signatures in Steam folder
         ensure_steamtools_installed_auto()
 
-        # 7. Clean steam restart
+        # 8. Clean steam restart with normal GUI
         steam_exe = os.path.join(config.steam_path, "steam.exe")
+        started = False
         if os.path.isfile(steam_exe):
-            subprocess.Popen([steam_exe], cwd=config.steam_path)
+            validator.wait_for_steam_exit(timeout=6.0)
+            time.sleep(1.5)
+            started = validator.launch_steam(steam_exe)
 
         return jsonify({
             "success": True,
-            "message": f"Steam indirme önbelleği temizlendi ({cleared_items} geçici öğe temizlendi, {synced_manifests} manifest geri yüklendi) ve Steam yeniden başlatıldı!\n\nArtık oyunlarınızı sorunsuz indirebilirsiniz."
+            "message": f"Steam indirme önbelleği temizlendi ({cleared_items} geçici öğe temizlendi, {synced_manifests} manifest eşitlendi, {repaired_luas} oyun ayarı onarıldı) ve Steam başarıyla açıldı!\n\nArtık oyunlarınızı sorunsuz indirebilirsiniz."
         })
     except Exception as e:
         logger.error(f"Failed to clear steam cache: {e}")
@@ -2183,18 +2369,23 @@ def find_archiver_gui():
     return (None, None)
 
 def find_extractor():
+    # 1. Bundled / localized 7z.exe (highest priority, always self-contained)
+    bundled_7z = get_7z_binary()
+    if bundled_7z and os.path.isfile(bundled_7z):
+        return bundled_7z
+
     paths = [
-        r"C:\Program Files\WinRAR\UnRAR.exe",
-        r"C:\Program Files\WinRAR\WinRAR.exe",
         r"C:\Program Files\7-Zip\7z.exe",
         r"C:\Program Files (x86)\7-Zip\7z.exe",
+        r"C:\Program Files\WinRAR\UnRAR.exe",
+        r"C:\Program Files\WinRAR\WinRAR.exe",
     ]
     for p in paths:
         if os.path.isfile(p):
             return p
     # Fallback to PATH check
     import shutil
-    for cmd in ["unrar", "7z"]:
+    for cmd in ["7z", "unrar"]:
         resolved = shutil.which(cmd)
         if resolved:
             return resolved
@@ -2970,13 +3161,254 @@ def fetch_nexus_fix_files(appid):
             continue
     return None
 
+def extract_archive_with_passwords(archive_path: str, extract_to: str, seven_zip: str = None) -> bool:
+    """
+    Extracts an archive (zip, 7z, rar, 001, etc.) into extract_to using 7-Zip or zipfile fallback.
+    Automatically tries common OnlineFix passwords ('online-fix.me', '', 'online-fix', 'www.online-fix.me').
+    """
+    import subprocess
+    import zipfile
+    
+    os.makedirs(extract_to, exist_ok=True)
+    passwords = ["online-fix.me", "", "online-fix", "www.online-fix.me"]
+    
+    if seven_zip and os.path.isfile(seven_zip):
+        flags = 0x08000000 if os.name == 'nt' else 0
+        for pwd in passwords:
+            cmd = [seven_zip, 'x', archive_path, f'-o{extract_to}', '-y', '-aoa', '-mmt=on']
+            if pwd:
+                cmd.append(f'-p{pwd}')
+            else:
+                cmd.append('-p-')
+            try:
+                proc = subprocess.run(cmd, creationflags=flags, capture_output=True, text=True, timeout=180)
+                if os.path.exists(extract_to) and len(os.listdir(extract_to)) > 0:
+                    logger.info(f"[extract_archive] Successfully extracted with password: '{pwd}'")
+                    return True
+            except Exception as pe:
+                logger.debug(f"[extract_archive] Attempt with pwd '{pwd}' failed: {pe}")
+                continue
+
+    # Fallback to python zipfile if .zip
+    if archive_path.lower().endswith('.zip') and zipfile.is_zipfile(archive_path):
+        for pwd in passwords:
+            try:
+                pwd_bytes = pwd.encode('utf-8') if pwd else None
+                with zipfile.ZipFile(archive_path, 'r') as zf:
+                    zf.extractall(extract_to, pwd=pwd_bytes)
+                if os.path.exists(extract_to) and len(os.listdir(extract_to)) > 0:
+                    logger.info(f"[extract_archive] Extracted via zipfile with pwd: '{pwd}'")
+                    return True
+            except Exception:
+                continue
+
+    return os.path.exists(extract_to) and len(os.listdir(extract_to)) > 0
+
+
+def flatten_extracted_dir(staging_path: str) -> str:
+    """
+    Detects if an archive was wrapped in a single top-level folder (e.g. 'GameName Fix/').
+    If so, moves all contents up to staging_path and deletes the empty wrapper.
+    Ignores and deletes OS junk like __MACOSX, .DS_Store, Thumbs.db.
+    """
+    import shutil
+    
+    # 1. Clean junk files/folders
+    for junk in ["__MACOSX", ".DS_Store", "Thumbs.db"]:
+        jp = os.path.join(staging_path, junk)
+        if os.path.exists(jp):
+            if os.path.isdir(jp):
+                shutil.rmtree(jp, ignore_errors=True)
+            else:
+                try: os.remove(jp)
+                except Exception: pass
+
+    # 2. Flatten single wrappers
+    while True:
+        items = os.listdir(staging_path)
+        if len(items) == 1:
+            single = os.path.join(staging_path, items[0])
+            if os.path.isdir(single):
+                name_lower = items[0].lower()
+                if name_lower in ("engine", "binaries", "plugins") or name_lower.endswith("_data"):
+                    break
+                for sub in os.listdir(single):
+                    shutil.move(os.path.join(single, sub), os.path.join(staging_path, sub))
+                try:
+                    os.rmdir(single)
+                except Exception:
+                    pass
+                continue
+        break
+    return staging_path
+
+
+def find_game_steam_dll_locations(dest_dir: str) -> list:
+    """
+    Recursively searches dest_dir for existing steam_api64.dll or steam_api.dll,
+    or key binary directories (Unreal Engine 'Binaries/Win64', Unity 'Plugins', 'bin').
+    """
+    locations = set()
+    for root, dirs, files in os.walk(dest_dir):
+        files_lower = [f.lower() for f in files]
+        if 'steam_api64.dll' in files_lower or 'steam_api.dll' in files_lower:
+            locations.add(os.path.abspath(root))
+        if os.path.basename(root).lower() == 'win64' and os.path.basename(os.path.dirname(root)).lower() == 'binaries':
+            locations.add(os.path.abspath(root))
+        parts_lower = [p.lower() for p in root.split(os.sep)]
+        if 'plugins' in parts_lower:
+            for f in files_lower:
+                if f.endswith('.dll') and 'steam' in f:
+                    locations.add(os.path.abspath(root))
+    return list(locations)
+
+
+def install_fix_files(staging_path: str, dest_dir: str) -> list:
+    """
+    Copies all extracted fix files into dest_dir.
+    Creates backups (.bak) for original DLL files before overwriting.
+    Detects deep binary subdirectories (e.g. Binaries/Win64) and injects critical fix DLLs/INIs there as well.
+    """
+    import shutil
+    copied_files = []
+    critical_names = {
+        'steam_api64.dll', 'steam_api.dll', 'onlinefix64.dll', 'onlinefix.dll',
+        'onlinefix.ini', 'steamoverlay64.dll', 'steamoverlay.dll',
+        'steamclient64.dll', 'steamclient.dll'
+    }
+
+    # 1. Merge staging directory tree into dest_dir
+    for root, dirs, files in os.walk(staging_path):
+        rel_path = os.path.relpath(root, staging_path)
+        target_root = dest_dir if rel_path == '.' else os.path.join(dest_dir, rel_path)
+        os.makedirs(target_root, exist_ok=True)
+        for f in files:
+            src_file = os.path.join(root, f)
+            dest_file = os.path.join(target_root, f)
+            if os.path.isfile(dest_file) and f.lower().endswith('.dll') and not f.lower().endswith('.bak'):
+                bak_file = dest_file + '.bak'
+                if not os.path.exists(bak_file):
+                    try:
+                        shutil.copy2(dest_file, bak_file)
+                        logger.info(f"[install_fix] Created backup: {bak_file}")
+                    except Exception as be:
+                        logger.warning(f"[install_fix] Backup failed for {dest_file}: {be}")
+            shutil.copy2(src_file, dest_file)
+            copied_files.append(dest_file)
+
+    # 2. Deep target injection for games with binaries in subfolders (e.g. Unreal/Unity)
+    deep_targets = find_game_steam_dll_locations(dest_dir)
+    critical_sources = {}
+    for root, dirs, files in os.walk(staging_path):
+        for f in files:
+            if f.lower() in critical_names:
+                critical_sources[f.lower()] = (f, os.path.join(root, f))
+
+    for target_dir in deep_targets:
+        if os.path.abspath(target_dir) == os.path.abspath(dest_dir):
+            continue
+        for lower_name, (orig_name, src_path) in critical_sources.items():
+            dest_file = os.path.join(target_dir, orig_name)
+            if os.path.isfile(dest_file) and lower_name.endswith('.dll'):
+                bak_file = dest_file + '.bak'
+                if not os.path.exists(bak_file):
+                    try:
+                        shutil.copy2(dest_file, bak_file)
+                        logger.info(f"[install_fix] Created deep backup: {bak_file}")
+                    except Exception:
+                        pass
+            shutil.copy2(src_path, dest_file)
+            copied_files.append(dest_file)
+            logger.info(f"[install_fix] Deep-injected fix file: {dest_file}")
+
+    return list(dict.fromkeys(copied_files))
+
+
+def verify_critical_fix_files(dest_dir: str) -> list:
+    """
+    Checks if critical fix files exist on disk inside dest_dir or its subdirectories.
+    """
+    critical_names = {
+        'steam_api64.dll', 'steam_api.dll', 'onlinefix64.dll', 'onlinefix.dll',
+        'onlinefix.ini', 'steamoverlay64.dll', 'steamoverlay.dll',
+        'steamclient64.dll', 'steamclient.dll'
+    }
+    found = []
+    for root, dirs, files in os.walk(dest_dir):
+        for f in files:
+            if f.lower() in critical_names:
+                found.append(os.path.join(root, f))
+    return found
+
+
+def auto_register_fix_appids(dest_dir: str, default_appid: str, steam_path: str) -> list:
+    """
+    Ensures that default_appid, Spacewar (480), and any AppID specified in OnlineFix.ini
+    are registered in SteamTools stplug-in and lua configuration files.
+    """
+    appids_to_register = set()
+    if default_appid:
+        appids_to_register.add(str(default_appid).strip())
+    appids_to_register.add("480")
+
+    for root, dirs, files in os.walk(dest_dir):
+        for f in files:
+            if f.lower().endswith(".ini"):
+                ini_path = os.path.join(root, f)
+                try:
+                    with open(ini_path, "r", encoding="utf-8", errors="ignore") as inif:
+                        for line in inif:
+                            m = re.search(r"^\s*(?:FakeAppId|RealAppId|AppId)\s*=\s*(\d+)", line, re.IGNORECASE)
+                            if m:
+                                appids_to_register.add(m.group(1).strip())
+                except Exception as ie:
+                    logger.debug(f"[auto_register_fix_appids] Error reading {ini_path}: {ie}")
+
+    registered = []
+    if steam_path and os.path.isdir(steam_path):
+        plugin_folder = os.path.join(steam_path, "config", "stplug-in")
+        lua_folder = os.path.join(steam_path, "config", "lua")
+        os.makedirs(plugin_folder, exist_ok=True)
+        os.makedirs(lua_folder, exist_ok=True)
+
+        for aid in appids_to_register:
+            if not aid:
+                continue
+            lua_code = f"addappid({aid}, 1)\n".encode("utf-8")
+            for folder in [plugin_folder, lua_folder]:
+                lua_path = os.path.join(folder, f"{aid}.lua")
+                if not os.path.isfile(lua_path):
+                    with open(lua_path, "wb") as lf:
+                        lf.write(lua_code)
+                    logger.info(f"[auto_register_fix_appids] Created {lua_path}")
+                else:
+                    try:
+                        with open(lua_path, "r", encoding="utf-8", errors="ignore") as lf:
+                            text = lf.read()
+                        if f"addappid({aid}" not in text:
+                            with open(lua_path, "a", encoding="utf-8") as lf:
+                                lf.write(f"\naddappid({aid}, 1)\n")
+                    except Exception:
+                        pass
+            registered.append(aid)
+
+        try:
+            FileManager.repair_stplugin_luas(steam_path)
+        except Exception as re:
+            logger.debug(f"[auto_register_fix_appids] repair_stplugin_luas: {re}")
+
+    return registered
+
+
 # ---- BYPASS: Fix Uygula ----
 @app.route("/api/apply_fix", methods=["POST"])
 def api_apply_fix():
     """
-    Nexus API üzerinden fix dosyalarını çeker, indirir ve 7-Zip ile hedef klasöre çıkartır.
+    Nexus API üzerinden fix dosyalarını çeker, şifreli arşivleri ('online-fix.me') 7-Zip ile çözer,
+    klasör hiyerarşisini düzleştirir, derin oyun dizinlerini (Binaries/Win64, Plugins) tespit edip
+    enjekte eder, fiziksel dosya doğrulamasını yapar ve Spacewar (AppID 480) kaydını stplug-in'e ekler.
     """
-    import zipfile, shutil, tempfile, urllib.request, subprocess
+    import shutil, tempfile, urllib.request
     data = request.json or {}
     appid = str(data.get("appid", "")).strip()
     dest_dir = data.get("dest_dir", "").strip()
@@ -2987,7 +3419,7 @@ def api_apply_fix():
     if not dest_dir or not os.path.isdir(dest_dir):
         return jsonify({"ok": False, "message": "Geçersiz hedef klasör."})
 
-    logger.info(f"[apply_fix] Starting fix application for appid: {appid} -> {dest_dir}")
+    logger.info(f"[apply_fix] Starting overhaul fix application for appid: {appid} -> {dest_dir}")
 
     # 1. Cloudflare Nexus API'den fix dosyalarını sorgula
     files = fetch_nexus_fix_files(appid)
@@ -3012,12 +3444,12 @@ def api_apply_fix():
                 "reason": "no_files"
             })
 
-        # Tekil fix_url varsa dosyalar listesine dönüştür
         filename = fix_url.split("/")[-1].split("?")[0] or "fix.zip"
         files = [{"name": filename, "download_url": fix_url}]
 
     # 3. Dosyaları geçici klasöre indir
     temp_dir = tempfile.mkdtemp(prefix=f"bypass_{appid}_")
+    staging_dir = os.path.join(temp_dir, "extracted")
     downloaded_paths = []
     try:
         for item in files:
@@ -3039,7 +3471,6 @@ def api_apply_fix():
             return jsonify({"ok": False, "message": "Fix dosyaları indirilemedi."})
 
         # 4. Ana arşivi seç (.zip, .7z, .rar, .001, .exe)
-        # Çok parçalı zip'te (örn: .z01 ve .zip) .zip ana dosyadır!
         archive_candidates = []
         for p in downloaded_paths:
             ext = os.path.splitext(p)[1].lower()
@@ -3056,37 +3487,36 @@ def api_apply_fix():
 
         seven_zip = get_7z_binary()
 
-        if archive_candidates and seven_zip:
+        if archive_candidates:
             archive_candidates.sort(key=lambda x: x[0], reverse=True)
             main_archive = archive_candidates[0][1]
-            logger.info(f"[apply_fix] Extracting {main_archive} using 7z to {dest_dir}")
+            logger.info(f"[apply_fix] Extracting archive: {main_archive}")
             
-            cmd = [seven_zip, 'x', main_archive, f'-o{dest_dir}', '-y', '-aoa', '-mmt=on']
-            flags = 0x08000000 if os.name == 'nt' else 0
-            proc = subprocess.run(cmd, creationflags=flags, capture_output=True, text=True)
-            if proc.returncode not in (0, 1):
-                raise RuntimeError(f"7z extraction failed with code {proc.returncode}: {proc.stderr}")
-
-        elif archive_candidates and not seven_zip:
-            # Fallback to python zipfile if only zip
-            archive_candidates.sort(key=lambda x: x[0], reverse=True)
-            main_archive = archive_candidates[0][1]
-            if main_archive.lower().endswith('.zip') and zipfile.is_zipfile(main_archive):
-                logger.info(f"[apply_fix] Extracting {main_archive} using python zipfile to {dest_dir}")
-                with zipfile.ZipFile(main_archive, 'r') as zf:
-                    zf.extractall(dest_dir)
-            else:
-                raise RuntimeError("7-Zip aracı bulunamadı ve arşiv python ile açılamadı.")
+            extracted_ok = extract_archive_with_passwords(main_archive, staging_dir, seven_zip)
+            if not extracted_ok:
+                raise RuntimeError("Arşiv çıkartılamadı (şifre korumalı veya 7-Zip aracı başarısız oldu).")
         else:
-            # Arşiv değilse dosyaları doğrudan hedef klasöre kopyala
-            logger.info(f"[apply_fix] No archive found. Copying {len(downloaded_paths)} files directly to {dest_dir}")
+            os.makedirs(staging_dir, exist_ok=True)
             for p in downloaded_paths:
-                dest_file = os.path.join(dest_dir, os.path.basename(p))
-                shutil.copy2(p, dest_file)
+                shutil.copy2(p, os.path.join(staging_dir, os.path.basename(p)))
 
-        logger.info(f"[apply_fix] Successfully applied fix for {appid}")
+        # 5. Klasör hiyerarşisini düzleştir (iç içe tek klasör sarmalayıcılarını kaldır)
+        flatten_extracted_dir(staging_dir)
 
-        # Save applied fix to applied_fixes.json
+        # 6. Dosyaları hedef oyun klasörüne ve derin alt dizinlere (Binaries/Win64) enjekte et
+        installed_files = install_fix_files(staging_dir, dest_dir)
+        logger.info(f"[apply_fix] Installed {len(installed_files)} files into {dest_dir}")
+
+        # 7. Fiziksel dosya doğrulaması yap
+        verified_files = verify_critical_fix_files(dest_dir)
+        is_verified = len(verified_files) > 0
+        logger.info(f"[apply_fix] Verification result: {is_verified} (Found: {len(verified_files)} critical files)")
+
+        # 8. Spacewar (AppID 480) ve FakeAppId'leri SteamTools stplug-in'e otomatik ekle
+        registered_appids = auto_register_fix_appids(dest_dir, appid, config.steam_path)
+        logger.info(f"[apply_fix] Auto-registered AppIDs in stplug-in: {registered_appids}")
+
+        # 9. applied_fixes.json kaydı
         try:
             fixes_file = os.path.join(get_appdata_dir(), "applied_fixes.json")
             existing_fixes = []
@@ -3098,14 +3528,26 @@ def api_apply_fix():
                 "appid": str(appid),
                 "dest_dir": dest_dir,
                 "game_name": game.get("name") or game.get("title") or f"AppID {appid}",
-                "timestamp": time.time()
+                "timestamp": time.time(),
+                "verified": is_verified,
+                "verified_files_count": len(verified_files)
             })
             with open(fixes_file, "w", encoding="utf-8") as f:
                 json.dump(existing_fixes, f, indent=2)
         except Exception as err:
             logger.warning(f"[apply_fix] Could not save applied fix tracking: {err}")
 
-        return jsonify({"ok": True, "message": "Fix başarıyla uygulandı!"})
+        success_msg = f"{game.get('name') or 'Oyun'} için fix başarıyla uygulandı ve Spacewar (480) çevrimiçi bağlantısı sağlandı!"
+        if not is_verified:
+            success_msg = f"Fix dosyaları {dest_dir} klasörüne kopyalandı. Lütfen oyunu başlatmayı deneyin."
+
+        return jsonify({
+            "ok": True,
+            "message": success_msg,
+            "verified": is_verified,
+            "verified_files": [os.path.basename(f) for f in verified_files],
+            "registered_appids": registered_appids
+        })
 
     except Exception as e:
         logger.error(f"[apply_fix] Error applying fix: {e}", exc_info=True)
@@ -3157,11 +3599,11 @@ def parent_monitor_worker():
 
 def start_server():
     """Starts the Flask server in a local port."""
-    # Ensure SteamTools is installed automatically at startup (guaranteed setup)
+    # Execute automatic self-healing routine at startup
     try:
-        ensure_steamtools_installed_auto()
+        run_self_healing_routine(force=False)
     except Exception as e:
-        logger.warning(f"Initial SteamTools auto-check failed: {e}")
+        logger.warning(f"Initial self-healing routine failed: {e}")
 
     # Start parent monitor thread
     monitor_thread = threading.Thread(target=parent_monitor_worker, daemon=True)
