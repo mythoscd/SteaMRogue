@@ -28,7 +28,7 @@
         <header class="app-header">
             <div class="logo-group">
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
-                <span class="version-badge" id="app-version-badge">v1.1.3</span>
+                <span class="version-badge" id="app-version-badge">v1.1.4</span>
             </div>
             <nav class="nav-tabs">
                 <button class="tab-btn active" data-tab="lightning-tools"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
@@ -678,6 +678,35 @@
                     <button class="btn btn-danger" id="modal-btn-delete"><i class="fa-solid fa-trash-can"></i> Kütüphaneden Kaldır</button>
                     <button class="btn btn-primary" id="modal-btn-add" style="display: none;"><i class="fa-solid fa-plus"></i> Kütüphaneye Ekle</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORCED SYSTEM HEALTH / REPAIR MODAL -->
+    <div id="health-warning-modal" class="custom-modal">
+        <div class="custom-modal-content" style="max-width: 480px; border: 1px solid rgba(234, 179, 8, 0.4); box-shadow: 0 0 35px rgba(234, 179, 8, 0.15);">
+            <div class="custom-modal-header" style="background: rgba(234, 179, 8, 0.08); border-bottom: 1px solid rgba(234, 179, 8, 0.2);">
+                <span style="display: flex; align-items: center; gap: 8px; color: #facc15;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Sistem Sağlık Uyarısı</span>
+                </span>
+            </div>
+            <div class="custom-modal-body" style="padding: 22px;">
+                <p style="margin-top: 0; margin-bottom: 12px; font-weight: 600; color: #ffffff; font-size: 0.92rem;">
+                    Açılış denetiminde aşağıdaki sorunlar tespit edildi:
+                </p>
+                <ul id="health-issues-list" style="list-style: none; padding: 0; margin: 0 0 16px 0; display: flex; flex-direction: column; gap: 8px;">
+                </ul>
+                <div style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px 14px; border-left: 3px solid #facc15;">
+                    <p style="margin: 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.5;">
+                        Steam'in çökmesini ve açılmama sorunlarını engellemek için sistemin onarılması gerekmektedir. Onarılsın mı?
+                    </p>
+                </div>
+            </div>
+            <div class="custom-modal-footer" style="display: flex; justify-content: flex-end; padding: 14px 20px;">
+                <button class="btn btn-primary" id="btn-health-repair" style="background: linear-gradient(135deg, #eab308, #ca8a04); border-color: #ca8a04; color: #000; font-weight: 700; padding: 10px 24px; font-size: 0.88rem; width: 100%; justify-content: center;">
+                    <i class="fa-solid fa-wrench"></i> Sistemi Onar
+                </button>
             </div>
         </div>
     </div>

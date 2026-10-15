@@ -135,7 +135,7 @@ def check_and_update_repos(manifest_repos, force: bool = False) -> Dict[str, Any
     return summary
 
 _STEAMTOOLS_GITHUB_URL = "https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files"
-_STEAMTOOLS_DLLS = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+_STEAMTOOLS_DLLS = ["xinput1_4.dll", "OpenSteamTool.dll"]
 
 def _find_bundled_steamtools():
     import sys
@@ -175,6 +175,15 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
 
     extracted = []
     
+    # Remove obsolete dwmapi.dll to prevent VGUI_Setup failed
+    dwmapi_legacy = os.path.join(steam_path, "dwmapi.dll")
+    if os.path.isfile(dwmapi_legacy):
+        try:
+            os.remove(dwmapi_legacy)
+            logger.info("[Updater] Cleaned obsolete dwmapi.dll from Steam folder.")
+        except Exception:
+            pass
+
     # 1. First priority: Check bundled files for missing DLLs & opensteamtool patterns
     bundled_dir = _find_bundled_steamtools()
     if bundled_dir and os.path.isdir(bundled_dir):

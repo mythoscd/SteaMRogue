@@ -64,7 +64,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.3"
+APP_VERSION = "1.1.4"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -73,6 +73,7 @@ task_lock = threading.Lock()
 # %%
 # Health Check Endpoint
 @app.route("/api/health")
+@app.route("/api/status")
 def health_check():
     return jsonify({"status": "ok", "app": "SteaMRogue", "version": APP_VERSION})
 
@@ -748,8 +749,8 @@ def get_library():
 
         # 3. Fast regex scan of ACF manifest files across all library folders
         libraries = FileManager.get_library_folders(config.steam_path)
-        blacklist_ids = {228980, 250820, 1002, 211, 1113740, 228989, 228990}
-        tool_keywords = ("steamworks", "redistributable", "sdk", "dedicated server", "tool", "development", "compiler", "beta", "steamvr", "common redist")
+        blacklist_ids = {480, 228980, 250820, 1002, 211, 1113740, 228989, 228990}
+        tool_keywords = ("steamworks", "redistributable", "sdk", "dedicated server", "tool", "development", "compiler", "beta", "steamvr", "common redist", "spacewar")
 
         for _, lib_path in libraries:
             apps_dir = os.path.join(lib_path, "steamapps")
@@ -839,7 +840,12 @@ def get_library():
                 daemon=True
             ).start()
 
-        games_list = list(games_dict.values())
+        games_list = [
+            g for g in games_dict.values()
+            if (int(g.get("appid", 0)) if str(g.get("appid", "")).isdigit() else 0) not in blacklist_ids
+            and str(g.get("appid", "")).strip() != "480"
+            and "spacewar" not in str(g.get("name", "")).lower()
+        ]
         _library_cache["data"] = games_list
         _library_cache["timestamp"] = time.time()
 
@@ -901,30 +907,7 @@ def remove_game():
 @app.route("/api/restart_steam", methods=["POST"])
 def restart_steam():
     # 1. Resolve steam.exe path accurately
-    steam_exe = None
-    if config.steam_path and os.path.isdir(config.steam_path):
-        cand = os.path.join(config.steam_path, "steam.exe")
-        if os.path.isfile(cand):
-            steam_exe = cand
-            
-    if not steam_exe:
-        # Check Windows registry
-        try:
-            import winreg
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam") as key:
-                val, _ = winreg.QueryValueEx(key, "SteamExe")
-                if val and os.path.isfile(val):
-                    steam_exe = os.path.normpath(val)
-        except Exception:
-            pass
-
-    if not steam_exe:
-        # Check common paths
-        for p in [r"C:\Program Files (x86)\Steam\steam.exe", r"C:\Program Files\Steam\steam.exe"]:
-            if os.path.isfile(p):
-                steam_exe = p
-                break
-
+    steam_exe = validator.resolve_steam_exe(config.steam_path)
     if not steam_exe or not os.path.isfile(steam_exe):
         return jsonify({"success": False, "error": "steam.exe bulunamadı"})
 
@@ -932,33 +915,28 @@ def restart_steam():
         # 2. Terminate Steam processes cleanly if running
         if validator.is_steam_running():
             logger.info("Closing Steam and child processes for restart...")
-            validator.kill_steam()
-            validator.wait_for_steam_exit(timeout=6.0)
-            time.sleep(1.5)  # Critical for Windows OS to release named mutexes & sockets
+            validator.kill_steam(config.steam_path)
+            validator.wait_for_steam_exit(timeout=10.0)
+            time.sleep(2.0)  # Critical for Windows OS to release named mutexes, IPC sockets & file handles
 
-        # 3. Auto-repair LUA manifest pinning & sync depotcache manifests
+        # 3. Auto-repair LUA manifest pinning, sync depotcache manifests & adapt signatures
         if config.steam_path and os.path.isdir(config.steam_path):
             FileManager.repair_stplugin_luas(config.steam_path)
             sync_depotcache_manifests(config.steam_path)
-
-        # Clean crashed CEF htmlcache to prevent window drawing off-screen (pos 805240832)
-        local_appdata = os.environ.get("LOCALAPPDATA", "")
-        if local_appdata:
-            cef_htmlcache = os.path.join(local_appdata, "Steam", "htmlcache")
-            local_state = os.path.join(cef_htmlcache, "Local State")
-            if os.path.isfile(local_state):
-                try:
-                    with open(local_state, "r", encoding="utf-8", errors="ignore") as f:
-                        content = f.read()
-                        if '"crashed":true' in content or '"exit_type":"Crashed"' in content:
-                            import shutil
-                            shutil.rmtree(cef_htmlcache, ignore_errors=True)
-                            logger.info("Cleared crashed CEF htmlcache to ensure window opens centered.")
-                except Exception as ex:
-                    logger.debug(f"htmlcache check: {ex}")
+            validator.ensure_opensteamtool_signatures(config.steam_path)
 
         # 4. Launch Steam cleanly with interactive GUI
         started = validator.launch_steam(steam_exe)
+
+        if started:
+            logger.info("Restarted Steam client successfully with GUI.")
+            return jsonify({"success": True, "message": "Steam başarıyla yeniden başlatıldı."})
+        else:
+            return jsonify({"success": False, "error": "Steam başlatılamadı."})
+
+    except Exception as e:
+        logger.error(f"Failed to restart Steam: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)})
 
         if started:
             logger.info("Restarted Steam client successfully with GUI.")
@@ -1046,7 +1024,7 @@ def get_bypass_status():
             "hook_loaded": False
         })
     
-    dlls = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+    dlls = ["xinput1_4.dll", "OpenSteamTool.dll"]
     installed_dlls = []
     for dll in dlls:
         dll_path = os.path.join(config.steam_path, dll)
@@ -1056,9 +1034,9 @@ def get_bypass_status():
     st_plugin = os.path.join(config.steam_path, "config", "stplug-in")
     has_plugins = os.path.isdir(st_plugin) and len(os.listdir(st_plugin)) > 0 if os.path.isdir(st_plugin) else False
     
-    # SteamTools is installed if OpenSteamTool.dll is present AND at least one proxy dll (dwmapi or xinput1_4) is present
+    # SteamTools is installed if OpenSteamTool.dll is present AND proxy dll (xinput1_4) is present
     has_ost = any(d.lower() == "opensteamtool.dll" for d in installed_dlls)
-    has_proxy = any(d.lower() in ["dwmapi.dll", "xinput1_4.dll"] for d in installed_dlls)
+    has_proxy = any(d.lower() == "xinput1_4.dll" for d in installed_dlls)
     installed = has_ost and has_proxy
 
     steam_running = validator.is_steam_running()
@@ -1113,12 +1091,12 @@ def check_steamtools_installed():
     present = []
     try:
         for f in os.listdir(config.steam_path):
-            if f.lower() in ["dwmapi.dll", "xinput1_4.dll", "opensteamtool.dll"]:
+            if f.lower() in ["xinput1_4.dll", "opensteamtool.dll"]:
                 present.append(f)
     except Exception:
         return False, []
     has_ost = any(f.lower() == "opensteamtool.dll" for f in present)
-    has_proxy = any(f.lower() in ["dwmapi.dll", "xinput1_4.dll"] for f in present)
+    has_proxy = any(f.lower() == "xinput1_4.dll" for f in present)
     is_installed = has_ost and has_proxy
     return is_installed, present
 
@@ -1136,13 +1114,22 @@ def ensure_steamtools_installed_auto():
         is_installed, present = check_steamtools_installed()
         if is_installed:
             logger.info("[SteamTools Auto-Setup] SteamTools is already installed and verified.")
+            validator.ensure_opensteamtool_signatures(config.steam_path)
             return True
 
         st_dir = get_bundled_steamtools_dir()
         import shutil
-        target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+        target_files = ["xinput1_4.dll", "OpenSteamTool.dll"]
         installed_count = 0
         
+        # Always remove dwmapi.dll to prevent VGUI_Setup failed crash
+        dwmapi_bad = os.path.join(config.steam_path, "dwmapi.dll")
+        if os.path.isfile(dwmapi_bad):
+            try:
+                os.remove(dwmapi_bad)
+            except Exception:
+                pass
+
         if st_dir:
             for f in target_files:
                 src = os.path.join(st_dir, f)
@@ -1246,9 +1233,16 @@ def run_self_healing_routine(force: bool = False) -> Dict[str, Any]:
         )
         if needs_st_repair:
             st_dir = get_bundled_steamtools_dir()
-            target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+            target_files = ["xinput1_4.dll", "OpenSteamTool.dll"]
             installed_count = 0
             
+            dwmapi_bad = os.path.join(steam_path, "dwmapi.dll")
+            if os.path.isfile(dwmapi_bad):
+                try:
+                    os.remove(dwmapi_bad)
+                except Exception:
+                    pass
+
             if st_dir:
                 for f in target_files:
                     src = os.path.join(st_dir, f)
@@ -1362,12 +1356,92 @@ def run_self_healing_routine(force: bool = False) -> Dict[str, Any]:
     except Exception as fe:
         logger.debug(f"[Self-Heal] Fixes check: {fe}")
 
+    # 8. OpenSteamTool signature adaptation for new Steam builds
+    try:
+        if validator.ensure_opensteamtool_signatures(steam_path):
+            actions.append("Steam sürüm güncellemesi için OpenSteamTool imza dosyaları otomatik uyarlandı.")
+    except Exception as oe:
+        logger.debug(f"[Self-Heal] OST signatures: {oe}")
+
     return {
         "ok": True,
         "actions": actions,
         "steam_path": steam_path,
         "message": "Sistem sağlık kontrolü ve otomatik onarım başarıyla tamamlandı!"
     }
+
+# %%
+def diagnose_system_issues() -> List[str]:
+    """Inspects the system and returns a list of detected issues for the startup warning modal."""
+    issues = []
+    steam_path = config.steam_path
+    if not steam_path or not os.path.isdir(steam_path):
+        discovered = config.discover_steam_path()
+        if discovered:
+            config.steam_path = discovered
+            config.save()
+            steam_path = discovered
+        else:
+            issues.append("Steam kurulum dizini bulunamadı.")
+            return issues
+
+    # 1. Obsolete dwmapi.dll presence (major crash cause: circular forwarder recursion)
+    if os.path.isfile(os.path.join(steam_path, "dwmapi.dll")):
+        issues.append("Steam klasöründe çökmeye ve VGUI hatasına neden olan 'dwmapi.dll' kancası tespit edildi.")
+
+    # 2. Missing proxy or OpenSteamTool
+    if not os.path.isfile(os.path.join(steam_path, "xinput1_4.dll")):
+        issues.append("SteamTools kanca kütüphanesi (xinput1_4.dll) Steam klasöründe eksik.")
+    
+    ost_p = os.path.join(steam_path, "OpenSteamTool.dll")
+    if not os.path.isfile(ost_p) or os.path.getsize(ost_p) < 100000:
+        issues.append("OpenSteamTool kilit açıcı modülü eksik veya hasarlı.")
+
+    # 3. Crash flag
+    if os.path.isfile(os.path.join(steam_path, ".crash")):
+        issues.append("Steam önceki oturumdan kalan kilitlenme durumunda (.crash).")
+
+    # 4. Stale ActiveProcess PID
+    try:
+        if not validator.is_steam_running():
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess", 0, winreg.KEY_READ) as key:
+                cur_pid, _ = winreg.QueryValueEx(key, "pid")
+                if cur_pid != 0:
+                    issues.append("Kayıt defterinde askıda kalmış Steam işlem kaydı (ActiveProcess) bulundu.")
+    except Exception:
+        pass
+
+    # 5. Crashed CEF cache
+    local_appdata = os.environ.get("LOCALAPPDATA", "")
+    if local_appdata:
+        cef_ls = os.path.join(local_appdata, "Steam", "htmlcache", "Local State")
+        if os.path.isfile(cef_ls):
+            try:
+                with open(cef_ls, "r", encoding="utf-8", errors="ignore") as f:
+                    c = f.read()
+                    if '"crashed":true' in c or '"exit_type":"Crashed"' in c:
+                        issues.append("Bozulmuş Steam arayüz önbelleği (CEF htmlcache) tespit edildi.")
+            except Exception:
+                pass
+
+    # 6. Spacewar 480.lua missing
+    f_480 = os.path.join(steam_path, "config", "stplug-in", "480.lua")
+    if not os.path.isfile(f_480) or os.path.getsize(f_480) < 5:
+        issues.append("Spacewar (AppID 480) çevrimiçi çok oyunculu kaydı eksik.")
+
+    return issues
+
+# %%
+# API Endpoint: GET /api/diagnose_system
+@app.route("/api/diagnose_system", methods=["GET"])
+def api_diagnose_system():
+    """Returns detected issues for automatic startup health check."""
+    issues = diagnose_system_issues()
+    return jsonify({
+        "has_issues": len(issues) > 0,
+        "issues": issues
+    })
 
 # %%
 # API Endpoint: POST /api/self_heal
@@ -1380,14 +1454,15 @@ def api_self_heal():
     restart_steam_flag = bool(data.get("restart_steam", False))
     was_running = validator.is_steam_running()
     if was_running and restart_steam_flag:
-        validator.kill_steam()
-        validator.wait_for_steam_exit(timeout=5.0)
+        validator.kill_steam(config.steam_path)
+        validator.wait_for_steam_exit(timeout=8.0)
+        time.sleep(1.5)
 
     result = run_self_healing_routine(force=force)
 
-    if was_running and restart_steam_flag and config.steam_path:
-        steam_exe = os.path.join(config.steam_path, "steam.exe")
-        if os.path.isfile(steam_exe):
+    if was_running and restart_steam_flag:
+        steam_exe = validator.resolve_steam_exe(config.steam_path)
+        if steam_exe:
             validator.launch_steam(steam_exe)
             result["actions"].append("Steam istemcisi güvenli şekilde yeniden başlatıldı.")
 
@@ -1419,8 +1494,16 @@ def install_steamtools():
         except Exception as e:
             logger.warning(f"[SteamTools Install] Could not terminate Steam: {e}")
 
-    target_files = ["dwmapi.dll", "xinput1_4.dll", "OpenSteamTool.dll"]
+    target_files = ["xinput1_4.dll", "OpenSteamTool.dll"]
     copied = 0
+
+    # Remove obsolete dwmapi.dll to prevent VGUI_Setup failed crash
+    dwmapi_bad = os.path.join(config.steam_path, "dwmapi.dll")
+    if os.path.isfile(dwmapi_bad):
+        try:
+            os.remove(dwmapi_bad)
+        except Exception:
+            pass
 
     # 1. Try installing from bundled files first (0ms, 100% offline guaranteed)
     st_dir = get_bundled_steamtools_dir()
@@ -3597,13 +3680,23 @@ def parent_monitor_worker():
             logger.info(f"[Watcher] Parent process {parent_pid} terminated. Exiting backend...")
             os._exit(0)
 
+def background_health_worker():
+    """Runs periodic maintenance in the background without lag."""
+    # Periodic background maintenance (every 15 minutes)
+    while True:
+        try:
+            time.sleep(900)  # 15 minutes
+            if config.steam_path and os.path.isdir(config.steam_path):
+                validator.cleanup_steam_crashes(config.steam_path)
+                sync_depotcache_manifests(config.steam_path)
+        except Exception as ex:
+            logger.debug(f"[Background Health] Periodic check warning: {ex}")
+
 def start_server():
     """Starts the Flask server in a local port."""
-    # Execute automatic self-healing routine at startup
-    try:
-        run_self_healing_routine(force=False)
-    except Exception as e:
-        logger.warning(f"Initial self-healing routine failed: {e}")
+    # Execute automatic self-healing routine silently in background
+    health_thread = threading.Thread(target=background_health_worker, daemon=True)
+    health_thread.start()
 
     # Start parent monitor thread
     monitor_thread = threading.Thread(target=parent_monitor_worker, daemon=True)

@@ -92,6 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. API & DATA CONTROLLERS
     initAppLogic();
 
+    // 4. AUTOMATIC STARTUP HEALTH CHECK & DIAGNOSTICS
+    setTimeout(checkStartupHealth, 500);
+
     // Sync version badge dynamically from Electron core or backend
     const updateVersionBadges = (ver) => {
         if (!ver) return;
@@ -119,6 +122,111 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// %% Automatic Startup System Health Check & Forced Repair Modal
+async function checkStartupHealth() {
+    try {
+        const res = await fetch("/api/diagnose_system");
+        const data = await res.json();
+        if (data && data.has_issues && Array.isArray(data.issues) && data.issues.length > 0) {
+            showForcedHealthModal(data.issues);
+        }
+    } catch (e) {
+        console.debug("[Health Check] Diagnostic probe:", e);
+    }
+}
+
+function showForcedHealthModal(issues) {
+    const modal = document.getElementById("health-warning-modal");
+    const list = document.getElementById("health-issues-list");
+    const btnRepair = document.getElementById("btn-health-repair");
+    if (!modal || !list || !btnRepair) return;
+
+    list.innerHTML = "";
+    issues.forEach(issue => {
+        const li = document.createElement("li");
+        li.style.cssText = "display: flex; align-items: flex-start; gap: 10px; color: #fca5a5; font-size: 0.86rem; line-height: 1.4; background: rgba(239, 68, 68, 0.08); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.15);";
+        
+        const icon = document.createElement("i");
+        icon.className = "fa-solid fa-circle-exclamation";
+        icon.style.cssText = "margin-top: 2px; color: #ef4444; flex-shrink: 0; font-size: 0.95rem;";
+        
+        const span = document.createElement("span");
+        span.textContent = issue;
+        
+        li.appendChild(icon);
+        li.appendChild(span);
+        list.appendChild(li);
+    });
+
+    modal.classList.add("active");
+
+    // Block ESC key and backdrop clicks from closing the modal (forced repair)
+    const blockEscHandler = (e) => {
+        if (modal.classList.contains("active") && e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+    window.addEventListener("keydown", blockEscHandler, true);
+
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    };
+
+    btnRepair.onclick = async () => {
+        btnRepair.disabled = true;
+        btnRepair.style.filter = "brightness(0.9)";
+        btnRepair.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sistem Onarılıyor... Lütfen Bekleyin';
+
+        try {
+            const res = await fetch("/api/self_heal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ force: true, restart_steam: false })
+            });
+            const data = await res.json();
+            
+            if (data && data.ok) {
+                btnRepair.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                btnRepair.style.borderColor = "#059669";
+                btnRepair.style.color = "#ffffff";
+                btnRepair.innerHTML = '<i class="fa-solid fa-circle-check"></i> Tüm Sorunlar Başarıyla Onarıldı!';
+
+                setTimeout(() => {
+                    modal.classList.remove("active");
+                    window.removeEventListener("keydown", blockEscHandler, true);
+                    const healBadge = document.getElementById("self-heal-badge");
+                    const healText = document.getElementById("self-heal-status-text");
+                    if (healBadge) {
+                        healBadge.textContent = "SAĞLIKLI";
+                        healBadge.style.backgroundColor = "#10b981";
+                    }
+                    if (healText) {
+                        healText.textContent = "Açılış denetimi ve onarım başarıyla tamamlandı. Sistem aktif.";
+                    }
+                    if (typeof updateSteamToolsStatus === "function") {
+                        updateSteamToolsStatus();
+                    }
+                }, 1300);
+            } else {
+                btnRepair.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                btnRepair.style.color = "#ffffff";
+                btnRepair.innerHTML = '<i class="fa-solid fa-circle-check"></i> Onarım Tamamlandı';
+                setTimeout(() => {
+                    modal.classList.remove("active");
+                    window.removeEventListener("keydown", blockEscHandler, true);
+                }, 1300);
+            }
+        } catch (err) {
+            btnRepair.disabled = false;
+            btnRepair.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Tekrar Dene';
+        }
+    };
+}
 
 // %% Clock Initialization
 function initClock() {
@@ -462,27 +570,13 @@ function initAppLogic() {
             });
     });
 
-    // Restart Steam (from Settings box)
+    // Restart Steam (from Settings box - unified with main button)
     const btnRestartST = document.getElementById("btn-restart-st");
     if (btnRestartST) {
         btnRestartST.addEventListener("click", () => {
-            loadingMessage.textContent = "Steam istemcisi yeniden başlatılıyor...";
-            loadingOverlay.classList.add("active");
-            fetch("/api/restart_steam", { method: "POST" })
-                .then(res => res.json())
-                .then(data => {
-                    loadingOverlay.classList.remove("active");
-                    if (data.success) {
-                        alert("Steam başarıyla yeniden başlatıldı!");
-                        setTimeout(updateSteamToolsStatus, 2000);
-                    } else {
-                        alert("Yeniden başlatma başarısız: " + data.error);
-                    }
-                })
-                .catch(err => {
-                    loadingOverlay.classList.remove("active");
-                    alert("Hata: " + err);
-                });
+            if (btnRestartSteam) {
+                btnRestartSteam.click();
+            }
         });
     }
 
@@ -830,6 +924,17 @@ function initAppLogic() {
             });
     }
 
+    // Helper: Identify hidden system/fix utilities (Spacewar 480, redistributables)
+    function isHiddenLibraryApp(game) {
+        if (!game) return true;
+        const aid = String(game.appid || "").trim();
+        const name = String(game.name || "").toLowerCase().trim();
+        const hiddenIds = ["480", "1002", "228980", "250820", "211", "1113740", "228989", "228990"];
+        if (hiddenIds.includes(aid)) return true;
+        if (name.includes("spacewar") || name === "steam app 480") return true;
+        return false;
+    }
+
     // Load Library Games with instant pre-render
     function loadLibrary() {
         // 1. Instant 0ms render from localStorage cache
@@ -838,7 +943,7 @@ function initAppLogic() {
             if (cached) {
                 const parsed = JSON.parse(cached);
                 if (Array.isArray(parsed) && parsed.length > 0 && gameLibrary.length === 0) {
-                    gameLibrary = parsed;
+                    gameLibrary = parsed.filter(g => !isHiddenLibraryApp(g));
                     applyFiltersAndRender();
                     renderOnlineFixLibrary();
                 }
@@ -849,7 +954,8 @@ function initAppLogic() {
         fetch("/api/library")
             .then(res => res.json())
             .then(data => {
-                gameLibrary = data.games || [];
+                const rawGames = data.games || [];
+                gameLibrary = rawGames.filter(g => !isHiddenLibraryApp(g));
                 try {
                     localStorage.setItem("steamrogue_library_cache", JSON.stringify(gameLibrary));
                 } catch (e) {}
@@ -870,7 +976,11 @@ function initAppLogic() {
         fetch("/api/library")
             .then(res => res.json())
             .then(data => {
-                gameLibrary = data.games || [];
+                const rawGames = data.games || [];
+                gameLibrary = rawGames.filter(g => !isHiddenLibraryApp(g));
+                try {
+                    localStorage.setItem("steamrogue_library_cache", JSON.stringify(gameLibrary));
+                } catch (e) {}
                 applyFiltersAndRender();
                 renderOnlineFixLibrary();
             })
@@ -924,7 +1034,8 @@ function initAppLogic() {
         
         // 1. Search Filter
         filteredLibrary = gameLibrary.filter(game => {
-            return game.name.toLowerCase().includes(query) || game.appid.includes(query);
+            if (isHiddenLibraryApp(game)) return false;
+            return game.name.toLowerCase().includes(query) || String(game.appid).includes(query);
         });
 
         // 2. Sort
@@ -2204,7 +2315,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "var(--text-secondary)";
             }
         } else if (data.status === "not-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.2';
+            const ver = data.version ? `v${data.version}` : 'v1.1.4';
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`;
                 updateStatusText.style.color = "#10b981";
@@ -2214,7 +2325,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.2';
+            const ver = data.version ? `v${data.version}` : 'v1.1.4';
             isHotfixAction = true;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #a78bfa;"></i> GitHub'da güncellenmiş yeni bir paket (${ver}) yayınlandı!`;
@@ -2293,7 +2404,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
             }
         } else if (data.status === "downloaded") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.2';
+            const ver = data.version ? `v${data.version}` : 'v1.1.4';
             isHotfixAction = false;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (${ver})! Yeniden başlatabilirsiniz.`;

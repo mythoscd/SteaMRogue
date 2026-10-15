@@ -68,12 +68,19 @@ function startBackend() {
     });
 }
 
-function createWindow() {
-    // Clear cache to prevent loading old cached files
-    session.defaultSession.clearCache().catch(err => {
-        console.error("Failed to clear Electron cache:", err);
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', () => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
     });
+}
 
+function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1150,
         height: 700,
@@ -82,8 +89,8 @@ function createWindow() {
         resizable: true,
         frame: false, // Borderless window matching the Project Lightning style
         transparent: false,
-        backgroundColor: '#0b0a11',
-        show: false, // Don't show until ready-to-show
+        backgroundColor: '#090a10',
+        show: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -92,34 +99,43 @@ function createWindow() {
         }
     });
 
+    // Show window immediately once ready
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.maximize();
+        mainWindow.show();
+    });
+
     // Intercept any new-window / target="_blank" links and open in default system browser
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
         return { action: 'deny' };
     });
 
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+}
+
+function loadAppUI() {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
     const targetUrl = `http://127.0.0.1:${BACKEND_PORT}/?v=${Date.now()}`;
 
     // Auto-retry on failed load so slow machine startup never results in a blank/error screen
-    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-        console.warn(`Initial page load failed (${errorCode}: ${errorDescription}). Retrying in 1s...`);
+    const failHandler = (event, errorCode, errorDescription) => {
+        console.warn(`Page load failed (${errorCode}: ${errorDescription}). Retrying in 500ms...`);
         setTimeout(() => {
             if (mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.loadURL(targetUrl).catch(() => {});
             }
-        }, 1000);
+        }, 500);
+    };
+
+    mainWindow.webContents.once('did-fail-load', failHandler);
+    mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow.webContents.removeListener('did-fail-load', failHandler);
     });
 
-    mainWindow.loadURL(targetUrl);
-
-    mainWindow.once('ready-to-show', () => {
-        mainWindow.maximize();
-        mainWindow.show();
-    });
-
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-    });
+    mainWindow.loadURL(targetUrl).catch(() => {});
 }
 
 // Window control events from preload bridge
@@ -428,54 +444,66 @@ ipcMain.on('restart-and-update', () => {
     }
 });
 
-function waitForBackendAndLoad(maxRetries = 60, retryInterval = 250) {
+function waitForBackendAndLoad(maxRetries = 150, retryInterval = 80) {
     let attempts = 0;
+    let loaded = false;
     
     function checkBackend() {
+        if (loaded) return;
         attempts++;
         const req = http.get(`http://127.0.0.1:${BACKEND_PORT}/api/status`, (res) => {
             if (res.statusCode === 200 || res.statusCode === 304) {
-                console.log(`Backend is ready after ${attempts * retryInterval}ms. Loading window...`);
-                createWindow();
+                console.log(`Backend is ready after ${attempts * retryInterval}ms. Loading UI...`);
+                loaded = true;
+                loadAppUI();
             } else {
-                if (attempts < maxRetries) {
+                if (attempts < maxRetries && !loaded) {
                     setTimeout(checkBackend, retryInterval);
-                } else {
-                    console.warn("Backend took too long to return 200. Creating window anyway.");
-                    createWindow();
+                } else if (!loaded) {
+                    console.warn("Backend took too long to return 200. Loading UI anyway.");
+                    loaded = true;
+                    loadAppUI();
                 }
             }
         });
         
         req.on('error', () => {
-            if (attempts < maxRetries) {
+            if (attempts < maxRetries && !loaded) {
                 setTimeout(checkBackend, retryInterval);
-            } else {
-                console.warn("Backend connection attempts exhausted. Creating window anyway.");
-                createWindow();
+            } else if (!loaded) {
+                console.warn("Backend connection attempts exhausted. Loading UI anyway.");
+                loaded = true;
+                loadAppUI();
             }
         });
         
-        req.setTimeout(400, () => {
+        req.setTimeout(250, () => {
             req.destroy();
         });
     }
     
-    // Initial slight pause then begin pinging
-    setTimeout(checkBackend, 200);
+    // Begin pinging immediately (after 30ms)
+    setTimeout(checkBackend, 30);
 }
 
 app.whenReady().then(() => {
+    // 1. Create native window immediately (0ms user click feedback)
+    createWindow();
+
+    // 2. Start Python backend
     startBackend();
     
-    // Actively wait for backend to respond before displaying UI
+    // 3. Ultra-fast backend polling (80ms) and load UI instantly
     waitForBackendAndLoad();
 
-    // Initialize auto-updater
+    // 4. Initialize auto-updater in background
     setupAutoUpdater();
 
     app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+            loadAppUI();
+        }
     });
 });
 
