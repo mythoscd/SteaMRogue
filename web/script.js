@@ -136,7 +136,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 5. AUTOMATIC STARTUP HEALTH CHECK & DIAGNOSTICS
     setTimeout(checkStartupHealth, 500);
-    setTimeout(loadSteamLibraries, 100);
 
     // Sync version badge dynamically from Electron core or backend
     const updateVersionBadges = (ver) => {
@@ -457,6 +456,7 @@ function initAppLogic() {
                         if (dot) dot.className = "status-indicator offline";
                     }
                 }
+                if (data.version && typeof updateVersionBadges === "function") updateVersionBadges(data.version);
                 if (typeof updateSteamToolsStatus === "function") updateSteamToolsStatus();
                 if (typeof updateVCRedistStatus === "function") updateVCRedistStatus();
                 if (typeof updateSecurityStatus === "function") updateSecurityStatus();
@@ -503,7 +503,6 @@ function initAppLogic() {
             if (data.success) {
                 alert("Steam dosya yolu başarıyla kaydedildi!");
                 loadSettings();
-                loadSteamLibraries();
                 loadLibrary();
             } else {
                 alert("Hata: " + data.error);
@@ -511,31 +510,7 @@ function initAppLogic() {
         });
     });
 
-    // Save Default Steam Library Drive
-    const btnSaveDefaultLibrary = document.getElementById("btn-save-default-library");
-    if (btnSaveDefaultLibrary) {
-        btnSaveDefaultLibrary.addEventListener("click", () => {
-            const settingsSelect = document.getElementById("settings-default-library-select");
-            const libIdx = settingsSelect ? settingsSelect.value : "";
-            fetch("/api/config", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ default_library: libIdx })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Varsayılan Steam kütüphane diski başarıyla kaydedildi!");
-                    localStorage.setItem("preferredSteamLibrary", libIdx);
-                    const targetSelect = document.getElementById("target-library-select");
-                    if (targetSelect && libIdx) targetSelect.value = libIdx;
-                } else {
-                    alert("Ayar kaydedilemedi: " + (data.error || "Bilinmeyen hata"));
-                }
-            })
-            .catch(err => alert("İstek gönderilemedi: " + err));
-        });
-    }
+
 
     // Install SteamTools
     document.getElementById("btn-install-st").addEventListener("click", () => {
@@ -991,13 +966,10 @@ function initAppLogic() {
         loadingProgress.style.width = "0%";
         loadingPercent.textContent = "0%";
 
-        const targetLibSelect = document.getElementById("target-library-select");
-        const libraryIndex = targetLibSelect ? targetLibSelect.value : "";
-
         fetch("/api/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ appid: appid, library_index: libraryIndex })
+            body: JSON.stringify({ appid: appid })
         })
         .then(res => res.json())
         .then(data => {
@@ -1188,68 +1160,10 @@ function initAppLogic() {
                 updateSteamToolsStatus();
                 updateVCRedistStatus();
                 updateSecurityStatus();
-                loadSteamLibraries();
             });
     }
 
-    // Load Steam Library Drives for Target Selection & Settings
-    function loadSteamLibraries() {
-        fetch("/api/steam/libraries")
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success || !data.libraries || data.libraries.length === 0) return;
-                
-                const targetSelect = document.getElementById("target-library-select");
-                const settingsSelect = document.getElementById("settings-default-library-select");
-                
-                const savedPref = localStorage.getItem("preferredSteamLibrary") || data.default_library;
-                
-                if (targetSelect) {
-                    const currentVal = targetSelect.value;
-                    targetSelect.innerHTML = "";
-                    data.libraries.forEach(lib => {
-                        const opt = document.createElement("option");
-                        opt.value = lib.index;
-                        opt.textContent = `${lib.short_label}`;
-                        opt.title = `${lib.path} (${lib.free_gb} GB boş / ${lib.total_gb} GB)`;
-                        targetSelect.appendChild(opt);
-                    });
-                    
-                    if (currentVal && data.libraries.some(l => l.index === currentVal)) {
-                        targetSelect.value = currentVal;
-                    } else if (savedPref && data.libraries.some(l => l.index === savedPref)) {
-                        targetSelect.value = savedPref;
-                    } else {
-                        // Find library with max free space
-                        let best = data.libraries[0];
-                        data.libraries.forEach(l => {
-                            if (l.free_gb > best.free_gb) best = l;
-                        });
-                        targetSelect.value = best.index;
-                    }
-                    
-                    targetSelect.onchange = () => {
-                        localStorage.setItem("preferredSteamLibrary", targetSelect.value);
-                    };
-                }
-                
-                if (settingsSelect) {
-                    settingsSelect.innerHTML = `<option value="">Otomatik (En çok boş yeri olan disk)</option>`;
-                    data.libraries.forEach(lib => {
-                        const opt = document.createElement("option");
-                        opt.value = lib.index;
-                        opt.textContent = `${lib.display_name}`;
-                        settingsSelect.appendChild(opt);
-                    });
-                    if (data.default_library) {
-                        settingsSelect.value = data.default_library;
-                    }
-                }
-            })
-            .catch(err => {
-                console.warn("Could not load steam libraries:", err);
-            });
-    }
+    function loadSteamLibraries() {}
 
     // Helper: Identify hidden system/fix utilities (Spacewar 480, redistributables)
     function isHiddenLibraryApp(game) {
@@ -2014,13 +1928,10 @@ function initAppLogic() {
         loadingProgress.style.width = "0%";
         loadingPercent.textContent = "0%";
         
-        const targetLibSelect = document.getElementById("target-library-select");
-        const libraryIndex = targetLibSelect ? targetLibSelect.value : "";
-
         fetch("/api/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ appid: appid, library_index: libraryIndex })
+            body: JSON.stringify({ appid: appid })
         })
         .then(res => res.json())
         .then(data => {

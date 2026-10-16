@@ -211,7 +211,8 @@ def manage_config():
     return jsonify({
         "steam_path": config.steam_path,
         "default_library": config.default_library,
-        "manifest_repos": config.manifest_repos
+        "manifest_repos": config.manifest_repos,
+        "version": "1.1.6"
     })
 
 # %%
@@ -2266,7 +2267,7 @@ def import_files():
 
 # %%
 # Background Addition worker
-def add_game_thread_worker(appid: str, target_lib_idx: str = None):
+def add_game_thread_worker(appid: str):
     """Executes the game addition logic in a background thread."""
     global task_statuses
     
@@ -2326,52 +2327,22 @@ def add_game_thread_worker(appid: str, target_lib_idx: str = None):
             )
 
         # 3. Save manifest & bypass configuration files
-        update_status("Copying manifest & bypass configuration files...", 85)
+        update_status("Manifest ve kilit açıcı dosyaları kaydediliyor...", 85)
         FileManager.write_steamtools_files(config.steam_path, manifests, luas)
             
-        # 4. Resolve Target Library and generate appmanifest
-        update_status("Kütüphane dizini belirleniyor...", 90)
-        all_libs = FileManager.get_library_folders(config.steam_path)
-        lib_map = {str(idx): path for idx, path in all_libs}
-        
-        chosen_idx = None
-        if target_lib_idx is not None and str(target_lib_idx) in lib_map:
-            chosen_idx = str(target_lib_idx)
-        elif config.default_library and str(config.default_library) in lib_map:
-            chosen_idx = str(config.default_library)
-        else:
-            # Pick library with the most free disk space
-            best_idx = "0"
-            max_free = -1
-            for idx, path in all_libs:
-                try:
-                    usage = shutil.disk_usage(path)
-                    if usage.free > max_free:
-                        max_free = usage.free
-                        best_idx = str(idx)
-                except Exception:
-                    pass
-            chosen_idx = best_idx
-            
-        target_lib_path = lib_map.get(chosen_idx, config.steam_path)
-        logger.info(f"Target library for AppID {valid_id}: Index [{chosen_idx}] -> {target_lib_path}")
-        
-        # Clean any old ACF from other libraries to avoid duplicate conflicts
-        update_status("Kütüphane kayıtları düzenleniyor...", 92)
+        # 4. Clean any old/dummy ACF and remove from libraryfolders.vdf
+        # This prevents Steam from locking the install path with 'YÜKLEME KLASÖRÜ DEĞİŞTİRİLEMEZ'
+        # and allows Steam's native install dialog to prompt the user to choose their desired drive (C: or D:)
+        update_status("Kütüphane kayıtları düzenleniyor...", 95)
         FileManager.clean_acf_manifests(config.steam_path, valid_id)
         FileManager.remove_from_library_folders(config.steam_path, valid_id)
-        
-        # Generate new ACF in chosen target library and register in libraryfolders.vdf
-        update_status("Steam kütüphane dosyaları oluşturuluyor...", 96)
-        FileManager.generate_acf_manifest(target_lib_path, valid_id, game_name, manifests)
-        FileManager.update_library_folders(config.steam_path, valid_id, chosen_idx)
         _library_cache["timestamp"] = 0
         
         # Success state
         with task_lock:
             task_statuses[appid] = {
                 "status": "success",
-                "message": f"'{game_name}' başarıyla kütüphaneye eklendi! (Hedef: {target_lib_path})",
+                "message": f"'{game_name}' başarıyla kütüphaneye eklendi!",
                 "progress": 100
             }
             
@@ -2430,10 +2401,6 @@ def add_game():
     except SteamToolsException as e:
         return jsonify({"success": False, "error": str(e)})
         
-    target_lib_idx = data.get("library_index")
-    if target_lib_idx is not None:
-        target_lib_idx = str(target_lib_idx).strip()
-
     # Start background task
     with task_lock:
         task_statuses[appid] = {
@@ -2442,7 +2409,7 @@ def add_game():
             "progress": 0
         }
         
-    thread = threading.Thread(target=add_game_thread_worker, args=(appid, target_lib_idx), daemon=True)
+    thread = threading.Thread(target=add_game_thread_worker, args=(appid,), daemon=True)
     thread.start()
     
     return jsonify({"success": True, "appid": appid, "name": resolved_name})

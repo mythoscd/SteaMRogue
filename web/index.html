@@ -98,12 +98,6 @@
                                 <input type="text" id="appid-input" placeholder="Steam mağaza linki, AppID veya oyun adı girin (Örn: store.steampowered.com/app/...)..." autocomplete="off">
                                 <div class="search-autocomplete-dropdown" id="search-autocomplete"></div>
                             </div>
-                            <div class="target-library-wrapper" title="Oyunun ekleneceği Steam kütüphane diski">
-                                <i class="fa-solid fa-hard-drive library-drive-icon"></i>
-                                <select id="target-library-select" class="target-library-select">
-                                    <option value="">Sürücüler taranıyor...</option>
-                                </select>
-                            </div>
                             <button class="btn btn-primary" id="btn-add-appid">
                                 <i class="fa-solid fa-plus"></i> Kütüphaneye Ekle
                             </button>
@@ -411,28 +405,6 @@
                             </div>
                         </div>
 
-                        <!-- 3.1 STEAM KÜTÜPHANE VE DİSK YÖNETİMİ -->
-                        <div class="settings-section-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 45%;">
-                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(167, 139, 250, 0.15); color: #a78bfa; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
-                                        <i class="fa-solid fa-hard-drive"></i>
-                                    </div>
-                                    <div>
-                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Varsayılan Steam Kütüphane Diski</h3>
-                                        <span class="settings-helper" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: block;">
-                                            Eklenen oyunların varsayılan olarak hangi Steam sürücüsüne yükleneceğini belirler.
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="path-input-wrapper" style="flex: 1; max-width: 580px; display: flex; gap: 8px;">
-                                    <select id="settings-default-library-select" style="flex: 1; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-medium); background: #080a10; color: var(--text-primary); font-size: 0.88rem; outline: none; cursor: pointer;">
-                                        <option value="">Otomatik (En çok boş yeri olan disk)</option>
-                                    </select>
-                                    <button class="btn btn-primary" id="btn-save-default-library" style="padding: 9px 20px; font-size: 0.84rem; white-space: nowrap;">Diski Kaydet</button>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- 4. KENDİ KENDİNİ ONARAN SİSTEM (SELF-HEALING) -->
                         <div class="settings-section-card">
