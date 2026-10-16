@@ -384,13 +384,14 @@ class FileManager:
         libs = cls.get_library_folders(steam_path)
         acf_name = f"appmanifest_{appid}.acf"
         for _, lib_path in libs:
-            acf_path = os.path.join(lib_path, "steamapps", acf_name)
-            if os.path.exists(acf_path):
-                try:
-                    os.remove(acf_path)
-                    logger.info(f"Deleted manifest ACF: {acf_path}")
-                except Exception as e:
-                    logger.warning(f"Could not delete ACF file {acf_path}: {e}")
+            for fname in [acf_name, f"{acf_name}.bak"]:
+                acf_path = os.path.join(lib_path, "steamapps", fname)
+                if os.path.exists(acf_path):
+                    try:
+                        os.remove(acf_path)
+                        logger.info(f"Deleted manifest ACF: {acf_path}")
+                    except Exception as e:
+                        logger.warning(f"Could not delete ACF file {acf_path}: {e}")
 
     @classmethod
     def get_active_steam_id64(cls, steam_path: str) -> str:

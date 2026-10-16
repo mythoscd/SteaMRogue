@@ -1455,52 +1455,13 @@ def run_self_healing_routine(force: bool = False) -> Dict[str, Any]:
     except Exception as oe:
         logger.debug(f"[Self-Heal] OST signatures: {oe}")
 
-    # 9. Synchronize ACF manifests for all unlocked games with StateFlags 1026 and active user LastOwner
+    # 9. Clean up any dummy uninstalled ACF manifests to unlock Steam native drive picker
     try:
-        plugin_folder = os.path.join(steam_path, "config", "stplug-in")
-        if os.path.isdir(plugin_folder):
-            synced_acfs = 0
-            for f in os.listdir(plugin_folder):
-                if f.lower().endswith(".lua"):
-                    aid = os.path.splitext(f)[0]
-                    if aid.isdigit():
-                        acf_p = os.path.join(steam_path, "steamapps", f"appmanifest_{aid}.acf")
-                        needs_gen = False
-                        if not os.path.isfile(acf_p):
-                            needs_gen = True
-                        else:
-                            try:
-                                with open(acf_p, "r", encoding="utf-8", errors="ignore") as acf_f:
-                                    t = acf_f.read()
-                                if '"LastOwner"' not in t:
-                                    needs_gen = True
-                                elif '"StateFlags"\t\t"4"' in t:
-                                    m_dir = re.search(r'"installdir"\s+"([^"]+)"', t)
-                                    if m_dir:
-                                        idir = m_dir.group(1)
-                                        if not os.path.isdir(os.path.join(steam_path, "steamapps", "common", idir)):
-                                            needs_gen = True
-                            except Exception:
-                                pass
-                        if needs_gen:
-                            gname = f"Steam App {aid}"
-                            try:
-                                dt = SteamAPI.get_app_details(aid)
-                                if dt and "name" in dt:
-                                    gname = dt["name"]
-                            except Exception:
-                                pass
-                            local_m = ManifestFinder.scan_local_depotcache(steam_path, aid)
-                            FileManager.generate_acf_manifest(steam_path, aid, gname, local_m)
-                            try:
-                                FileManager.update_library_folders(steam_path, aid)
-                            except Exception:
-                                pass
-                            synced_acfs += 1
-            if synced_acfs > 0:
-                actions.append(f"{synced_acfs} adet oyun için Steam kütüphane manifestleri (YÜKLE butonu ve aktif kullanıcı kaydı ile) yapılandırıldı.")
+        cleaned_acfs = cleanup_dummy_uninstalled_acfs(steam_path)
+        if cleaned_acfs > 0:
+            actions.append(f"{cleaned_acfs} adet kilitli sahte kütüphane kaydı temizlendi (Steam sürücü seçim diyaloğu etkinleştirildi).")
     except Exception as acf_err:
-        logger.debug(f"[Self-Heal] ACF sync: {acf_err}")
+        logger.debug(f"[Self-Heal] ACF cleanup: {acf_err}")
 
     # 10. Visual C++ Redistributable check & auto-installation
     try:
@@ -1809,54 +1770,58 @@ def sync_depotcache_manifests(steam_path: str) -> int:
         logger.info(f"[depotcache] Synced {synced} manifest files to official depotcache.")
     return synced
 
-def ensure_all_unlocked_acfs(steam_path: str) -> int:
-    """Ensures every unlocked game in config/lua or config/stplug-in has an appmanifest ACF in steamapps and is registered in libraryfolders.vdf."""
+def cleanup_dummy_uninstalled_acfs(steam_path: str) -> int:
+    """Removes dummy uninstalled ACF manifests (StateFlags: 1, SizeOnDisk: 0) from all libraries
+    and cleans their empty entries from libraryfolders.vdf.
+    
+    This ensures Steam always opens its native install dialog asking the user which drive
+    (C:, D:, etc.) they want to install the game to, and displays the true required disk space
+    instead of locking the location with 'YÜKLEME KLASÖRÜ DEĞİŞTİRİLEMEZ' and '0 B'.
+    """
     if not steam_path or not os.path.isdir(steam_path):
         return 0
-    synced = 0
+    cleaned = 0
     try:
-        unlocked_ids = set()
-        for folder in ["lua", "stplug-in"]:
-            p = os.path.join(steam_path, "config", folder)
-            if os.path.isdir(p):
-                for f in os.listdir(p):
-                    if f.lower().endswith(".lua"):
-                        stem = os.path.splitext(f)[0]
-                        if stem.isdigit():
-                            unlocked_ids.add(stem)
-
-        for aid in unlocked_ids:
-            acf_path = os.path.join(steam_path, "steamapps", f"appmanifest_{aid}.acf")
-            needs_gen = not os.path.isfile(acf_path)
-            if not needs_gen:
-                try:
-                    with open(acf_path, "r", encoding="utf-8", errors="ignore") as f:
-                        txt = f.read()
-                    if '"LastOwner"' not in txt or '"StateFlags"\t\t"1"' not in txt:
-                        needs_gen = True
-                except Exception:
-                    needs_gen = True
-
-            if needs_gen:
-                gname = f"Steam App {aid}"
-                try:
-                    dt = SteamAPI.get_app_details(aid)
-                    if dt and "name" in dt:
-                        gname = dt["name"]
-                except Exception:
-                    pass
-                local_m = ManifestFinder.scan_local_depotcache(steam_path, aid)
-                FileManager.generate_acf_manifest(steam_path, aid, gname, local_m)
-                try:
-                    FileManager.update_library_folders(steam_path, aid)
-                except Exception:
-                    pass
-                synced += 1
-        if synced > 0:
-            logger.info(f"[ACF Sync] Auto-synced {synced} missing/updated ACF manifests for unlocked games.")
+        libs = FileManager.get_library_folders(steam_path)
+        for _, lib_path in libs:
+            steamapps = os.path.join(lib_path, "steamapps")
+            if not os.path.isdir(steamapps):
+                continue
+            for f in os.listdir(steamapps):
+                if f.startswith("appmanifest_") and f.endswith(".acf"):
+                    p = os.path.join(steamapps, f)
+                    try:
+                        with open(p, "r", encoding="utf-8", errors="ignore") as fp:
+                            txt = fp.read()
+                        if '"StateFlags"\t\t"1"' in txt and '"SizeOnDisk"\t\t"0"' in txt:
+                            m_aid = re.search(r'"appid"\s+"(\d+)"', txt)
+                            m_dir = re.search(r'"installdir"\s+"([^"]+)"', txt)
+                            idir = m_dir.group(1) if m_dir else ""
+                            common_p = os.path.join(steamapps, "common", idir)
+                            has_content = os.path.isdir(common_p) and len(os.listdir(common_p)) > 0 if idir else False
+                            if not has_content:
+                                os.remove(p)
+                                bak_p = p + ".bak"
+                                if os.path.isfile(bak_p):
+                                    try:
+                                        os.remove(bak_p)
+                                    except Exception:
+                                        pass
+                                if m_aid:
+                                    FileManager.remove_from_library_folders(steam_path, m_aid.group(1))
+                                cleaned += 1
+                                logger.info(f"[cleanup_dummy_uninstalled_acfs] Liberated {f} to enable Steam drive picker.")
+                    except Exception as ex:
+                        logger.debug(f"Error checking {f}: {ex}")
+        if cleaned > 0:
+            logger.info(f"[cleanup_dummy_uninstalled_acfs] Cleaned {cleaned} dummy ACFs. Steam drive picker restored.")
     except Exception as e:
-        logger.warning(f"[ACF Sync] Error ensuring ACFs: {e}")
-    return synced
+        logger.warning(f"[cleanup_dummy_uninstalled_acfs] Error cleaning dummy ACFs: {e}")
+    return cleaned
+
+def ensure_all_unlocked_acfs(steam_path: str) -> int:
+    """Backward compatibility alias that calls cleanup_dummy_uninstalled_acfs."""
+    return cleanup_dummy_uninstalled_acfs(steam_path)
 
 # %%
 # API Endpoint: POST /api/clear_steam_cache
@@ -2317,15 +2282,11 @@ def add_game_thread_worker(appid: str):
         update_status("Copying manifest & bypass configuration files...", 85)
         FileManager.write_steamtools_files(config.steam_path, manifests, luas)
             
-        # 4. Generate appmanifest ACF file with StateFlags: 1 and active user LastOwner, and register in libraryfolders.vdf
-        # This guarantees Steam displays the game in the sidebar as ready to install with the blue "YÜKLE" button!
-        update_status("Kütüphane manifest dosyaları oluşturuluyor...", 95)
-        acf_path = FileManager.generate_acf_manifest(config.steam_path, valid_id, game_name, manifests)
-        logger.info(f"[add_game_thread_worker] Generated manifest for {valid_id}: {acf_path}")
-        try:
-            FileManager.update_library_folders(config.steam_path, valid_id)
-        except Exception as e_vdf:
-            logger.warning(f"Could not update libraryfolders.vdf: {e_vdf}")
+        # 4. Clean any existing dummy ACF so Steam's native install dialog prompts for drive location
+        # and displays the real download size instead of locking location to C:\ with "0 B".
+        update_status("Kütüphane kayıtları düzenleniyor...", 95)
+        FileManager.clean_acf_manifests(config.steam_path, valid_id)
+        FileManager.remove_from_library_folders(config.steam_path, valid_id)
         _library_cache["timestamp"] = 0
         
         # Success state
