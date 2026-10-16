@@ -731,6 +731,7 @@ def auto_restore_quarantined_files(steam_path: str, bundled_dir: str = None) -> 
     if not bundled_dir:
         curr = os.path.dirname(os.path.abspath(__file__))
         cand1 = os.path.join(curr, "steamtools_files")
+        cand1_parent = os.path.join(os.path.dirname(curr), "steamtools_files")
         cand2 = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto", "steamtools_files")
         if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
             cand0 = os.path.join(sys._MEIPASS, "steamtools_files")
@@ -738,6 +739,8 @@ def auto_restore_quarantined_files(steam_path: str, bundled_dir: str = None) -> 
                 bundled_dir = cand0
         if not bundled_dir and os.path.isdir(cand1):
             bundled_dir = cand1
+        elif not bundled_dir and os.path.isdir(cand1_parent):
+            bundled_dir = cand1_parent
         elif not bundled_dir and os.path.isdir(cand2):
             bundled_dir = cand2
 

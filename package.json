@@ -19,7 +19,7 @@
     "appId": "com.steamtools.steamrogue",
     "productName": "SteaMRogue",
     "win": {
-      "icon": "icon.ico",
+      "icon": "build_tools/icon.ico",
       "target": [
         "nsis"
       ],

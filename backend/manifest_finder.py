@@ -16,27 +16,29 @@ class ManifestFinder:
 
     @staticmethod
     def filter_lua_content(content_str: str, repo_url: str) -> str:
-        """Applies community-specific filtering rules to LUA scripts to ensure compatibility."""
+        """Applies cleaning rules to LUA scripts while strictly preserving addappid and setManifestid."""
+        import re
         lines = content_str.splitlines()
         filtered_lines = []
         
-        # SPIN0ZAi rule: Keep only lines containing addappid(
-        if "SPIN0ZAi" in repo_url:
-            for line in lines:
-                if line.strip().startswith("addappid("):
-                    filtered_lines.append(line)
-        # Other repos rule: Exclude lines containing setManifestid
-        elif any(domain in repo_url for domain in ["dvahana2424-web", "sojorepo", "SteamAutoCracks"]):
-            for line in lines:
-                if "setManifestid" not in line:
-                    filtered_lines.append(line)
-        # ProjectLightningManifests: Keep as-is
-        else:
-            filtered_lines = lines
+        for line in lines:
+            stripped = line.strip()
+            # Always keep addappid and setManifestid (critical for SteamTools to hook manifests and prevent Access Denied)
+            if stripped.startswith("addappid(") or stripped.startswith("setManifestid(") or stripped.startswith("setmanifestid("):
+                filtered_lines.append(stripped)
+            elif stripped.startswith("setAppTicket(") or stripped.startswith("setETicket(") or stripped.startswith("addtoken("):
+                filtered_lines.append(stripped)
+            elif stripped.startswith("--"):
+                filtered_lines.append(stripped)
+            elif not stripped:
+                filtered_lines.append("")
+            else:
+                # Keep other valid lua statements if not empty
+                filtered_lines.append(stripped)
             
         # Append signature
         filtered_lines.append("")
-        filtered_lines.append("-- Made with love by LightningFast⚡💜 (Python Auto)")
+        filtered_lines.append("-- Made with love by SteaMRogue")
         return "\n".join(filtered_lines)
 
     @classmethod
@@ -119,6 +121,28 @@ class ManifestFinder:
                             "content": filtered_lua.encode("utf-8")
                         })
                         logger.debug(f"Processed LUA in ZIP: {filename}")
+                        
+            # Ensure every manifest extracted has a corresponding setManifestid in the LUA script
+            if result["manifests"] and result["luas"]:
+                import re
+                manifest_map = {}
+                for m_item in result["manifests"]:
+                    m = re.match(r"^(\d+)_(\d+)\.manifest$", m_item["name"], re.IGNORECASE)
+                    if m:
+                        manifest_map[m.group(1)] = m.group(2)
+                
+                for lua_item in result["luas"]:
+                    lua_str = lua_item["content"].decode("utf-8", errors="ignore")
+                    lines = lua_str.splitlines()
+                    added_any = False
+                    for depot_id, gid in manifest_map.items():
+                        pat = rf"setManifestid\s*\(\s*['\"]?{depot_id}['\"]?\s*,"
+                        if not re.search(pat, lua_str, re.IGNORECASE):
+                            lines.append(f'setManifestid({depot_id}, "{gid}")')
+                            added_any = True
+                            logger.info(f"Auto-pinned manifest in LUA for depot {depot_id}: {gid}")
+                    if added_any:
+                        lua_item["content"] = "\n".join(lines).encode("utf-8")
                         
         except Exception as e:
             logger.error(f"Failed to extract or process zip archive: {e}")

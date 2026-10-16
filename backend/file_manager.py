@@ -259,7 +259,85 @@ class FileManager:
             
             logger.info(f"Saved LUA config: {name}")
             
+        # Automatically repair and ensure all manifests are pinned to depots
+        cls.repair_stplugin_luas(steam_path)
         return written_files
+
+    @classmethod
+    def repair_stplugin_luas(cls, steam_path: str) -> int:
+        """Inspects all LUA files in config/stplug-in and config/lua.
+        If any depot has a matching manifest in depotcache (or config/depotcache)
+        but the LUA is missing setManifestid, injects setManifestid so Steam
+        never requests unauthorized manifest codes from Valve servers."""
+        plugin_folder = os.path.join(steam_path, "config", "stplug-in")
+        lua_folder = os.path.join(steam_path, "config", "lua")
+        depotcache_folder = os.path.join(steam_path, "config", "depotcache")
+        official_depotcache = os.path.join(steam_path, "depotcache")
+
+        if not os.path.isdir(plugin_folder):
+            return 0
+
+        # Collect all available manifests: depot_id -> gid
+        depot_manifests = {}
+        for d_folder in [depotcache_folder, official_depotcache]:
+            if os.path.isdir(d_folder):
+                try:
+                    for fname in os.listdir(d_folder):
+                        m = re.match(r"^(\d+)_(\d+)\.manifest$", fname, re.IGNORECASE)
+                        if m:
+                            depot_id, gid = m.groups()
+                            depot_manifests[depot_id] = gid
+                except Exception as e:
+                    logger.debug(f"Error scanning depotcache folder {d_folder}: {e}")
+
+        fixed_count = 0
+        try:
+            for fname in os.listdir(plugin_folder):
+                if not fname.lower().endswith(".lua"):
+                    continue
+                lua_path = os.path.join(plugin_folder, fname)
+                try:
+                    with open(lua_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+
+                    depots = re.findall(r"addappid\((\d+)", content)
+                    modified = False
+                    lines = content.splitlines()
+
+                    for d in depots:
+                        if d in depot_manifests:
+                            pattern = rf"setManifestid\s*\(\s*['\"]?{d}['\"]?\s*,"
+                            if not re.search(pattern, content, re.IGNORECASE):
+                                gid = depot_manifests[d]
+                                line_to_add = f'setManifestid({d}, "{gid}")'
+                                # Find index of addappid(d
+                                idx_to_insert = -1
+                                for idx, line in enumerate(lines):
+                                    if f"addappid({d}" in line:
+                                        idx_to_insert = idx + 1
+                                        break
+                                if idx_to_insert != -1:
+                                    lines.insert(idx_to_insert, line_to_add)
+                                else:
+                                    lines.append(line_to_add)
+                                modified = True
+                                fixed_count += 1
+                                logger.info(f"Auto-pinned manifest in {fname}: {line_to_add}")
+
+                    if modified:
+                        new_content = "\n".join(lines)
+                        with open(lua_path, "w", encoding="utf-8") as f:
+                            f.write(new_content)
+                        if os.path.isdir(lua_folder):
+                            dest_lua = os.path.join(lua_folder, fname)
+                            with open(dest_lua, "w", encoding="utf-8") as f:
+                                f.write(new_content)
+                except Exception as ex:
+                    logger.error(f"Error checking lua {fname}: {ex}")
+        except Exception as e:
+            logger.error(f"Error repairing stplug-in luas: {e}")
+
+        return fixed_count
 
     @classmethod
     def clean_game_files(cls, steam_path: str, appid: str) -> None:
@@ -315,6 +393,28 @@ class FileManager:
                     logger.warning(f"Could not delete ACF file {acf_path}: {e}")
 
     @classmethod
+    def get_active_steam_id64(cls, steam_path: str) -> str:
+        """Finds the current logged in user's 64-bit Steam ID from loginusers.vdf."""
+        vdf_path = os.path.join(steam_path, "config", "loginusers.vdf")
+        if os.path.isfile(vdf_path):
+            try:
+                with open(vdf_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                matches = re.findall(r'"(\d{17})"\s*\{([^}]+)\}', content)
+                for steamid, block in matches:
+                    if re.search(r'"AutoLogin"\s+"1"', block):
+                        return steamid
+                if matches:
+                    def get_timestamp(pair):
+                        m = re.search(r'"timestamp"\s+"(\d+)"', pair[1])
+                        return int(m.group(1)) if m else 0
+                    sorted_matches = sorted(matches, key=get_timestamp, reverse=True)
+                    return sorted_matches[0][0]
+            except Exception as e:
+                logger.debug(f"Error reading loginusers.vdf: {e}")
+        return "76561199568801812"
+
+    @classmethod
     def generate_acf_manifest(
         cls, 
         library_path: str, 
@@ -324,7 +424,8 @@ class FileManager:
     ) -> str:
         """Auto-generates appmanifest_<AppID>.acf file under steamapps folder.
         
-        Parses manifest file list to populate InstalledDepots if available.
+        Uses StateFlags: 1 (Uninstalled) and active user LastOwner so Steam shows the blue
+        'YÜKLE' (Install) button and never shows 'SATIN AL'.
         """
         dest_dir = os.path.join(library_path, "steamapps")
         os.makedirs(dest_dir, exist_ok=True)
@@ -335,13 +436,21 @@ class FileManager:
         if not installdir:
             installdir = f"SteamApp_{appid}"
             
-        current_time = int(time.time())
+        active_owner = cls.get_active_steam_id64(library_path)
+        if not os.path.isfile(os.path.join(library_path, "config", "loginusers.vdf")):
+            try:
+                from config import config
+                if config.steam_path and os.path.isdir(config.steam_path):
+                    active_owner = cls.get_active_steam_id64(config.steam_path)
+            except Exception:
+                pass
+
+        steam_exe = os.path.join(library_path, "steam.exe").replace("/", "\\")
         
         # Extract depots from manifest filenames
         depot_entries = []
         if manifests:
             for item in manifests:
-                # Name: <DepotID>_<ManifestID>.manifest
                 match = re.match(r'^(\d+)_(\d+)\.manifest$', item["name"], re.IGNORECASE)
                 if match:
                     depot_id = match.group(1)
@@ -358,27 +467,28 @@ class FileManager:
 {{
 	"appid"		"{appid}"
 	"Universe"		"1"
+	"LauncherPath"		"{steam_exe}"
 	"name"		"{game_name}"
 	"StateFlags"		"1"
 	"installdir"		"{installdir}"
-	"LastUpdated"		"{current_time}"
-	"LastPlayed"		"0"
+	"LastUpdated"		"0"
+	"UpdateResult"		"0"
 	"SizeOnDisk"		"0"
-	"buildid"		"12345678"
+	"buildid"		"0"
+	"LastOwner"		"{active_owner}"
 	"BytesToDownload"		"0"
 	"BytesDownloaded"		"0"
 	"BytesToStage"		"0"
 	"BytesStaged"		"0"
-	"TargetBuildID"		"12345678"
-	"ProjectLightning"		"1"
+	"TargetBuildID"		"0"
 	"AutoUpdateBehavior"		"0"
 	"AllowOtherDownloadsWhileRunning"		"0"
+	"UserConfig"
+	{{
+	}}
 	"InstalledDepots"
 	{{
 {depots_str}
-	}}
-	"UserConfig"
-	{{
 	}}
 }}
 '''
@@ -389,5 +499,5 @@ class FileManager:
         with open(acf_path, "w", encoding="utf-8") as f:
             f.write(acf_content)
             
-        logger.info(f"Generated appmanifest file: {acf_path}")
+        logger.info(f"Generated appmanifest file (StateFlags: 1, LastOwner: {active_owner}): {acf_path}")
         return acf_path

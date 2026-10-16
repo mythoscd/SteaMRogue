@@ -18,11 +18,14 @@ def setup_logger(log_dir: str = "logs") -> logging.Logger:
         return logger
         
     # Console Handler - Basic logging
-    console_handler = logging.StreamHandler()
-    console_formatter = logging.Formatter("%(message)s")
-    console_handler.setFormatter(console_formatter)
-    console_handler.setLevel(logging.INFO)
-    logger.addHandler(console_handler)
+    try:
+        console_handler = logging.StreamHandler()
+        console_formatter = logging.Formatter("%(message)s")
+        console_handler.setFormatter(console_formatter)
+        console_handler.setLevel(logging.INFO)
+        logger.addHandler(console_handler)
+    except Exception:
+        pass
 
     # Determine safe log directory
     safe_dir = None

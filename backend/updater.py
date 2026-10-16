@@ -208,6 +208,7 @@ def _find_bundled_steamtools():
     else:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         candidates.append(os.path.join(base_dir, "steamtools_files"))
+        candidates.append(os.path.join(os.path.dirname(base_dir), "steamtools_files"))
 
     local_st = os.path.join(os.path.dirname(os.path.abspath(__file__)), "steamtools_files")
     candidates.append(local_st)

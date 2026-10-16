@@ -1,0 +1,12 @@
+SteaMRogue-win32-x64
+SteamTools_Auto-win32-x64
+dist
+build
+.git
+node_modules
+scratch
+github_publisher.py
+publish_release.py
+build_test_installer.py
+*.token
+*.env

@@ -59,7 +59,13 @@ function startBackend() {
         });
     } else {
         console.log("No compiled backend binary found, falling back to python / uv (Dev Mode)...");
-        backendProcess = spawn('uv', ['run', '--with-requirements', 'requirements.txt', 'python', 'app.py'], {
+        const appPyPath = fs.existsSync(path.join(__dirname, 'backend', 'app.py'))
+            ? path.join('backend', 'app.py')
+            : 'app.py';
+        const reqsPath = fs.existsSync(path.join(__dirname, 'backend', 'requirements.txt'))
+            ? path.join('backend', 'requirements.txt')
+            : 'requirements.txt';
+        backendProcess = spawn('uv', ['run', '--with-requirements', reqsPath, 'python', appPyPath], {
             cwd: __dirname,
             env: env,
             shell: true,

@@ -1,50 +1,66 @@
 {
   "UBISOFT": {
-	"2290180": {
+    "2290180": {
       "name": "Riders Republic - ZEN MODE",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Connect"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Connect"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Connect.",
-		"To launch the game, you need to use the Start.exe executable included in the game's root folder.",
-		"Only ZEN Mode is available. It is the only offline mode the game has, so please don't ask about the normal mode."
+        "To launch the game, you need to use the Start.exe executable included in the game's root folder.",
+        "Only ZEN Mode is available. It is the only offline mode the game has, so please don't ask about the normal mode."
       ],
       "nombre_fix": "Riders Republic - bypass",
       "custom_images": {}
     },
-	"2751000": {
+    "2751000": {
       "name": "Prince of Persia The Lost Crown",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Connect"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Connect"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Connect."
       ],
       "nombre_fix": "Prince of Persia The Lost Crown - bypass",
       "custom_images": {}
     },
-	"2842040": {
+    "2842040": {
       "name": "Star Wars Outlaws",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Connect"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Connect"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Connect."
       ],
       "nombre_fix": "Star Wars Outlaws - bypass",
       "custom_images": {}
     },
-	"2840770": {
+    "2840770": {
       "name": "Avatar: Frontiers of Pandora",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Connect"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Connect"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Connect."
       ],
@@ -55,9 +71,13 @@
       "name": "The Crew",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play.",
         "The game only works when launched through Steam."
@@ -73,24 +93,32 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play.",
-	"If you cant open the game with steam, try to open it with the exe in the folder called TheCrew2.exe"
+        "If you cant open the game with steam, try to open it with the exe in the folder called TheCrew2.exe"
       ],
       "nombre_fix": "The Crew 2 - bypass",
       "custom_images": {}
     },
-	"242550": {
+    "242550": {
       "name": "Rayman Legends",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play.",
-		"I recommend marking the game folder as an exception in your antivirus so that it does not delete your files."
+        "I recommend marking the game folder as an exception in your antivirus so that it does not delete your files."
       ],
       "nombre_fix": "Rayman Legends - bypass",
       "custom_images": {
@@ -103,7 +131,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play."
       ],
@@ -115,7 +147,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play."
       ],
@@ -127,7 +163,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play."
       ],
@@ -142,7 +182,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play."
       ],
@@ -154,7 +198,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play."
       ],
@@ -169,7 +217,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", ".NET", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        ".NET",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET, and Ubisoft Play."
       ],
@@ -180,9 +232,13 @@
       "name": "Assassin's Creed Unity",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Visual C++", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        "Visual C++",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Visual C++, and Ubisoft Play.",
         "It’s very likely that your antivirus will delete the uplay_r164.dll file, it is trustworthy and essential to play."
@@ -195,7 +251,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and Ubisoft Play."
       ],
@@ -207,7 +266,12 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist 2010", "DoNet"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist 2010",
+        "DoNet"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, DoNet and VC Redist 2010."
       ],
@@ -222,7 +286,12 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "Visual C++", "Visual C++ 2012"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "Visual C++",
+        "Visual C++ 2012"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and Visual C++."
       ],
@@ -234,7 +303,12 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist 2010", "DoNet"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist 2010",
+        "DoNet"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, DoNet and VC Redist 2010."
       ],
@@ -249,7 +323,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC Redist."
       ],
@@ -261,7 +339,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC Redist."
       ],
@@ -272,13 +354,17 @@
       "name": "Assassin's Creed Valhalla",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC C++ 2019"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC C++ 2019"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC C++ 2019.",
-		"The game takes a long time to load the first time, just be patient.",
-	    "It’s very likely that your antivirus will delete some files. Mark the game’s folder as an exception and apply the fix again if you encounter any related errors."
+        "The game takes a long time to load the first time, just be patient.",
+        "It’s very likely that your antivirus will delete some files. Mark the game’s folder as an exception and apply the fix again if you encounter any related errors."
       ],
       "nombre_fix": "Assassin's Creed Valhalla - bypass",
       "custom_images": {}
@@ -288,7 +374,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "Ubisoft Play", "VC C++ 2019"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "Ubisoft Play",
+        "VC C++ 2019"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12, Ubisoft Play and VC C++ 2019.",
         "To remove fps monitoring you just have to press the letter 'P' several times"
@@ -301,29 +391,37 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "Ubisoft Play", "VC C++ 2022"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "Ubisoft Play",
+        "VC C++ 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC C++ 2022"
       ],
       "nombre_fix": "Assassin's Creed Shadows - bypass",
       "custom_images": {}
     },
-	"3751950": {
+    "3751950": {
       "name": "Assassin's Creed Black Flag Resynced",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "Ubisoft Play", "VC C++ 2022"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "Ubisoft Play",
+        "VC C++ 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC C++ 2022",
-		"Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again"
+        "Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again"
       ],
       "nombre_fix": "Assassin's Creed Black Flag Resynced - bypass",
       "custom_images": {
         "cover_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3751950/36a1644b03afce1a648ab90b232196609e827539/library_capsule.jpg",
-		"hero_image_x2": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3751950/09d7b766ce8a26bce32887ec7eaf00fc36552025/library_hero_2x.jpg",
-		"logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3751950/9928560f0155a0378d1cc915c165a1a09ba5d108/logo.png"
+        "hero_image_x2": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3751950/09d7b766ce8a26bce32887ec7eaf00fc36552025/library_hero_2x.jpg",
+        "logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3751950/9928560f0155a0378d1cc915c165a1a09ba5d108/logo.png"
       }
     },
     "220240": {
@@ -331,19 +429,31 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "Visual C++ 2008", "Visual C++ 2010", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "Visual C++ 2008",
+        "Visual C++ 2010",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, Visual C++ 2008, Visual C++ 2010 and .NET 4.0."
       ],
       "nombre_fix": "Far Cry 3 - bypass",
       "custom_images": {}
     },
-	"233270": {
+    "233270": {
       "name": "Far Cry® 3 Blood Dragon",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "Visual C++ 2008", "Visual C++ 2010", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "Visual C++ 2008",
+        "Visual C++ 2010",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, Visual C++ 2008, Visual C++ 2010 and .NET 4.0."
       ],
@@ -358,7 +468,12 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, VC Redist and .NET 4.0."
       ],
@@ -370,7 +485,12 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist 2012", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist 2012",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, VC Redist 2012 and .NET 4.0."
       ],
@@ -381,13 +501,18 @@
       "name": "Far Cry 5",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist 2012", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist 2012",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play, VC Redist 2012 and .NET 4.0.",
-		"It’s very likely that your antivirus will delete some files. Mark the game’s folder as an exception and apply the fix again if you encounter any related errors.",
-		"The game only works with my version of manifest, download it from my bot or from the library here in the app"
+        "It’s very likely that your antivirus will delete some files. Mark the game’s folder as an exception and apply the fix again if you encounter any related errors.",
+        "The game only works with my version of manifest, download it from my bot or from the library here in the app"
       ],
       "nombre_fix": "Far Cry 5 - bypass",
       "custom_images": {}
@@ -397,24 +522,32 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC Redist."
       ],
       "nombre_fix": "Far Cry New Dawn - bypass",
       "custom_images": {}
     },
-	"916440": {
+    "916440": {
       "name": "Anno 1800",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC Redist.",
-		"The game only works with my version of manifest, download it from my bot or from the library here in the app",
-		"Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again"
+        "The game only works with my version of manifest, download it from my bot or from the library here in the app",
+        "Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again"
       ],
       "nombre_fix": "Anno 1800 - bypass",
       "custom_images": {}
@@ -424,7 +557,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, Ubisoft Play and VC Redist"
       ],
@@ -436,7 +573,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and Ubisoft Play."
       ],
@@ -451,7 +591,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and Ubisoft Play."
       ],
@@ -465,13 +608,17 @@
       "name": "Watch_Dogs",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET 4.0 and Ubisoft Play.",
-		"Remember to launch the game with exe watch_dogs.exe inside the bin folder",
-		"Remember to mark the game folder as an exception before applying the fix"
+        "Remember to launch the game with exe watch_dogs.exe inside the bin folder",
+        "Remember to mark the game folder as an exception before applying the fix"
       ],
       "nombre_fix": "Watch_Dogs - bypass",
       "custom_images": {
@@ -483,12 +630,16 @@
       "name": "Watch_Dogs 2",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET 4.0 and Ubisoft Play.",
-		"Remember to launch the game with exe WatchDogs2.exe inside the bin folder"
+        "Remember to launch the game with exe WatchDogs2.exe inside the bin folder"
       ],
       "nombre_fix": "Watch_Dogs 2 - bypass",
       "custom_images": {}
@@ -498,7 +649,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET 4.0 and Ubisoft Play."
       ],
@@ -510,7 +665,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", ".NET"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        ".NET"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET and Ubisoft Play."
       ],
@@ -524,61 +683,77 @@
       "name": "Tom Clancy's Ghost Recon Wildlands",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "Ubisoft Play", ".NET 4.0"],
+      "programas_necesarios": [
+        "DirectX",
+        "Ubisoft Play",
+        ".NET 4.0"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, .NET 4.0 and Ubisoft Play.",
         "The game takes a long time to load (10-15 min), just be patient.",
-	    "It’s very likely that your antivirus will delete some files. Mark the game’s folder as an exception and apply the fix again if you encounter any related errors."
+        "It’s very likely that your antivirus will delete some files. Mark the game’s folder as an exception and apply the fix again if you encounter any related errors."
       ],
       "nombre_fix": "Tom Clancy's Ghost Recon Wildlands - bypass",
       "custom_images": {}
     }
   },
   "EA": {
-	"3940610": {
+    "3940610": {
       "name": "EA SPORTS™ Madden NFL 27",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
-		"You need to launch the game with the exe called Madden27.exe"
+        "You need to launch the game with the exe called Madden27.exe"
       ],
       "nombre_fix": "EA SPORTS™ Madden NFL 27 - bypass",
       "custom_images": {
-		"cover_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3940610/265d9223cba1401f91e9cc711ebe3a5f5e3440b8/library_capsule.jpg",
-		"hero_image_x2": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3940610/cc4e39c5595821cc1a1dbbcfa4174921a1af039a/library_hero_2x.jpg?t=1786718387",
-		"logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3940610/611efdfb6f3574cd31febfd68e1b24b1f5880c05/logo.png"
-	  }
+        "cover_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3940610/265d9223cba1401f91e9cc711ebe3a5f5e3440b8/library_capsule.jpg",
+        "hero_image_x2": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3940610/cc4e39c5595821cc1a1dbbcfa4174921a1af039a/library_hero_2x.jpg?t=1786718387",
+        "logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3940610/611efdfb6f3574cd31febfd68e1b24b1f5880c05/logo.png"
+      }
     },
-	"4032350": {
+    "4032350": {
       "name": "EA SPORTS™ College Football 27",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
-		"You need to launch the game with the exe called CollegeFB27.exe"
+        "You need to launch the game with the exe called CollegeFB27.exe"
       ],
       "nombre_fix": "EA SPORTS™ College Football 27 - bypass",
       "custom_images": {
-	  	"hero_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/0d18c22e927cc6fe246d6a0412c87096ff33c00a/library_capsule.jpg",
+        "hero_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/0d18c22e927cc6fe246d6a0412c87096ff33c00a/library_capsule.jpg",
         "background": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/d7f665add8823c65c31620619fa50b91dbc07e28/library_hero_2x.jpg",
-		"cover_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/0d18c22e927cc6fe246d6a0412c87096ff33c00a/library_capsule.jpg",
-		"hero_image_x2": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/d7f665add8823c65c31620619fa50b91dbc07e28/library_hero_2x.jpg?t=1784128711",
-		"logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/58f40804b0aa54fbd62312128ba21a92a8c905ad/logo_2x.png"
-	  }
+        "cover_image": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/0d18c22e927cc6fe246d6a0412c87096ff33c00a/library_capsule.jpg",
+        "hero_image_x2": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/d7f665add8823c65c31620619fa50b91dbc07e28/library_hero_2x.jpg?t=1784128711",
+        "logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4032350/58f40804b0aa54fbd62312128ba21a92a8c905ad/logo_2x.png"
+      }
     },
     "3405690": {
       "name": "EA SPORTS FC 26",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
         "1. Install the game using files from 'FC 26 - GET HERE'. If already installed, update via SteamTools.",
@@ -603,7 +778,11 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
         "1. Install the game using files from 'FC 25 - GET HERE'. If already installed, update via SteamTools.",
@@ -620,62 +799,82 @@
       "nombre_fix": "EA SPORTS FC 25 - bypass",
       "custom_images": {}
     },
-	"1811260": {
+    "1811260": {
       "name": "EA SPORTS FIFA 23",
-	  "disponible": false,
+      "disponible": false,
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist"
       ],
       "nombre_fix": "FIFA 23 - bypass",
       "custom_images": {}
     },
-	"1506830": {
+    "1506830": {
       "name": "EA SPORTS FIFA 22",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist"
       ],
       "nombre_fix": "FIFA 22 - bypass",
       "custom_images": {}
     },
-  	"1313860": {
+    "1313860": {
       "name": "EA SPORTS FIFA 21",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist"
       ],
       "nombre_fix": "EA SPORTS FIFA 21 - bypass",
       "custom_images": {}
     },
-	"1938010": {
+    "1938010": {
       "name": "WILD HEARTS",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
-		"To open the game, you need to open the WILD HEARTS.exe file located inside the WILD HEARTS/00_game/target_origin/ex folder."
+        "To open the game, you need to open the WILD HEARTS.exe file located inside the WILD HEARTS/00_game/target_origin/ex folder."
       ],
       "nombre_fix": "WILD HEARTS - bypass",
       "custom_images": {}
     },
-	"1693980": {
+    "1693980": {
       "name": "Dead Space",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist"
       ],
@@ -687,7 +886,12 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist 2013", "VC Redist 2015"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist 2013",
+        "VC Redist 2015"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App, VC Redist 2013 and VC Redist 2015"
       ],
@@ -699,7 +903,11 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist 2015"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist 2015"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist 2015"
       ],
@@ -711,46 +919,62 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist 2015"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist 2015"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist 2015"
       ],
       "nombre_fix": "STAR WARS Jedi La Orden caída - bypass",
       "custom_images": {}
     },
-	"1134570": {
+    "1134570": {
       "name": "F1 2021",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist 2020"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist 2020"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist 2020",
-		"The game only works with my version of manifest, download it from my bot or from the library here in the app"
+        "The game only works with my version of manifest, download it from my bot or from the library here in the app"
       ],
       "nombre_fix": "F1 2021 - bypass",
       "custom_images": {}
     },
-	"1692250": {
+    "1692250": {
       "name": "F1® 22",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist 2021"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist 2021"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist 2021",
-		"The game only works with my version of manifest, download it from my bot or from the library here in the app"
+        "The game only works with my version of manifest, download it from my bot or from the library here in the app"
       ],
       "nombre_fix": "F1 2022 - bypass",
       "custom_images": {}
     },
-	"3059520": {
+    "3059520": {
       "name": "F1® 25 + F1® 26 Season Pack",
-	  "disponible": true,
+      "disponible": true,
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "EA App", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "EA App",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
         "1. Install the game using files from 'F1 25 - GET HERE'. If already installed, update via SteamTools.",
@@ -766,17 +990,20 @@
       ],
       "nombre_fix": "F1 25 - bypass",
       "custom_images": {
-		"cover_image": "https://cdn2.steamgriddb.com/grid/da8f17df33b392e61af87eedc7a02773.png",
-		"hero_image_x2": "https://cdn2.steamgriddb.com/hero/7a42294ed0341f5e2dc1c218cbb711ab.png",
-		"logo_img": "https://cdn2.steamgriddb.com/logo/59ccc377d175af5b04d0c03dea8a1b9c.png"
-	  }
+        "cover_image": "https://cdn2.steamgriddb.com/grid/da8f17df33b392e61af87eedc7a02773.png",
+        "hero_image_x2": "https://cdn2.steamgriddb.com/hero/7a42294ed0341f5e2dc1c218cbb711ab.png",
+        "logo_img": "https://cdn2.steamgriddb.com/logo/59ccc377d175af5b04d0c03dea8a1b9c.png"
+      }
     },
     "47870": {
       "name": "Need for Speed: Hot Pursuit",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["C++ 2008", "DirectX"],
+      "programas_necesarios": [
+        "C++ 2008",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, C++2008 and EA Play."
       ],
@@ -790,7 +1017,10 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and EA Play.",
         "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder."
@@ -802,9 +1032,12 @@
       "name": "Need for Speed™ Rivals",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and EA Play.",
         "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
@@ -821,7 +1054,12 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2013", "VC Redist 2015"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2013",
+        "VC Redist 2015"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and EA Play.",
         "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
@@ -836,7 +1074,12 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2017", "VC Redist 2019"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2017",
+        "VC Redist 2019"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and EA Play.",
         "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
@@ -851,7 +1094,12 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2017", "VC Redist 2019"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2017",
+        "VC Redist 2019"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and EA Play.",
         "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
@@ -861,12 +1109,17 @@
       "nombre_fix": "Need for Speed Hot Pursuit Remastered - bypass",
       "custom_images": {}
     },
-	"1846380": {
+    "1846380": {
       "name": "Need for Speed™ Unbound",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2017", "VC Redist 2019"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2017",
+        "VC Redist 2019"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
         "1. Install the game using files from 'Need for Speed Unbound - GET HERE'. If already installed, update via SteamTools.",
@@ -883,12 +1136,16 @@
       "nombre_fix": "Need for Speed Unbound - bypass",
       "custom_images": {}
     },
-	"1222670": {
+    "1222670": {
       "name": "The Sims 4",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2012"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2012"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA Play and VC Redist 2014.",
         "The game must be launched from the executable in the game folder named 'TS4_x64.exe'. If you launch it from Steam, it won’t work.",
@@ -902,7 +1159,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist",
         "If the game doesn't launch with steam, go to the main game path and open the exe Replanted.exe."
@@ -917,7 +1177,11 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2012"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2012"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA Play and VC Redist 2012.",
         "The game must be launched from the executable in the folder named 'Unravel.exe'. If you launch it from Steam, it won’t work.",
@@ -931,7 +1195,12 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2013", "VC Redist 2013"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2013",
+        "VC Redist 2013"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA Play, VC Redist 2013 and VC Redist 2015.",
         "It's important to launch the game using the executable named 'UnravelTwo.exe'.",
@@ -941,15 +1210,20 @@
       "nombre_fix": "Unravel 2 - bypass",
       "custom_images": {}
     },
-	"1426210": {
+    "1426210": {
       "name": "It Takes Two",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2013", "VC Redist 2013"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2013",
+        "VC Redist 2013"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA Play, VC Redist 2013 and VC Redist 2015.",
-		"There is no longer an online solution for this game, but if you want to play with a friend, you can. You just need the Parsec application; with it, your friend can play from their PC as if they were connecting a controller to your home computer.",
+        "There is no longer an online solution for this game, but if you want to play with a friend, you can. You just need the Parsec application; with it, your friend can play from their PC as if they were connecting a controller to your home computer.",
         "You need to have the EA app installed, or the game won't launch."
       ],
       "nombre_fix": "It Takes Two - bypass",
@@ -960,11 +1234,16 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX", "VC Redist 2013", "VC Redist 2013"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX",
+        "VC Redist 2013",
+        "VC Redist 2013"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA Play, VC Redist 2013 and VC Redist 2015.",
         "It's important to launch the game using the executable named 'A Way Out.exe'.",
-		"There is no longer an online solution for this game, but if you want to play with a friend, you can. You just need the Parsec application; with it, your friend can play from their PC as if they were connecting a controller to your home computer.",
+        "There is no longer an online solution for this game, but if you want to play with a friend, you can. You just need the Parsec application; with it, your friend can play from their PC as if they were connecting a controller to your home computer.",
         "You need to have the EA app installed, or the game won't launch."
       ],
       "nombre_fix": "A Way Out - bypass",
@@ -975,7 +1254,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12, EA Play and VC Redist 2022.",
         "The game already includes the online fix, but to play with your friends, you all must have the latest version of the game."
@@ -988,7 +1271,11 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 11", "VC Redist 2013"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 11",
+        "VC Redist 2013"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 11, EA Play and VC Redist 2013.",
         "The game opens with the exe *bf3.exe*"
@@ -1001,7 +1288,11 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 11", "VC Redist 2013"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 11",
+        "VC Redist 2013"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 11, EA Play and VC Redist 2013.",
         "The game opens with the exe *bf4.exe*"
@@ -1009,15 +1300,19 @@
       "nombre_fix": "Battlefield 4 - bypass",
       "custom_images": {}
     },
-	"1238880": {
+    "1238880": {
       "name": "Battlefield™ Hardline",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 12", "VC Redist 2015"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 12",
+        "VC Redist 2015"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12, EA Play and VC Redist 2015.",
-		"The game does not work if you open it with Steam, you must open it with the exe called bfH.exe that is inside the main folder of the game"
+        "The game does not work if you open it with Steam, you must open it with the exe called bfH.exe that is inside the main folder of the game"
       ],
       "nombre_fix": "Battlefield™ Hardline - bypass",
       "custom_images": {}
@@ -1027,10 +1322,14 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12, EA Play and VC Redist 2022.",
-		"The game does not work if you open it with Steam, you must open it with the exe called bf1.exe that is inside the main folder of the game"
+        "The game does not work if you open it with Steam, you must open it with the exe called bf1.exe that is inside the main folder of the game"
       ],
       "nombre_fix": "Battlefield 1 - bypass",
       "custom_images": {}
@@ -1040,16 +1339,20 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12, EA Play and VC Redist 2022.",
         "The game does not work if you open it with Steam, you must open it with the exe called bf6.exe that is inside the main folder of the game",
-		"It will only work if you use my game manifests"
+        "It will only work if you use my game manifests"
       ],
       "nombre_fix": "Battlefield 6 - bypass",
       "custom_images": {
         "hero_image": "https://cdn2.steamgriddb.com/grid/82e43901d337d05ef3ae610442c8606b.png",
-		"background": "https://cdn2.steamgriddb.com/hero/004f80e7f7de9dfcf83c20e0174e41cd.png"
+        "background": "https://cdn2.steamgriddb.com/hero/004f80e7f7de9dfcf83c20e0174e41cd.png"
       }
     },
     "17410": {
@@ -1057,10 +1360,14 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 10", "VC Redist"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 10",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 10, EA Play and VC Redist.",
-		"If the game doesn’t start or crashes on launch, right-click on MirrorsEdge.exe, go to Properties → Compatibility, and enable Run this program in compatibility mode for: Windows XP (Service Pack 3)."
+        "If the game doesn’t start or crashes on launch, right-click on MirrorsEdge.exe, go to Properties → Compatibility, and enable Run this program in compatibility mode for: Windows XP (Service Pack 3)."
       ],
       "nombre_fix": "Mirror's Edge - bypass",
       "custom_images": {}
@@ -1070,53 +1377,69 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["EA App", "DirectX 11", "VC Redist 2022"],
+      "programas_necesarios": [
+        "EA App",
+        "DirectX 11",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 11, EA Play and VC Redist.",
-	"If the game dont launch, open the game with the exe in the folder called MirrorsEdgeCatalyst.exe"
+        "If the game dont launch, open the game with the exe in the folder called MirrorsEdgeCatalyst.exe"
       ],
       "nombre_fix": "Mirror's Edge Catalyst - bypass",
       "custom_images": {}
     }
   },
   "ROCKSTAR": {
-     "2668510": {
-        "name": "Red Dead Redemption",
-        "launch_steam": false,
-        "launch_exe": true,
-        "comentarios": "Enjoy the game ♥",
-        "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
-        "errores": [
-          "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX.",
-          "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
-          "It is very important to launch the game using the RDR.exe executable.",
-          "It's very important that your graphics card is compatible with DirectX 12, otherwise the game won't start."
-        ],
-        "nombre_fix": "Red Dead Redemption -  bypass",
-        "custom_images": {}
+    "2668510": {
+      "name": "Red Dead Redemption",
+      "launch_steam": false,
+      "launch_exe": true,
+      "comentarios": "Enjoy the game ♥",
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
+      "errores": [
+        "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX.",
+        "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
+        "It is very important to launch the game using the RDR.exe executable.",
+        "It's very important that your graphics card is compatible with DirectX 12, otherwise the game won't start."
+      ],
+      "nombre_fix": "Red Dead Redemption -  bypass",
+      "custom_images": {}
     },
     "1174180": {
-        "name": "Red Dead Redemption 2",
-        "launch_steam": false,
-        "launch_exe": true,
-        "comentarios": "Enjoy the game ♥",
-        "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
-        "errores": [
-          "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX.",
-          "The game is not compatible with Steam, it needs to be launched using the executable called Launcher.exe inside the game folder.",
-          "It is very important to launch the game using the Launcher.exe executable.",
-          "It's very important that your graphics card is compatible with DirectX 12, otherwise the game won't start."
-        ],
-        "nombre_fix": "Red Dead Redemption 2 - bypass",
-        "custom_images": {}
+      "name": "Red Dead Redemption 2",
+      "launch_steam": false,
+      "launch_exe": true,
+      "comentarios": "Enjoy the game ♥",
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
+      "errores": [
+        "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX.",
+        "The game is not compatible with Steam, it needs to be launched using the executable called Launcher.exe inside the game folder.",
+        "It is very important to launch the game using the Launcher.exe executable.",
+        "It's very important that your graphics card is compatible with DirectX 12, otherwise the game won't start."
+      ],
+      "nombre_fix": "Red Dead Redemption 2 - bypass",
+      "custom_images": {}
     },
     "1547000": {
       "name": "Grand Theft Auto: San Andreas - The Definitive Edition",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX."
       ],
@@ -1128,7 +1451,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX."
       ],
@@ -1140,7 +1467,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX."
       ],
@@ -1151,9 +1482,13 @@
       "name": "Grand Theft Auto IV: The Complete Edition",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX."
       ],
@@ -1164,9 +1499,13 @@
       "name": "Grand Theft Auto V Legacy",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX 11"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX 11"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX 11."
       ],
@@ -1177,24 +1516,32 @@
       "name": "Grand Theft Auto V Enhanced",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX 12"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX 12"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX 12.",
-		"You will need to mark the game folder as a exception in defender before apply the fix or your antivirus will delete the bypass.",
+        "You will need to mark the game folder as a exception in defender before apply the fix or your antivirus will delete the bypass.",
         "It's very important that your graphics card is compatible with DirectX 12, otherwise the game won't start.",
-		"It is very important to launch the game using the PlayGTAV.exe executable."
+        "It is very important to launch the game using the PlayGTAV.exe executable."
       ],
       "nombre_fix": "Grand Theft Auto V Enhanced -  bypass",
       "custom_images": {}
     },
-	"110800": {
+    "110800": {
       "name": "L.A. Noire",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX.",
         "You need to launch the game with the exe called LANoire, not with steam"
@@ -1207,7 +1554,11 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX.",
         "It's very important that your graphics card is compatible with DirectX 12, otherwise the game won't start."
@@ -1220,7 +1571,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["Rockstar Games Launcher", "Microsoft Visual C++ Redistributable", "DirectX"],
+      "programas_necesarios": [
+        "Rockstar Games Launcher",
+        "Microsoft Visual C++ Redistributable",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install Rockstar Games Launcher, Microsoft Visual C++ Redistributable and DirectX."
       ],
@@ -1229,137 +1584,181 @@
     }
   },
   "DENUVO": {
-	"2161700": {
+    "2161700": {
       "name": "Persona 3 Reload",
       "launch_steam": true,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Persona 3 Reload - bypass",
       "custom_images": {}
     },
-	"1971870": {
+    "1971870": {
       "name": "Mortal Kombat 1",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Mortal Kombat 1 - bypass",
       "custom_images": {}
     },
-	"3321460": {
+    "3321460": {
       "name": "Crimson Desert",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Crimson Desert - bypass",
       "custom_images": {}
     },
-	"2680010": {
+    "2680010": {
       "name": "The First Berserker: Khazan",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "The First Berserker: Khazan - bypass",
       "custom_images": {}
     },
-	"668580": {
+    "668580": {
       "name": "Atomic Heart",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Atomic Heart - bypass",
       "custom_images": {}
     },
-	"3768760": {
+    "3768760": {
       "name": "007 First Light",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "007 First Light - bypass",
       "custom_images": {
-		  "hero_image": "https://cdn2.steamgriddb.com/grid/9cd0f2a7c17876d6721916f09bce496c.png"
-	  }
+        "hero_image": "https://cdn2.steamgriddb.com/grid/9cd0f2a7c17876d6721916f09bce496c.png"
+      }
     },
-	"2215200": {
+    "2215200": {
       "name": "LEGO® Batman™: Legacy of the Dark Knight",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "LEGO® Batman™: Legacy of the Dark Knight - bypass",
       "custom_images": {
-		  "hero_image": "https://cdn2.steamgriddb.com/grid/0e4b1c1efa3eae61066f2fefe7bdf487.png"
-	  }
+        "hero_image": "https://cdn2.steamgriddb.com/grid/0e4b1c1efa3eae61066f2fefe7bdf487.png"
+      }
     },
-	"1941540": {
+    "1941540": {
       "name": "Mafia: The Old Country",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Mafia: The Old Country - bypass",
       "custom_images": {}
     },
-	"3489700": {
+    "3489700": {
       "name": "Stellar Blade™",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Stellar Blade - bypass",
       "custom_images": {}
     },
-	"2358720": {
+    "2358720": {
       "name": "Black Myth: Wukong",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Black Myth: Wukong - bypass",
       "custom_images": {}
     },
-	"3357650": {
+    "3357650": {
       "name": "PRAGMATA",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
@@ -1372,9 +1771,13 @@
       "name": "Hogwarts Legacy",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2019", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2019",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2019 and DirectX.",
         "The game is not compatible with Steam, it needs to be launched using the executable inside the game folder.",
@@ -1384,12 +1787,16 @@
       "nombre_fix": "Hogwarts Legacy - bypass",
       "custom_images": {}
     },
-	"3764200": {
+    "3764200": {
       "name": "Resident Evil Requiem",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
@@ -1403,103 +1810,139 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2019", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2019",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2019 and DirectX."
       ],
       "nombre_fix": "Resident Evil 4 Remake - bypass",
       "custom_images": {}
     },
-	"3017860": {
+    "3017860": {
       "name": "DOOM: The Dark Ages",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "DOOM: The Dark Ages - bypass",
       "custom_images": {}
     },
-	"1237320": {
+    "1237320": {
       "name": "Sonic Frontiers",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Sonic Frontiers - bypass",
       "custom_images": {}
     },
-	"356190": {
+    "356190": {
       "name": "Middle-earth™: Shadow of War™",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2022", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2022",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2022 and DirectX."
       ],
       "nombre_fix": "Middle-earth™: Shadow of War™ - bypass",
       "custom_images": {}
     },
-	"1222690": {
+    "1222690": {
       "name": "Dragon Age™ Inquisition",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2015", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2015",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2015 and DirectX."
       ],
       "nombre_fix": "Dragon Age™ Inquisition - bypass",
       "custom_images": {}
     },
-	"1113000": {
+    "1113000": {
       "name": "Persona 4 Golden",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2010", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2010",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2010 and DirectX."
       ],
       "nombre_fix": "Persona 4 Golden - bypass",
       "custom_images": {}
     },
-	"1382330": {
+    "1382330": {
       "name": "Persona 5 Strikers",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2019", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2019",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2019 and DirectX."
       ],
       "nombre_fix": "Persona 5 Strikers - bypass",
       "custom_images": {}
     },
-	"1687950": {
+    "1687950": {
       "name": "Persona 5 Royale",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2019", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2019",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2019 and DirectX."
       ],
       "nombre_fix": "Persona 5 Royale - bypass",
       "custom_images": {}
     },
-	"493340": {
+    "493340": {
       "name": "Planet Coaster",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [".NET 4.6.2", "Microsoft VC redistributable 2015", "DirectX"],
+      "programas_necesarios": [
+        ".NET 4.6.2",
+        "Microsoft VC redistributable 2015",
+        "DirectX"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install .NET 4.6.2, Microsoft VC redistributable 2015 and DirectX."
       ],
@@ -1511,7 +1954,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist" ],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
@@ -1523,7 +1969,11 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist 2010", "VC Redist 2015" ],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist 2010",
+        "VC Redist 2015"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, VC Redist 2010 and VC Redist 2015."
       ],
@@ -1535,10 +1985,13 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist.",
-		"When I launched it for the first time through Steam, it closed, but the second time it opened fine. If the game doesn’t open for you, try launching it using the executable located at: LIS2/Binaries/Win64/LIS2-Win64-Shipping.exe"
+        "When I launched it for the first time through Steam, it closed, but the second time it opened fine. If the game doesn’t open for you, try launching it using the executable located at: LIS2/Binaries/Win64/LIS2-Win64-Shipping.exe"
       ],
       "nombre_fix": "Life is Strange 2 - bypass",
       "custom_images": {}
@@ -1548,7 +2001,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist 2022."
       ],
@@ -1560,20 +2016,26 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist 2022.",
-		"When you start the game, a runtime error appears. Just click Ignore All and that’s it."
+        "When you start the game, a runtime error appears. Just click Ignore All and that’s it."
       ],
       "nombre_fix": "Jurassic World Evolution 2 - bypass",
       "custom_images": {}
     },
-	"779340": {
+    "779340": {
       "name": "Total War: THREE KINGDOMS",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist 2022."
       ],
@@ -1585,7 +2047,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX 12", "VC Redist 2022"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist 2022"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist 2022."
       ],
@@ -1597,7 +2062,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist.",
         "The fix is made in the Spanish language. If you want to play in English, you must access: Engine\\Binaries\\ThirdParty\\Steamworks\\Steamv141\\Win64 and open the .ini file that is in the folder. Inside the file, change the language line and put this: Language=English."
@@ -1610,7 +2078,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
@@ -1622,19 +2093,25 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
       "nombre_fix": "Sniper Elite 4 - bypass",
       "custom_images": {}
     },
-	"953580": {
+    "953580": {
       "name": "Tourist Bus Simulator",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
@@ -1646,22 +2123,28 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
       "nombre_fix": "Mad Max - bypass",
       "custom_images": {}
     },
-	"39140": {
+    "39140": {
       "name": "FINAL FANTASY VII",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": [ "DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist.",
-		"The game only works with my version of manifest, download it from my bot or from the library here in the app"
+        "The game only works with my version of manifest, download it from my bot or from the library here in the app"
       ],
       "nombre_fix": "FINAL FANTASY VII - bypass",
       "custom_images": {}
@@ -1673,7 +2156,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
@@ -1682,85 +2168,103 @@
     }
   },
   "OTHERS": {
-	"1114150": {
+    "1114150": {
       "name": "CarX Street™",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist.",
-		"You need to launch the game using the **CarX Street.exe** executable."
+        "You need to launch the game using the **CarX Street.exe** executable."
       ],
       "nombre_fix": "CarX Street - bypass",
       "custom_images": {}
     },
-	"2054970": {
+    "2054970": {
       "name": "Dragon's Dogma 2™",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist.",
-		"VERY IMPORTANT: STEAM MUST BE CLOSED before launching the game, or you will get an error.",
-		"Open the game with DD2.exe"
+        "VERY IMPORTANT: STEAM MUST BE CLOSED before launching the game, or you will get an error.",
+        "Open the game with DD2.exe"
       ],
       "nombre_fix": "Dragon's Dogma 2 - bypass",
       "custom_images": {}
     },
-	"4356430": {
+    "4356430": {
       "name": "NBA 2K27",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX, EA App and VC Redist",
-		"To launch the game through Steam, select the option “Play without Easy Anti-Cheat” when pressing the Play button in Steam.",
-		"If you're still having issues, simply go to the game folder and launch it using the NBA2K27.exe executable."
+        "To launch the game through Steam, select the option “Play without Easy Anti-Cheat” when pressing the Play button in Steam.",
+        "If you're still having issues, simply go to the game folder and launch it using the NBA2K27.exe executable."
       ],
       "nombre_fix": "NBA 2K27 - bypass",
       "custom_images": {
-		"cover_image": "https://cdn2.steamgriddb.com/grid/41f111384c98a213f4b187cf3e952245.png",
-		"hero_image_x2": "https://cdn2.steamgriddb.com/hero/8b780518215423ad12c4b6d2eac04230.png",
-		"logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4356430/648606aa388d6cf2f2de8d1c55649bd164d8e98a/logo_2x.png"
-	  }
+        "cover_image": "https://cdn2.steamgriddb.com/grid/41f111384c98a213f4b187cf3e952245.png",
+        "hero_image_x2": "https://cdn2.steamgriddb.com/hero/8b780518215423ad12c4b6d2eac04230.png",
+        "logo_img": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4356430/648606aa388d6cf2f2de8d1c55649bd164d8e98a/logo_2x.png"
+      }
     },
-	"939850": {
+    "939850": {
       "name": "The Dark Pictures Anthology: Man of Medan™",
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist.",
-		"Open the game with ManOfMedan.exe"
+        "Open the game with ManOfMedan.exe"
       ],
       "nombre_fix": "The Dark Pictures Anthology: Man of Medan - bypass",
       "custom_images": {}
     },
-	"2806050": {
+    "2806050": {
       "name": "Halo: Campaign Evolved™",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist."
       ],
       "nombre_fix": "Halo: Campaign Evolved - bypass",
       "custom_images": {
-	  	"hero_image": "https://cdn2.steamgriddb.com/grid/9e00a3de909a5e4ada9324bc7aa1fea2.png",
+        "hero_image": "https://cdn2.steamgriddb.com/grid/9e00a3de909a5e4ada9324bc7aa1fea2.png",
         "background": "https://cdn2.steamgriddb.com/hero/fd8654430887f3e4af5d65eef1353d91.jpg"
-	  }
+      }
     },
     "7940": {
       "name": "Call of Duty 4: Modern Warfare (2007)",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 9", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 9",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 9 and VC Redist",
         "If the game doesn't launch with steam, go to the main game path and open the exe iw3sp.exe."
@@ -1773,7 +2277,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 9", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 9",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 9 and VC Redist",
         "If the game doesn't launch with steam, go to the main game path and open the exe iw4sp.exe."
@@ -1786,7 +2293,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 9", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 9",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 9 and VC Redist",
         "If the game doesn't launch, go to the main folder of the game, open the localization.txt file, and change it to the language."
@@ -1799,7 +2309,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 10", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 10",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 10 and VC Redist",
         "If the game doesn't launch with steam, go to the main folder of the game, and launch iw5sp.exe.",
@@ -1813,7 +2326,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist",
         "This game only includes the campaign. If you want to play Zombies and multiplayer, I recommend using Plutonium."
@@ -1828,7 +2344,10 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 10", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 10",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 10 and VC Redist",
         "Open the game with iw6-mod.exe or with alterware-launcher.exe"
@@ -1841,7 +2360,10 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 11", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 11",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 11 and VC Redist",
         "Open the game with iw7-mod.exe"
@@ -1854,7 +2376,10 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 11", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 11",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 11 and VC Redist",
         "Open the game with t7x.exe, only works with that exe"
@@ -1864,15 +2389,18 @@
     },
     "2000950": {
       "name": "Call of Duty®: Modern Warfare®",
-	  "disponible": false,
+      "disponible": false,
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
         "For open the game, use the bat called !start_cod.bat",
-		"The bypass does not have saved game for now, I am working on it"
+        "The bypass does not have saved game for now, I am working on it"
       ],
       "nombre_fix": "Call of Duty Modern Warfare (2019) - bypass",
       "custom_images": {}
@@ -1882,7 +2410,10 @@
       "launch_steam": false,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
         "Open the game with BlackOpsColdWar.exe",
@@ -1891,147 +2422,177 @@
       "nombre_fix": "Call of Duty Black Ops Cold War - bypass",
       "custom_images": {}
     },
-	"3595230": {
+    "3595230": {
       "name": "Call of Duty®: Modern Warfare® II",
-	  "disponible": false,
+      "disponible": false,
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
         "Open the game with _MWII Lightning Launcher_.exe",
-		"Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again",
-		"If the screen gets stuck on the Launching screen, you just need to press ESC."
+        "Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again",
+        "If the screen gets stuck on the Launching screen, you just need to press ESC."
       ],
       "nombre_fix": "Call of Duty: Modern Warfare II - bypass",
       "custom_images": {
         "hero_image": "https://cdn2.steamgriddb.com/grid/5cef43602bc7486da26ba5fbf4483f43.png"
       }
     },
-	"3595270": {
+    "3595270": {
       "name": "Call of Duty®: Modern Warfare® III",
-	  "disponible": false,
+      "disponible": false,
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
         "Open the game with _MWIII Lightning Launcher_.exe",
-		"Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again",
-		"If the screen gets stuck on the Launching screen, you just need to press ESC.",
-		"To play Zombie mode, you must enter Multiplayer and, once inside Local Multiplayer, press Right Control + Z"
+        "Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again",
+        "If the screen gets stuck on the Launching screen, you just need to press ESC.",
+        "To play Zombie mode, you must enter Multiplayer and, once inside Local Multiplayer, press Right Control + Z"
       ],
       "nombre_fix": "Call of Duty: Modern Warfare III - bypass",
       "custom_images": {
         "hero_image": "https://cdn2.steamgriddb.com/grid/37e4af3db354d3552585983bc5a823f8.png"
       }
     },
-	"2933620": {
+    "2933620": {
       "name": "Call of Duty®: Black Ops 6",
       "launch_steam": false,
       "launch_exe": true,
-	  "exclusion": true,
+      "exclusion": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
         "Open the game with _BO6 Lightning Launcher_.exe",
-		"Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again",
-		"The game its a DLC, and the fix is applied to the Call of Duty HQ folder",
-		"It's only necessary to select Call of duty black ops 6 campaign DLC in the game Call of duty",
-		"If the screen gets stuck on the Launching screen, you just need to press ESC."
+        "Possibly the antivirus deletes files, if that happens, mark the game folder as an exception and apply the fix again",
+        "The game its a DLC, and the fix is applied to the Call of Duty HQ folder",
+        "It's only necessary to select Call of duty black ops 6 campaign DLC in the game Call of duty",
+        "If the screen gets stuck on the Launching screen, you just need to press ESC."
       ],
       "nombre_fix": "Call of Duty Black Ops 6 - bypass",
       "custom_images": {
         "hero_image": "https://cdn2.steamgriddb.com/grid/1981baaee6f2be15f26b1af0e88bf46c.png"
       }
     },
-	"2373990": {
+    "2373990": {
       "name": "Solo Leveling: ARISE OVERDRIVE",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
       "nombre_fix": "Solo Leveling: ARISE OVERDRIVE - bypass",
       "custom_images": {}
     },
-	"752590": {
+    "752590": {
       "name": "A Plague Tale: Innocence",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
       "nombre_fix": "A Plague Tale: Innocence - bypass",
       "custom_images": {}
     },
-	"1250410": {
+    "1250410": {
       "name": "Microsoft Flight Simulator (2020)",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
-		"The game is so heavy, I'm warning you :)"
+        "The game is so heavy, I'm warning you :)"
       ],
       "nombre_fix": "Microsoft Flight Simulator (2020) - bypass",
       "custom_images": {}
     },
-	"782330": {
+    "782330": {
       "name": "DOOM Eternal",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
       "nombre_fix": "DOOM Eternal - bypass",
       "custom_images": {}
     },
-	"1466860": {
+    "1466860": {
       "name": "Age of Empires IV: Anniversary Edition",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
       "nombre_fix": "Age of Empires IV: Anniversary Edition - bypass",
       "custom_images": {}
     },
-	"2399420": {
+    "2399420": {
       "name": "Le Mans Ultimate",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
       "nombre_fix": "Le Mans Ultimate - bypass",
       "custom_images": {}
     },
-	"1401590": {
+    "1401590": {
       "name": "Disney Dreamlight Valley",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist",
-		"To start the game for the first time, you must enter the game's main folder and delete the steam.txt file, or you will not be able to start the game"
+        "To start the game for the first time, you must enter the game's main folder and delete the steam.txt file, or you will not be able to start the game"
       ],
       "nombre_fix": "Disney Dreamlight Valley - bypass",
       "custom_images": {}
@@ -2041,7 +2602,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
@@ -2053,19 +2617,25 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
       "nombre_fix": "Hitman: Absolution - bypass",
       "custom_images": {}
     },
-	"1498570": {
+    "1498570": {
       "name": "THE KING OF FIGHTERS XV",
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX 12", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX 12",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX 12 and VC Redist"
       ],
@@ -2077,7 +2647,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist"
       ],
@@ -2089,7 +2662,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist"
       ],
@@ -2104,7 +2680,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist"
       ],
@@ -2116,7 +2695,10 @@
       "launch_steam": true,
       "launch_exe": true,
       "comentarios": "Enjoy the game ♥",
-      "programas_necesarios": ["DirectX", "VC Redist"],
+      "programas_necesarios": [
+        "DirectX",
+        "VC Redist"
+      ],
       "errores": [
         "If the game shows errors when opening, you need to install DirectX and VC Redist"
       ],
@@ -2128,4 +2710,3 @@
     }
   }
 }
-
