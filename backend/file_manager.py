@@ -375,8 +375,9 @@ class FileManager:
             except Exception as e:
                 logger.debug(f"Error listing folder {folder} during clean: {e}")
 
-        # 3. Clean appmanifest ACF file from libraries
+        # 3. Clean appmanifest ACF file from libraries and libraryfolders.vdf
         cls.clean_acf_manifests(steam_path, appid)
+        cls.remove_from_library_folders(steam_path, appid)
 
     @classmethod
     def clean_acf_manifests(cls, steam_path: str, appid: str) -> None:
@@ -438,32 +439,20 @@ class FileManager:
             installdir = f"SteamApp_{appid}"
             
         active_owner = cls.get_active_steam_id64(library_path)
-        if not os.path.isfile(os.path.join(library_path, "config", "loginusers.vdf")):
-            try:
-                from config import config
-                if config.steam_path and os.path.isdir(config.steam_path):
+        main_steam_path = library_path
+        try:
+            from config import config
+            if config.steam_path and os.path.isdir(config.steam_path):
+                main_steam_path = config.steam_path
+                if not os.path.isfile(os.path.join(library_path, "config", "loginusers.vdf")):
                     active_owner = cls.get_active_steam_id64(config.steam_path)
-            except Exception:
-                pass
+        except Exception:
+            pass
 
-        steam_exe = os.path.join(library_path, "steam.exe").replace("/", "\\")
+        steam_exe = os.path.join(main_steam_path, "steam.exe").replace("/", "\\")
         
-        # Extract depots from manifest filenames
-        depot_entries = []
-        if manifests:
-            for item in manifests:
-                match = re.match(r'^(\d+)_(\d+)\.manifest$', item["name"], re.IGNORECASE)
-                if match:
-                    depot_id = match.group(1)
-                    manifest_id = match.group(2)
-                    depot_entries.append(f'\t\t"{depot_id}"')
-                    depot_entries.append("\t\t{")
-                    depot_entries.append(f'\t\t\t"manifest"\t\t"{manifest_id}"')
-                    depot_entries.append('\t\t\t"size"\t\t"0"')
-                    depot_entries.append("\t\t}")
-                    
-        depots_str = "\n".join(depot_entries) if depot_entries else ""
-        
+        # Leave InstalledDepots empty so Steam detects uninstalled state
+        # and calculates real download sizes accurately.
         acf_content = f'''"AppState"
 {{
 	"appid"		"{appid}"
@@ -489,7 +478,6 @@ class FileManager:
 	}}
 	"InstalledDepots"
 	{{
-{depots_str}
 	}}
 }}
 '''
@@ -500,5 +488,5 @@ class FileManager:
         with open(acf_path, "w", encoding="utf-8") as f:
             f.write(acf_content)
             
-        logger.info(f"Generated appmanifest file (StateFlags: 1, LastOwner: {active_owner}): {acf_path}")
+        logger.info(f"Generated appmanifest file in {library_path} (StateFlags: 1, LastOwner: {active_owner}): {acf_path}")
         return acf_path

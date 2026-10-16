@@ -465,6 +465,59 @@ body {
     background: #0c0e16;
 }
 
+.target-library-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 220px;
+    max-width: 270px;
+    flex-shrink: 0;
+}
+
+.library-drive-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a78bfa;
+    font-size: 0.95rem;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.target-library-select {
+    width: 100%;
+    background: #080a10;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 12px 34px 12px 38px;
+    color: var(--text-primary);
+    font-size: 0.86rem;
+    font-family: var(--font-main);
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.target-library-select:focus,
+.target-library-select:hover {
+    border-color: #8b5cf6;
+    background-color: #0c0e16;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.22);
+}
+
+.target-library-select option {
+    background: #141724;
+    color: #f1f5f9;
+    padding: 8px;
+}
+
 .search-autocomplete-dropdown {
     position: absolute;
     top: calc(100% + 6px);

@@ -35,6 +35,7 @@ def get_default_settings_path() -> str:
 @dataclass
 class AppConfig:
     steam_path: str = ""
+    default_library: str = ""
     settings_file: str = field(default_factory=get_default_settings_path)
     manifest_repos: List[str] = field(default_factory=lambda: [
         "https://github.com/LightnigFast/ProjectLightningManifests",
@@ -54,6 +55,7 @@ class AppConfig:
                 with open(target_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.steam_path = data.get("steam_path", "")
+                    self.default_library = data.get("default_library", "")
                     self.manifest_repos = data.get("manifest_repos", self.manifest_repos)
                     logger.debug(f"Loaded config from {target_file}")
                     if self.steam_path:

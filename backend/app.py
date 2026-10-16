@@ -65,6 +65,7 @@ import webbrowser
 from typing import Dict, Any
 import re
 import requests
+import shutil
 
 from flask import Flask, jsonify, request, send_from_directory, redirect
 from logger import logger, setup_logger
@@ -121,7 +122,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.5"
+APP_VERSION = "1.1.6"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -196,19 +197,65 @@ def manage_config():
     if request.method == "POST":
         data = request.json or {}
         steam_path = data.get("steam_path", "").strip()
+        default_library = data.get("default_library")
+        if default_library is not None:
+            config.default_library = str(default_library).strip()
         if steam_path:
             try:
                 config.steam_path = validator.validate_steam_path(steam_path)
-                config.save()
-                return jsonify({"success": True})
             except SteamToolsException as e:
                 return jsonify({"success": False, "error": str(e)})
-        return jsonify({"success": False, "error": "Steam path cannot be empty"})
+        config.save()
+        return jsonify({"success": True})
     
     return jsonify({
         "steam_path": config.steam_path,
+        "default_library": config.default_library,
         "manifest_repos": config.manifest_repos
     })
+
+# %%
+# API Endpoint: GET /api/steam/libraries
+@app.route("/api/steam/libraries", methods=["GET"])
+def get_steam_libraries():
+    """Returns all available Steam library directories, indices, and free disk space."""
+    if not config.steam_path or not os.path.isdir(config.steam_path):
+        return jsonify({"success": False, "libraries": [], "error": "Steam path not found"})
+    try:
+        raw_libs = FileManager.get_library_folders(config.steam_path)
+        libraries = []
+        for idx, lib_path in raw_libs:
+            free_gb = 0.0
+            total_gb = 0.0
+            try:
+                usage = shutil.disk_usage(lib_path)
+                free_gb = round(usage.free / (1024 ** 3), 1)
+                total_gb = round(usage.total / (1024 ** 3), 1)
+            except Exception:
+                pass
+            
+            drive = os.path.splitdrive(lib_path)[0]
+            drive_label = f"{drive}\\" if drive else lib_path
+            display_name = f"{drive_label} ({free_gb} GB boş / {total_gb} GB) - {lib_path}"
+            short_label = f"{drive_label} ({free_gb} GB Boş)" if drive else f"{lib_path} ({free_gb} GB)"
+            
+            libraries.append({
+                "index": str(idx),
+                "path": lib_path,
+                "free_gb": free_gb,
+                "total_gb": total_gb,
+                "display_name": display_name,
+                "short_label": short_label
+            })
+            
+        return jsonify({
+            "success": True, 
+            "libraries": libraries, 
+            "default_library": config.default_library
+        })
+    except Exception as e:
+        logger.error(f"Error fetching steam libraries: {e}")
+        return jsonify({"success": False, "libraries": [], "error": str(e)})
 
 # %%
 # API Endpoint: GET /api/logs
@@ -2219,7 +2266,7 @@ def import_files():
 
 # %%
 # Background Addition worker
-def add_game_thread_worker(appid: str):
+def add_game_thread_worker(appid: str, target_lib_idx: str = None):
     """Executes the game addition logic in a background thread."""
     global task_statuses
     
@@ -2282,18 +2329,49 @@ def add_game_thread_worker(appid: str):
         update_status("Copying manifest & bypass configuration files...", 85)
         FileManager.write_steamtools_files(config.steam_path, manifests, luas)
             
-        # 4. Clean any existing dummy ACF so Steam's native install dialog prompts for drive location
-        # and displays the real download size instead of locking location to C:\ with "0 B".
-        update_status("Kütüphane kayıtları düzenleniyor...", 95)
+        # 4. Resolve Target Library and generate appmanifest
+        update_status("Kütüphane dizini belirleniyor...", 90)
+        all_libs = FileManager.get_library_folders(config.steam_path)
+        lib_map = {str(idx): path for idx, path in all_libs}
+        
+        chosen_idx = None
+        if target_lib_idx is not None and str(target_lib_idx) in lib_map:
+            chosen_idx = str(target_lib_idx)
+        elif config.default_library and str(config.default_library) in lib_map:
+            chosen_idx = str(config.default_library)
+        else:
+            # Pick library with the most free disk space
+            best_idx = "0"
+            max_free = -1
+            for idx, path in all_libs:
+                try:
+                    usage = shutil.disk_usage(path)
+                    if usage.free > max_free:
+                        max_free = usage.free
+                        best_idx = str(idx)
+                except Exception:
+                    pass
+            chosen_idx = best_idx
+            
+        target_lib_path = lib_map.get(chosen_idx, config.steam_path)
+        logger.info(f"Target library for AppID {valid_id}: Index [{chosen_idx}] -> {target_lib_path}")
+        
+        # Clean any old ACF from other libraries to avoid duplicate conflicts
+        update_status("Kütüphane kayıtları düzenleniyor...", 92)
         FileManager.clean_acf_manifests(config.steam_path, valid_id)
         FileManager.remove_from_library_folders(config.steam_path, valid_id)
+        
+        # Generate new ACF in chosen target library and register in libraryfolders.vdf
+        update_status("Steam kütüphane dosyaları oluşturuluyor...", 96)
+        FileManager.generate_acf_manifest(target_lib_path, valid_id, game_name, manifests)
+        FileManager.update_library_folders(config.steam_path, valid_id, chosen_idx)
         _library_cache["timestamp"] = 0
         
         # Success state
         with task_lock:
             task_statuses[appid] = {
                 "status": "success",
-                "message": "Game successfully added!",
+                "message": f"'{game_name}' başarıyla kütüphaneye eklendi! (Hedef: {target_lib_path})",
                 "progress": 100
             }
             
@@ -2352,6 +2430,10 @@ def add_game():
     except SteamToolsException as e:
         return jsonify({"success": False, "error": str(e)})
         
+    target_lib_idx = data.get("library_index")
+    if target_lib_idx is not None:
+        target_lib_idx = str(target_lib_idx).strip()
+
     # Start background task
     with task_lock:
         task_statuses[appid] = {
@@ -2360,7 +2442,7 @@ def add_game():
             "progress": 0
         }
         
-    thread = threading.Thread(target=add_game_thread_worker, args=(appid,), daemon=True)
+    thread = threading.Thread(target=add_game_thread_worker, args=(appid, target_lib_idx), daemon=True)
     thread.start()
     
     return jsonify({"success": True, "appid": appid, "name": resolved_name})

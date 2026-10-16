@@ -30,7 +30,7 @@
                 <i class="fa-solid fa-bolt splash-bolt"></i>
                 <span class="splash-title">SteaM<span class="splash-purple">Rogue</span></span>
             </div>
-            <div class="splash-version-pill">v1.1.5 • Yeni Nesil Steam Kiti</div>
+            <div class="splash-version-pill">v1.1.6 • Yeni Nesil Steam Kiti</div>
             <div class="splash-progress-track">
                 <div class="splash-progress-bar" id="splash-progress-bar"></div>
             </div>
@@ -45,7 +45,7 @@
         <header class="app-header">
             <div class="logo-group">
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
-                <span class="version-badge" id="app-version-badge">v1.1.5</span>
+                <span class="version-badge" id="app-version-badge">v1.1.6</span>
             </div>
             <nav class="nav-tabs">
                 <button class="tab-btn active" data-tab="lightning-tools"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
@@ -97,6 +97,12 @@
                                 <i class="fa-solid fa-magnifying-glass search-lead-icon"></i>
                                 <input type="text" id="appid-input" placeholder="Steam mağaza linki, AppID veya oyun adı girin (Örn: store.steampowered.com/app/...)..." autocomplete="off">
                                 <div class="search-autocomplete-dropdown" id="search-autocomplete"></div>
+                            </div>
+                            <div class="target-library-wrapper" title="Oyunun ekleneceği Steam kütüphane diski">
+                                <i class="fa-solid fa-hard-drive library-drive-icon"></i>
+                                <select id="target-library-select" class="target-library-select">
+                                    <option value="">Sürücüler taranıyor...</option>
+                                </select>
                             </div>
                             <button class="btn btn-primary" id="btn-add-appid">
                                 <i class="fa-solid fa-plus"></i> Kütüphaneye Ekle
@@ -333,7 +339,7 @@
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                                             <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">SteaMRogue Uygulama Güncellemesi</h3>
-                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.1.5</span>
+                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.1.6</span>
                                         </div>
                                         <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
                                             Uygulama GitHub Releases üzerinden otomatik güncellenir. Dilediğiniz zaman yeni sürüm kontrolü yapabilir veya mevcut kurulumu onarabilirsiniz.
@@ -401,6 +407,29 @@
                                 <div class="path-input-wrapper" style="flex: 1; max-width: 580px; display: flex; gap: 8px;">
                                     <input type="text" id="steam-path-input" placeholder="C:\Program Files (x86)\Steam" style="flex: 1; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-medium); background: rgba(0,0,0,0.25); color: var(--text-primary); font-size: 0.88rem;">
                                     <button class="btn btn-primary" id="btn-save-path" style="padding: 9px 20px; font-size: 0.84rem; white-space: nowrap;">Dizini Kaydet</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3.1 STEAM KÜTÜPHANE VE DİSK YÖNETİMİ -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 45%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(167, 139, 250, 0.15); color: #a78bfa; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-hard-drive"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Varsayılan Steam Kütüphane Diski</h3>
+                                        <span class="settings-helper" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: block;">
+                                            Eklenen oyunların varsayılan olarak hangi Steam sürücüsüne yükleneceğini belirler.
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="path-input-wrapper" style="flex: 1; max-width: 580px; display: flex; gap: 8px;">
+                                    <select id="settings-default-library-select" style="flex: 1; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-medium); background: #080a10; color: var(--text-primary); font-size: 0.88rem; outline: none; cursor: pointer;">
+                                        <option value="">Otomatik (En çok boş yeri olan disk)</option>
+                                    </select>
+                                    <button class="btn btn-primary" id="btn-save-default-library" style="padding: 9px 20px; font-size: 0.84rem; white-space: nowrap;">Diski Kaydet</button>
                                 </div>
                             </div>
                         </div>
@@ -1122,7 +1151,7 @@
             <div class="update-header-info">
                 <div class="update-title-row">
                     <h4 id="updater-title">Yeni Güncelleme Mevcut!</h4>
-                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.5</span>
+                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.6</span>
                 </div>
                 <p id="updater-desc">Güncelleme arka planda otomatik indiriliyor...</p>
             </div>
