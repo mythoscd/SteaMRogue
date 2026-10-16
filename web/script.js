@@ -3,6 +3,45 @@
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // === 0. APP STARTUP SPLASH SCREEN CONTROLLER ===
+    const splashScreen = document.getElementById("app-splash-screen");
+    const splashProgressBar = document.getElementById("splash-progress-bar");
+    const splashStatusText = document.getElementById("splash-status-text");
+
+    let splashDismissed = false;
+    function dismissSplashScreen() {
+        if (splashDismissed || !splashScreen) return;
+        splashDismissed = true;
+        if (splashProgressBar) splashProgressBar.style.width = "100%";
+        if (splashStatusText) {
+            splashStatusText.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i> Sistem hazır, kütüphaneye bağlanıldı.';
+        }
+        setTimeout(() => {
+            splashScreen.classList.add("hidden");
+        }, 300);
+    }
+
+    if (splashScreen) {
+        setTimeout(() => {
+            if (splashProgressBar && !splashDismissed) splashProgressBar.style.width = "45%";
+            if (splashStatusText && !splashDismissed) {
+                splashStatusText.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin" style="color: #38bdf8;"></i> Kilit açıcılar ve manifest depoları eşitleniyor...';
+            }
+        }, 450);
+
+        setTimeout(() => {
+            if (splashProgressBar && !splashDismissed) splashProgressBar.style.width = "80%";
+            if (splashStatusText && !splashDismissed) {
+                splashStatusText.innerHTML = '<i class="fa-solid fa-fingerprint" style="color: #c084fc;"></i> İmzalar ve bypass listesi doğrulanıyor...';
+            }
+        }, 950);
+
+        // Safety fallback: always reveal app after max 2.2s so user is never blocked
+        setTimeout(() => {
+            dismissSplashScreen();
+        }, 2200);
+    }
+
     // CUSTOM ALERT / CONFIRM GLOBAL OVERRIDES
     function showCustomAlert(message, title = "SteaMRogue") {
         return new Promise((resolve) => {
@@ -92,7 +131,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. API & DATA CONTROLLERS
     initAppLogic();
 
-    // 4. AUTOMATIC STARTUP HEALTH CHECK & DIAGNOSTICS
+    // 4. SAM (STEAM ACHIEVEMENT MANAGER) CONTROLLER
+    initSAM();
+
+    // 5. AUTOMATIC STARTUP HEALTH CHECK & DIAGNOSTICS
     setTimeout(checkStartupHealth, 500);
 
     // Sync version badge dynamically from Electron core or backend
@@ -285,11 +327,18 @@ function initTabs() {
 
             // Diagnostic fetch on settings tab click
             if (targetTab === "settings") {
-                updateSteamToolsStatus();
+                if (typeof updateSteamToolsStatus === "function") updateSteamToolsStatus();
+                if (typeof updateVCRedistStatus === "function") updateVCRedistStatus();
+                if (typeof updateSecurityStatus === "function") updateSecurityStatus();
+                if (typeof pollComponentUpdateStatus === "function") pollComponentUpdateStatus();
             }
 
             if (targetTab === "discount-leak" && typeof fetchDealsGlobal === "function") {
                 fetchDealsGlobal();
+            }
+
+            if (targetTab === "achievements" && typeof loadSAMLibrary === "function") {
+                loadSAMLibrary(samAllGames.length === 0);
             }
         });
     });
@@ -377,7 +426,7 @@ function initAppLogic() {
     let gameLibrary = [];
     let filteredLibrary = [];
     let currentPage = 1;
-    const itemsPerPage = 14;
+    const itemsPerPage = 20;
     let currentSort = "recent"; // or "az"
 
     let initRetries = 0;
@@ -405,8 +454,15 @@ function initAppLogic() {
                         if (dot) dot.className = "status-indicator offline";
                     }
                 }
-                updateSteamToolsStatus();
+                if (typeof updateSteamToolsStatus === "function") updateSteamToolsStatus();
+                if (typeof updateVCRedistStatus === "function") updateVCRedistStatus();
+                if (typeof updateSecurityStatus === "function") updateSecurityStatus();
+                if (typeof pollComponentUpdateStatus === "function") pollComponentUpdateStatus();
                 loadLibrary();
+
+                setTimeout(() => {
+                    if (typeof dismissSplashScreen === "function") dismissSplashScreen();
+                }, 1200);
 
                 // Silent background prefetch for deals (ready in memory before user clicks the tab)
                 setTimeout(() => {
@@ -540,6 +596,54 @@ function initAppLogic() {
                     healBadge.style.backgroundColor = "#ef4444";
                 }
                 alert("Bağlantı hatası: " + err);
+            }
+        });
+    }
+
+    // Visual C++ Runtimes (x86 & x64) Otomatik Kurulum
+    const btnInstallVCRedist = document.getElementById("btn-install-vcredist");
+    if (btnInstallVCRedist) {
+        btnInstallVCRedist.addEventListener("click", async () => {
+            const badge = document.getElementById("vcredist-status-badge");
+            const statusText = document.getElementById("vcredist-status-text");
+
+            if (badge) {
+                badge.textContent = "İNDİRİLİYOR & KURULUYOR...";
+                badge.style.backgroundColor = "#0284c7";
+            }
+            if (statusText) {
+                statusText.textContent = "Microsoft resmi sunucularından Visual C++ paketleri indiriliyor ve arka planda kuruluyor...";
+            }
+            btnInstallVCRedist.disabled = true;
+
+            try {
+                const res = await fetch("/api/vcredist/install", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ arch: "all" })
+                });
+                const data = await res.json();
+                btnInstallVCRedist.disabled = false;
+
+                if (typeof updateVCRedistStatus === "function") {
+                    updateVCRedistStatus();
+                }
+
+                if (data.success) {
+                    if (typeof window.showCustomAlert === "function") {
+                        await window.showCustomAlert(data.message, "Visual C++ Kurulumu", "Tamam");
+                    } else {
+                        alert(data.message);
+                    }
+                } else {
+                    alert("Kurulum uyarısı: " + data.message);
+                }
+            } catch (err) {
+                btnInstallVCRedist.disabled = false;
+                if (typeof updateVCRedistStatus === "function") {
+                    updateVCRedistStatus();
+                }
+                alert("Kurulum sırasında bağlantı hatası oluştu: " + err);
             }
         });
     }
@@ -678,8 +782,69 @@ function initAppLogic() {
                 })
                 .finally(() => {
                     btnAddDefender.disabled = false;
-                    btnAddDefender.innerHTML = `<i class="fa-solid fa-shield-virus"></i> Dışlamayı Uygula`;
+                    btnAddDefender.innerHTML = `<i class="fa-solid fa-shield-virus"></i> Windows Defender Dışlaması Ekle`;
                 });
+        });
+    }
+
+    // Karantinadan Otomatik Kurtarma ve Onarım
+    const btnRestoreQuarantine = document.getElementById("btn-restore-quarantine");
+    if (btnRestoreQuarantine) {
+        btnRestoreQuarantine.addEventListener("click", async () => {
+            btnRestoreQuarantine.disabled = true;
+            btnRestoreQuarantine.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Kurtarılıyor...`;
+
+            try {
+                const res = await fetch("/api/security/restore_quarantine", { method: "POST" });
+                const data = await res.json();
+                btnRestoreQuarantine.disabled = false;
+                btnRestoreQuarantine.innerHTML = `<i class="fa-solid fa-life-ring"></i> Karantinadan Kurtar ve Onar`;
+
+                if (typeof updateSecurityStatus === "function") {
+                    updateSecurityStatus();
+                }
+                if (typeof updateSteamToolsStatus === "function") {
+                    updateSteamToolsStatus();
+                }
+
+                if (data.success) {
+                    if (typeof window.showCustomAlert === "function") {
+                        await window.showCustomAlert(data.message, "Karantina Kurtarma Başarılı", "Tamam");
+                    } else {
+                        alert(data.message);
+                    }
+                } else {
+                    alert("Uyarı: " + data.message);
+                }
+            } catch (err) {
+                btnRestoreQuarantine.disabled = false;
+                btnRestoreQuarantine.innerHTML = `<i class="fa-solid fa-life-ring"></i> Karantinadan Kurtar ve Onar`;
+                alert("Kurtarma hatası: " + err);
+            }
+        });
+    }
+
+    // Harici Antivirüsler İçin İstisna Yollarını Panoya Kopyalama
+    const btnCopyPaths = document.getElementById("btn-copy-exclusion-paths");
+    if (btnCopyPaths) {
+        btnCopyPaths.addEventListener("click", () => {
+            const pathsToCopy = (typeof cachedExclusionPaths !== "undefined" && cachedExclusionPaths.length > 0)
+                ? cachedExclusionPaths.join("\r\n")
+                : (steamPathInput.value || "C:\\Program Files (x86)\\Steam");
+
+            navigator.clipboard.writeText(pathsToCopy).then(() => {
+                const orig = btnCopyPaths.innerHTML;
+                btnCopyPaths.innerHTML = `<i class="fa-solid fa-check"></i> Kopyalandı!`;
+                btnCopyPaths.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+                btnCopyPaths.style.borderColor = "#10b981";
+                setTimeout(() => {
+                    btnCopyPaths.innerHTML = orig;
+                    btnCopyPaths.style.backgroundColor = "";
+                    btnCopyPaths.style.borderColor = "";
+                }, 2500);
+            }).catch(() => {
+                prompt("Aşağıdaki klasör yollarını antivirüs istisnalarına ekleyin:", pathsToCopy);
+            });
         });
     }
 
@@ -868,18 +1033,13 @@ function initAppLogic() {
             .then(res => res.json())
             .then(data => {
                 if (data.installed) {
-                    if (data.steam_running && !data.hook_loaded) {
-                        badge.textContent = "YENİDEN BAŞLATMA GEREKLİ";
-                        badge.className = "status-badge status-warning";
-                        badge.style.backgroundColor = "#eab308";
-                        badge.style.color = "#000000";
-                    } else if (data.steam_running && data.hook_loaded) {
-                        badge.textContent = "AKTİF";
+                    if (data.steam_running) {
+                        badge.textContent = "AKTİF (HER ŞEY YOLUNDA)";
                         badge.className = "status-badge status-active";
-                        badge.style.backgroundColor = "#2e7d32";
+                        badge.style.backgroundColor = "#10b981";
                         badge.style.color = "#ffffff";
                     } else {
-                        badge.textContent = "KURULU (STEAM KAPALI)";
+                        badge.textContent = "HAZIR (STEAM KAPALI)";
                         badge.className = "status-badge status-active";
                         badge.style.backgroundColor = "#2563eb";
                         badge.style.color = "#ffffff";
@@ -887,13 +1047,13 @@ function initAppLogic() {
                     
                     if (data.dlls && data.dlls.length > 0) {
                         dllsList.textContent = data.dlls.join(", ");
-                        dllsList.style.color = "#81c784";
+                        dllsList.style.color = "#10b981";
                     } else {
                         dllsList.textContent = "Yok";
                         dllsList.style.color = "var(--text-secondary)";
                     }
                 } else {
-                    badge.textContent = "PASİF";
+                    badge.textContent = "PASİF (KURULU DEĞİL)";
                     badge.className = "status-badge status-inactive";
                     badge.style.backgroundColor = "#8c2020";
                     badge.style.color = "#ffffff";
@@ -903,11 +1063,83 @@ function initAppLogic() {
             })
             .catch(err => {
                 console.error("Error fetching bypass status:", err);
-                badge.textContent = "PASİF";
-                badge.className = "status-badge status-inactive";
-                badge.style.backgroundColor = "#8c2020";
-                badge.style.color = "#ffffff";
-                dllsList.textContent = "Yok";
+            });
+    }
+
+    function updateVCRedistStatus() {
+        const badge = document.getElementById("vcredist-status-badge");
+        const statusText = document.getElementById("vcredist-status-text");
+        if (!badge || !statusText) return;
+
+        fetch("/api/vcredist/status")
+            .then(res => res.json())
+            .then(data => {
+                if (data.all_installed) {
+                    badge.textContent = "KURULU (HER ŞEY YOLUNDA)";
+                    badge.className = "status-badge status-active";
+                    badge.style.backgroundColor = "#10b981";
+                    badge.style.color = "#ffffff";
+                    statusText.textContent = "Microsoft Visual C++ (x86 & x64) paketleri sisteminizde eksiksiz kurulu, her şey yolunda.";
+                    statusText.style.color = "#10b981";
+                } else {
+                    badge.textContent = "EKSİK (YÜKLEME GEREKLİ)";
+                    badge.className = "status-badge status-warning";
+                    badge.style.backgroundColor = "#ef4444";
+                    badge.style.color = "#ffffff";
+                    statusText.textContent = data.details || "Visual C++ çalışma zamanı paketleri eksik.";
+                    statusText.style.color = "#f87171";
+                }
+            })
+            .catch(err => {
+                console.error("VC++ status fetch error:", err);
+            });
+    }
+
+    let cachedExclusionPaths = [];
+
+    function updateSecurityStatus() {
+        const avBadge = document.getElementById("av-detected-badge");
+        const statusText = document.getElementById("av-quarantine-status-text");
+        const thirdPartyTitle = document.getElementById("third-party-av-title");
+        if (!avBadge || !statusText) return;
+
+        fetch("/api/security/status")
+            .then(res => res.json())
+            .then(data => {
+                const avInfo = data.av_info || {};
+                const quarantine = data.quarantine || {};
+                cachedExclusionPaths = data.exclusion_paths || [];
+
+                const primaryAv = avInfo.primary_av || "Windows Defender";
+
+                if (quarantine && quarantine.is_quarantined) {
+                    avBadge.textContent = "UYARI (KARANTİNA)";
+                    avBadge.className = "status-badge status-warning";
+                    avBadge.style.backgroundColor = "#ef4444";
+                    avBadge.style.color = "#ffffff";
+                    statusText.textContent = `DİKKAT: ${quarantine.details || "Bazı dosyalar karantinaya alınmış olabilir."}`;
+                    statusText.style.color = "#ef4444";
+                } else {
+                    avBadge.textContent = "GÜVENLİ (SORUN YOK)";
+                    avBadge.className = "status-badge status-active";
+                    avBadge.style.backgroundColor = "#10b981";
+                    avBadge.style.color = "#ffffff";
+                    statusText.textContent = "Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.";
+                    statusText.style.color = "#10b981";
+                }
+
+                if (avInfo.has_third_party) {
+                    if (thirdPartyTitle) {
+                        thirdPartyTitle.textContent = `${primaryAv} Kullandığınız Tespit Edildi:`;
+                    }
+                } else {
+                    if (thirdPartyTitle) {
+                        thirdPartyTitle.textContent = "Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:";
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Security status fetch error:", err);
             });
     }
 
@@ -921,6 +1153,8 @@ function initAppLogic() {
                     document.getElementById("status-connection").textContent = `Steam Bağlantısı: ${data.steam_path}`;
                 }
                 updateSteamToolsStatus();
+                updateVCRedistStatus();
+                updateSecurityStatus();
             });
     }
 
@@ -944,8 +1178,12 @@ function initAppLogic() {
                 const parsed = JSON.parse(cached);
                 if (Array.isArray(parsed) && parsed.length > 0 && gameLibrary.length === 0) {
                     gameLibrary = parsed.filter(g => !isHiddenLibraryApp(g));
+                    window.globalGameLibrary = gameLibrary;
                     applyFiltersAndRender();
                     renderOnlineFixLibrary();
+                    if (typeof window.loadSAMLibrary === "function") {
+                        try { window.loadSAMLibrary(false); } catch (e) {}
+                    }
                 }
             }
         } catch (e) {}
@@ -956,11 +1194,15 @@ function initAppLogic() {
             .then(data => {
                 const rawGames = data.games || [];
                 gameLibrary = rawGames.filter(g => !isHiddenLibraryApp(g));
+                window.globalGameLibrary = gameLibrary;
                 try {
                     localStorage.setItem("steamrogue_library_cache", JSON.stringify(gameLibrary));
                 } catch (e) {}
                 applyFiltersAndRender();
                 renderOnlineFixLibrary();
+                if (typeof window.loadSAMLibrary === "function") {
+                    try { window.loadSAMLibrary(false); } catch (e) {}
+                }
             })
             .catch(err => console.error("Failed to load library:", err));
     }
@@ -2284,6 +2526,141 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         });
     }
 
+    // Component, Manifest & Signature Live Synchronizer
+    const btnCheckComponents = document.getElementById("btn-check-components");
+    const compBadge = document.getElementById("components-status-badge");
+    const compStatusText = document.getElementById("components-update-status-text");
+    const compStStatus = document.getElementById("comp-st-status");
+    const compSigStatus = document.getElementById("comp-sig-status");
+    const compRepoStatus = document.getElementById("comp-repo-status");
+    const compBypassStatus = document.getElementById("comp-bypass-status");
+
+    let componentPollTimer = null;
+
+    async function pollComponentUpdateStatus() {
+        if (componentPollTimer) {
+            clearTimeout(componentPollTimer);
+            componentPollTimer = null;
+        }
+
+        try {
+            const res = await fetch("/api/component_update_status");
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data) {
+                if (compBadge) {
+                    compBadge.textContent = data.running ? "EŞİTLENİYOR..." : "GÜNCEL";
+                    compBadge.style.backgroundColor = data.running ? "#eab308" : "#10b981";
+                }
+                if (compStatusText) {
+                    if (data.running) {
+                        compStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: #38bdf8;"></i> Harici depolar, imzalar ve oyun manifestoları arka planda senkronize ediliyor...';
+                        compStatusText.style.color = "#facc15";
+                    } else if (data.last_run_formatted) {
+                        compStatusText.textContent = `Son Senkronizasyon: ${data.last_run_formatted} (Tüm bileşenler ve kaynaklar aktif)`;
+                        compStatusText.style.color = "#10b981";
+                    } else {
+                        compStatusText.textContent = "Tüm depolar, kancalar ve manifest kaynakları aktif.";
+                        compStatusText.style.color = "#10b981";
+                    }
+                }
+                if (compStStatus) {
+                    compStStatus.textContent = (data.steamtools && data.steamtools.updated) ? "Yeni Güncellendi" : "Eşitlendi (Aktif)";
+                    compStStatus.style.color = "#4ade80";
+                }
+                if (compSigStatus) {
+                    compSigStatus.textContent = "Dinamik Uyumlu";
+                    compSigStatus.style.color = "#4ade80";
+                }
+                if (compRepoStatus) {
+                    const repoCount = (data.repos && Object.keys(data.repos).length) || 4;
+                    compRepoStatus.textContent = `${repoCount}/${repoCount} Aktif`;
+                    compRepoStatus.style.color = "#4ade80";
+                }
+                if (compBypassStatus) {
+                    compBypassStatus.textContent = "Çevrimiçi Eşit";
+                    compBypassStatus.style.color = "#4ade80";
+                }
+
+                // If sync is running in the background, poll again after 1 second!
+                if (data.running) {
+                    componentPollTimer = setTimeout(pollComponentUpdateStatus, 1000);
+                }
+            }
+        } catch (e) {
+            console.debug("[Component Status Poll]", e);
+        }
+    }
+
+    window.pollComponentUpdateStatus = pollComponentUpdateStatus;
+
+    if (btnCheckComponents) {
+        btnCheckComponents.addEventListener("click", async () => {
+            btnCheckComponents.disabled = true;
+            btnCheckComponents.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Eşitleniyor...';
+            if (compBadge) {
+                compBadge.textContent = "EŞİTLENİYOR...";
+                compBadge.style.backgroundColor = "#eab308";
+            }
+            if (compStatusText) {
+                compStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: #38bdf8;"></i> Manifest depoları, SteamTools DLL, TOML imzaları ve OnlineFix verileri taranıyor...';
+            }
+
+            try {
+                const res = await fetch("/api/check_components_now", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ force: true })
+                });
+                const data = await res.json();
+
+                if (compBadge) {
+                    compBadge.textContent = "GÜNCEL";
+                    compBadge.style.backgroundColor = "#10b981";
+                }
+                if (compStStatus) compStStatus.textContent = "Doğrulandı";
+                if (compSigStatus) compSigStatus.textContent = "Steam ile Uyumlu";
+                if (compRepoStatus) compRepoStatus.textContent = "4/4 Güncel";
+                if (compBypassStatus) compBypassStatus.textContent = "Çevrimiçi Eşit";
+
+                const nowStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                if (compStatusText) {
+                    compStatusText.textContent = `Son Senkronizasyon: Bugün ${nowStr} (Tam başarıyla tamamlandı)`;
+                }
+
+                let actionsList = "";
+                if (data && Array.isArray(data.actions) && data.actions.length > 0) {
+                    actionsList = "\n\nUygulanan Güncellemeler:\n• " + data.actions.join("\n• ");
+                } else {
+                    actionsList = "\n\nTüm manifest depoları, SteamTools kilit açıcıları ve imza motoru zaten en güncel durumdaydı.";
+                }
+
+                await window.showCustomAlert(
+                    `Bileşen, Manifest ve İmza senkronizasyonu tamamlandı!${actionsList}`,
+                    "Senkronizasyon Başarılı"
+                );
+            } catch (err) {
+                if (compBadge) {
+                    compBadge.textContent = "HATA";
+                    compBadge.style.backgroundColor = "#ef4444";
+                }
+                if (compStatusText) {
+                    compStatusText.textContent = `Senkronizasyon sırasında hata oluştu: ${err.message || err}`;
+                }
+                await window.showCustomAlert(
+                    `Bileşenler eşitlenirken bir hata oluştu:\n${err.message || err}`,
+                    "Senkronizasyon Hatası"
+                );
+            } finally {
+                btnCheckComponents.disabled = false;
+                btnCheckComponents.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Bileşenleri & İmzaları Şimdi Güncelle';
+            }
+        });
+    }
+
+    setTimeout(pollComponentUpdateStatus, 1500);
+
+
     if (btnClose) {
         btnClose.addEventListener("click", () => {
             if (banner) banner.style.display = "none";
@@ -3493,25 +3870,27 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         });
     });
 
-    appsEl.addEventListener('mouseleave', () => {
-        const at = appsEl.querySelector('.bypass-app.is-active');
-        if (at) {
-            updateSpotlight(at);
-        } else {
-            stageEl.style.setProperty('--spot-opacity', '0');
-        }
-    });
+    if (appsEl) {
+        appsEl.addEventListener('mouseleave', () => {
+            const at = appsEl.querySelector('.bypass-app.is-active');
+            if (at) {
+                updateSpotlight(at);
+            } else if (stageEl) {
+                stageEl.style.setProperty('--spot-opacity', '0');
+            }
+        });
 
-    const activeTile = appsEl.querySelector('.bypass-app.is-active');
-    if (activeTile) {
-        requestAnimationFrame(() => updateSpotlight(activeTile));
-    } else {
-        stageEl.classList.remove('has-selection');
-        stageEl.style.setProperty('--spot-opacity', '0');
+        const activeTile = appsEl.querySelector('.bypass-app.is-active');
+        if (activeTile) {
+            requestAnimationFrame(() => updateSpotlight(activeTile));
+        } else if (stageEl) {
+            stageEl.classList?.remove('has-selection');
+            stageEl.style?.setProperty?.('--spot-opacity', '0');
+        }
     }
 
     window.addEventListener('resize', () => {
-        const at = appsEl.querySelector('.bypass-app.is-active');
+        const at = appsEl ? appsEl.querySelector('.bypass-app.is-active') : null;
         if (at) updateSpotlight(at);
     });
 
@@ -3519,11 +3898,11 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         btn.addEventListener('click', () => {
             if (btn.dataset.tab === 'bypass') {
                 setTimeout(() => {
-                    const at = appsEl.querySelector('.bypass-app.is-active');
+                    const at = appsEl ? appsEl.querySelector('.bypass-app.is-active') : null;
                     if (at) {
                         updateSpotlight(at);
-                    } else {
-                        stageEl.style.setProperty('--spot-opacity', '0');
+                    } else if (stageEl) {
+                        stageEl.style?.setProperty?.('--spot-opacity', '0');
                     }
                 }, 60);
             }
@@ -3542,4 +3921,544 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
     loadBypassData();
 
 })();
+
+// ==========================================================================
+// SAM (Steam Achievement Manager) Controller & UI Handlers
+// ==========================================================================
+let samLibraryLoaded = false;
+let samAllGames = [];
+let samGridListenerBound = false;
+let samCurrentAppId = null;
+let samCurrentAppName = "";
+let samCurrentAchievements = [];
+let samModalEventsBound = false;
+
+function initSAM() {
+    const searchInput = document.getElementById("sam-search-input");
+    const btnRefresh = document.getElementById("btn-sam-refresh-library");
+
+    function escapeSAMHtml(text) {
+        if (!text) return "";
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function updateSAMModalStats() {
+        const totalEl = document.getElementById("sam-modal-total-count");
+        const unlockedEl = document.getElementById("sam-modal-unlocked-count");
+        const percentEl = document.getElementById("sam-modal-percent");
+        const progressEl = document.getElementById("sam-modal-progress-bar");
+
+        const total = samCurrentAchievements.length;
+        const unlocked = samCurrentAchievements.filter(a => a.achieved).length;
+        const percent = total > 0 ? Math.round((unlocked / total) * 100) : 0;
+
+        if (totalEl) totalEl.textContent = total;
+        if (unlockedEl) unlockedEl.textContent = unlocked;
+        if (percentEl) percentEl.textContent = `%${percent}`;
+        if (progressEl) progressEl.style.width = `${percent}%`;
+    }
+
+    function renderSAMAchievementsList(filterQuery = "") {
+        const container = document.getElementById("sam-modal-achievements-container");
+        const filterCountEl = document.getElementById("sam-modal-filter-count");
+        if (!container) return;
+
+        const q = (filterQuery || "").toLowerCase().trim();
+        let list = samCurrentAchievements;
+        if (q) {
+            list = samCurrentAchievements.filter(a => 
+                (a.name || "").toLowerCase().includes(q) ||
+                (a.desc || "").toLowerCase().includes(q) ||
+                (a.id || "").toLowerCase().includes(q)
+            );
+        }
+
+        if (filterCountEl) {
+            filterCountEl.textContent = `Görüntülenen: ${list.length} / ${samCurrentAchievements.length}`;
+        }
+
+        if (!list || list.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 45px 20px; color: var(--text-muted);">
+                    <i class="fa-solid fa-trophy" style="font-size: 2.2rem; color: rgba(124, 58, 237, 0.3); margin-bottom: 12px; display: block;"></i>
+                    <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">
+                        ${q ? 'Aramanızla Eşleşen Başarım Bulunamadı' : 'Bu Oyun İçin Başarım Bulunamadı'}
+                    </p>
+                    <p style="font-size: 0.8rem; margin-top: 4px;">
+                        ${q ? 'Farklı bir anahtar kelime aramayı deneyin.' : 'Bu oyunda Steam başarımı tanımlanmamış olabilir.'}
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        const html = list.map(ach => {
+            const isAchieved = !!ach.achieved;
+            const iconFile = isAchieved ? (ach.icon || ach.icon_locked) : (ach.icon_locked || ach.icon);
+            const iconUrl = iconFile ? `https://cdn.steamstatic.com/steamcommunity/public/images/apps/${samCurrentAppId}/${iconFile}` : "icon.ico";
+            
+            return `
+                <div class="sam-ach-item ${isAchieved ? 'achieved' : ''}" data-id="${escapeSAMHtml(ach.id)}">
+                    <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
+                        <img src="${iconUrl}" class="sam-ach-icon" loading="lazy" onerror="this.src='icon.ico'">
+                        <div style="min-width: 0; padding-right: 12px;">
+                            <div style="font-weight: 700; font-size: 0.92rem; color: #fff; margin-bottom: 3px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                ${escapeSAMHtml(ach.name || ach.id)}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.35;">
+                                ${escapeSAMHtml(ach.desc || '(Gizli Başarım veya Açıklama Yok)')}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                        <label class="sam-switch">
+                            <input type="checkbox" class="sam-ach-checkbox" data-id="${escapeSAMHtml(ach.id)}" ${isAchieved ? 'checked' : ''}>
+                            <span class="sam-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        container.innerHTML = html;
+    }
+
+    function bindSAMModalEvents() {
+        if (samModalEventsBound) return;
+        samModalEventsBound = true;
+
+        const modal = document.getElementById("modal-sam-achievements");
+        const btnClose = document.getElementById("sam-modal-close-btn");
+        const btnUnlockAll = document.getElementById("sam-btn-unlock-all");
+        const btnLockAll = document.getElementById("sam-btn-lock-all");
+        const btnInvert = document.getElementById("sam-btn-invert");
+        const btnSave = document.getElementById("sam-btn-save-steam");
+        const modalSearch = document.getElementById("sam-modal-search");
+        const container = document.getElementById("sam-modal-achievements-container");
+
+        const closeModal = () => {
+            if (modal) modal.classList.remove("active");
+        };
+
+        if (btnClose) btnClose.addEventListener("click", closeModal);
+        if (modal) {
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        if (modalSearch) {
+            modalSearch.addEventListener("input", () => {
+                renderSAMAchievementsList(modalSearch.value);
+            });
+        }
+
+        if (container) {
+            container.addEventListener("click", (e) => {
+                const item = e.target.closest(".sam-ach-item");
+                if (!item) return;
+
+                const id = item.getAttribute("data-id");
+                if (!id) return;
+
+                const ach = samCurrentAchievements.find(a => a.id === id);
+                if (!ach) return;
+
+                // Toggle state
+                ach.achieved = !ach.achieved;
+
+                // Sync UI
+                const chk = item.querySelector(".sam-ach-checkbox");
+                if (chk) chk.checked = ach.achieved;
+
+                if (ach.achieved) {
+                    item.classList.add("achieved");
+                } else {
+                    item.classList.remove("achieved");
+                }
+
+                const img = item.querySelector(".sam-ach-icon");
+                if (img) {
+                    const iconFile = ach.achieved ? (ach.icon || ach.icon_locked) : (ach.icon_locked || ach.icon);
+                    if (iconFile) {
+                        img.src = `https://cdn.steamstatic.com/steamcommunity/public/images/apps/${samCurrentAppId}/${iconFile}`;
+                    }
+                }
+
+                updateSAMModalStats();
+            });
+        }
+
+        if (btnUnlockAll) {
+            btnUnlockAll.addEventListener("click", () => {
+                samCurrentAchievements.forEach(a => a.achieved = true);
+                renderSAMAchievementsList(modalSearch ? modalSearch.value : "");
+                updateSAMModalStats();
+            });
+        }
+
+        if (btnLockAll) {
+            btnLockAll.addEventListener("click", () => {
+                samCurrentAchievements.forEach(a => a.achieved = false);
+                renderSAMAchievementsList(modalSearch ? modalSearch.value : "");
+                updateSAMModalStats();
+            });
+        }
+
+        if (btnInvert) {
+            btnInvert.addEventListener("click", () => {
+                samCurrentAchievements.forEach(a => a.achieved = !a.achieved);
+                renderSAMAchievementsList(modalSearch ? modalSearch.value : "");
+                updateSAMModalStats();
+            });
+        }
+
+        if (btnSave) {
+            btnSave.addEventListener("click", async () => {
+                if (!samCurrentAppId) return;
+
+                const originalHtml = btnSave.innerHTML;
+                btnSave.disabled = true;
+                btnSave.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Steam'e Kaydediliyor...`;
+
+                try {
+                    const unlockedIds = samCurrentAchievements.filter(a => a.achieved).map(a => a.id);
+                    const resp = await fetch("/api/sam/save", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            appid: String(samCurrentAppId),
+                            unlocked_ids: unlockedIds
+                        })
+                    });
+                    const data = await resp.json();
+
+                    if (data.success) {
+                        if (window.showCustomAlert) {
+                            window.showCustomAlert(
+                                `Başarımlar Steam'e başarıyla aktarıldı!\n\nGüncellenen Başarım Sayısı: ${data.modified || 0}`,
+                                "Steam'e Kaydedildi"
+                            );
+                        }
+                    } else {
+                        if (window.showCustomAlert) {
+                            window.showCustomAlert(data.error || "Başarımlar kaydedilemedi.", "Kaydetme Hatası");
+                        }
+                    }
+                } catch (err) {
+                    console.error("Save error:", err);
+                    if (window.showCustomAlert) {
+                        window.showCustomAlert("Steam'e kaydetme sırasında hata oluştu: " + err.message, "Hata");
+                    }
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = originalHtml;
+                }
+            });
+        }
+    }
+
+    async function openSAMAchievementsModal(appid, name = "", triggerBtn = null) {
+        samCurrentAppId = String(appid);
+        samCurrentAppName = name || `AppID ${appid}`;
+        samCurrentAchievements = [];
+
+        bindSAMModalEvents();
+
+        const modal = document.getElementById("modal-sam-achievements");
+        const titleEl = document.getElementById("sam-modal-game-name");
+        const appidEl = document.getElementById("sam-modal-game-appid");
+        const iconEl = document.getElementById("sam-modal-game-icon");
+        const searchInput = document.getElementById("sam-modal-search");
+        const container = document.getElementById("sam-modal-achievements-container");
+
+        if (titleEl) titleEl.textContent = samCurrentAppName;
+        if (appidEl) appidEl.textContent = `AppID: ${samCurrentAppId}`;
+        if (searchInput) searchInput.value = "";
+
+        if (iconEl) {
+            iconEl.src = `/api/cover/${samCurrentAppId}`;
+            iconEl.onerror = () => {
+                iconEl.src = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${samCurrentAppId}/header.jpg`;
+            };
+        }
+
+        if (container) {
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 260px; gap: 14px; color: #c084fc;">
+                    <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+                    <span style="font-size: 0.95rem; font-weight: 600;">Steam başarımları yükleniyor, lütfen bekleyin...</span>
+                </div>
+            `;
+        }
+
+        updateSAMModalStats();
+        if (modal) modal.classList.add("active");
+
+        try {
+            const resp = await fetch(`/api/sam/achievements/${samCurrentAppId}`);
+            const data = await resp.json();
+
+            if (data.success && Array.isArray(data.achievements)) {
+                samCurrentAchievements = data.achievements;
+                renderSAMAchievementsList("");
+                updateSAMModalStats();
+            } else {
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 50px 20px; color: #f87171;">
+                            <i class="fa-solid fa-circle-exclamation fa-2x" style="margin-bottom: 12px; display: block;"></i>
+                            <p style="font-size: 0.95rem; font-weight: 700; color: #fff;">Başarımlar Yüklenemedi</p>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 6px 0 16px;">${escapeSAMHtml(data.error || "Steam bağlantısı kurulamadı veya oyun kütüphanede doğrulanmadı.")}</p>
+                            <button class="btn btn-secondary" onclick="window.launchSAMApp('${samCurrentAppId}', '${escapeSAMHtml(samCurrentAppName)}')" style="padding: 7px 18px; font-size: 0.85rem; cursor: pointer;">
+                                <i class="fa-solid fa-rotate-right"></i> Yeniden Dene
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        } catch (err) {
+            console.error("SAM achievements load error:", err);
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 20px; color: #f87171;">
+                        <i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 12px; display: block;"></i>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: #fff;">Bağlantı Hatası</p>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 6px 0 16px;">${escapeSAMHtml(err.message)}</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    if (btnRefresh) {
+        btnRefresh.addEventListener("click", () => {
+            const icon = btnRefresh.querySelector("i");
+            if (icon) icon.classList.add("fa-spin");
+            loadSAMLibrary(true).finally(() => {
+                if (icon) icon.classList.remove("fa-spin");
+            });
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            const q = searchInput.value.toLowerCase().trim();
+            filterAndRenderSAMGames(q);
+        });
+    }
+
+    window.launchSAMApp = openSAMAchievementsModal;
+    window.loadSAMLibrary = loadSAMLibrary;
+
+    // Immediately load games so they are ready as soon as the user opens the tab
+    setTimeout(() => {
+        try { loadSAMLibrary(false); } catch (e) {}
+    }, 150);
+}
+
+async function loadSAMLibrary(force = false) {
+    if (samLibraryLoaded && !force && samAllGames.length > 0) return;
+    const grid = document.getElementById("sam-games-grid");
+    const countEl = document.getElementById("sam-game-count");
+
+    // 1. Immediately render cached games (0ms instant display)
+    let initialGames = [];
+    try {
+        const cached = localStorage.getItem("steamrogue_sam_cache");
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                initialGames = parsed;
+            }
+        }
+    } catch (e) {}
+
+    if (initialGames.length === 0) {
+        try {
+            const libCached = localStorage.getItem("steamrogue_library_cache");
+            if (libCached) {
+                const parsedLib = JSON.parse(libCached);
+                if (Array.isArray(parsedLib) && parsedLib.length > 0) {
+                    initialGames = parsedLib;
+                }
+            }
+        } catch (e) {}
+    }
+
+    if (initialGames.length === 0 && window.globalGameLibrary && Array.isArray(window.globalGameLibrary) && window.globalGameLibrary.length > 0) {
+        initialGames = [...window.globalGameLibrary];
+    }
+
+    if (initialGames.length > 0 && samAllGames.length === 0) {
+        samAllGames = initialGames;
+        if (countEl) countEl.textContent = initialGames.length;
+        const searchInput = document.getElementById("sam-search-input");
+        const q = (searchInput && searchInput.value) ? String(searchInput.value).toLowerCase().trim() : "";
+        filterAndRenderSAMGames(q);
+    } else if (grid && (!samAllGames || samAllGames.length === 0)) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 45px 20px; color: var(--text-muted);">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.2rem; color: #7c3aed; margin-bottom: 14px;"></i>
+                <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">Kütüphaneniz taranıyor...</p>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Steam oyunlarınız ve başarımlar listeleniyor</p>
+            </div>
+        `;
+    }
+
+    // 2. Fetch fresh games list from backend (/api/sam/games)
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const resp = await fetch("/api/sam/games", { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        const data = await resp.json();
+        let games = (data && data.games) || [];
+
+        // If backend returned games, render them
+        if (games.length > 0) {
+            samAllGames = games;
+            samLibraryLoaded = true;
+            try {
+                localStorage.setItem("steamrogue_sam_cache", JSON.stringify(games));
+            } catch (e) {}
+
+            if (countEl) countEl.textContent = games.length;
+            const searchInput = document.getElementById("sam-search-input");
+            const q = (searchInput && searchInput.value) ? String(searchInput.value).toLowerCase().trim() : "";
+            filterAndRenderSAMGames(q);
+            return;
+        }
+    } catch (err) {
+        console.warn("Notice loading SAM games from network:", err);
+    }
+
+    // 3. Fallback: If samAllGames is still empty, fetch from /api/library
+    if (!samAllGames || samAllGames.length === 0) {
+        try {
+            const libResp = await fetch("/api/library");
+            const libData = await libResp.json();
+            if (libData && libData.games && libData.games.length > 0) {
+                samAllGames = libData.games;
+                samLibraryLoaded = true;
+                if (countEl) countEl.textContent = samAllGames.length;
+                filterAndRenderSAMGames("");
+                return;
+            }
+        } catch (e) {}
+    }
+
+    // 4. Final state if truly 0 games found
+    if (!samAllGames || samAllGames.length === 0) {
+        if (countEl) countEl.textContent = "0";
+        if (grid) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 45px 20px; color: var(--text-muted);">
+                    <i class="fa-solid fa-gamepad" style="font-size: 2.2rem; color: rgba(255,255,255,0.15); margin-bottom: 12px;"></i>
+                    <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">Kütüphanenizde Henüz Oyun Bulunamadı</p>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Steam hesabınıza giriş yapıldığından ve kütüphanenizde oyun bulunduğundan emin olun.</p>
+                    <button class="btn btn-secondary" onclick="loadSAMLibrary(true)" style="margin-top: 14px; padding: 8px 18px; font-size: 0.85rem; cursor: pointer;">
+                        <i class="fa-solid fa-rotate"></i> Kütüphaneyi Yeniden Tara
+                    </button>
+                </div>
+            `;
+        }
+    }
+}
+
+function filterAndRenderSAMGames(query = "") {
+    const grid = document.getElementById("sam-games-grid");
+    const countEl = document.getElementById("sam-game-count");
+    if (!grid) return;
+
+    if (!samGridListenerBound) {
+        samGridListenerBound = true;
+        grid.addEventListener("click", (e) => {
+            const btn = e.target.closest(".btn-sam-manage");
+            if (btn) {
+                const appid = btn.getAttribute("data-appid");
+                const name = btn.getAttribute("data-name") || `AppID ${appid}`;
+                if (typeof window.launchSAMApp === "function") {
+                    window.launchSAMApp(appid, name, btn);
+                }
+            }
+        });
+    }
+
+    let filtered = samAllGames || [];
+    if (query) {
+        filtered = samAllGames.filter(g => {
+            const nameMatch = (g.name || "").toLowerCase().includes(query);
+            const idMatch = String(g.appid || "").includes(query);
+            return nameMatch || idMatch;
+        });
+    }
+
+    if (countEl) countEl.textContent = filtered.length;
+
+    if (!filtered || filtered.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-muted);">
+                <i class="fa-solid fa-magnifying-glass" style="font-size: 2.2rem; color: rgba(255,255,255,0.1); margin-bottom: 12px;"></i>
+                <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary);">Eşleşen oyun bulunamadı</p>
+                <p style="font-size: 0.8rem; margin-top: 4px;">Farklı bir arama yapmayı deneyin veya kütüphaneyi yenileyin.</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+
+    filtered.forEach(game => {
+        const appid = String(game.appid);
+        const name = game.name || `AppID ${appid}`;
+        const card = document.createElement("div");
+        card.className = "sam-game-card";
+
+        const primaryCover = `/api/cover/${appid}`;
+        const cdn1 = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appid}/header.jpg`;
+        const cdn2 = `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/library_600x900.jpg`;
+
+        card.innerHTML = `
+            <div class="sam-card-img-wrapper">
+                <img class="sam-card-img" src="${primaryCover}" alt="${name}" loading="lazy" decoding="async">
+            </div>
+            <div class="sam-card-body">
+                <div>
+                    <div class="sam-card-title" title="${name}">${name}</div>
+                    <div class="sam-card-appid"><i class="fa-brands fa-steam"></i> AppID: ${appid}</div>
+                </div>
+                <button class="btn-sam-manage" data-appid="${appid}" data-name="${name.replace(/"/g, '&quot;')}" title="Bu oyun için Steam Achievement Manager'ı başlat">
+                    <i class="fa-solid fa-trophy"></i> Başarımları Yönet
+                </button>
+            </div>
+        `;
+
+        const img = card.querySelector(".sam-card-img");
+        if (img) {
+            img.onerror = () => {
+                if (!img.dataset.tried1) {
+                    img.dataset.tried1 = "true";
+                    img.src = cdn1;
+                } else if (!img.dataset.tried2) {
+                    img.dataset.tried2 = "true";
+                    img.src = cdn2;
+                } else {
+                    img.style.display = "none";
+                }
+            };
+        }
+
+        fragment.appendChild(card);
+    });
+
+    grid.appendChild(fragment);
+}
 

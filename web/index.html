@@ -14,7 +14,7 @@
             overflow: hidden;
         }
     </style>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.1.6">
     <!-- Google Fonts for clean, modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,18 +23,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body style="background: #090a10; background-color: #090a10; color: #f8fafc;">
+    <!-- MODERN STARTUP SPLASH SCREEN -->
+    <div id="app-splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="fa-solid fa-bolt splash-bolt"></i>
+                <span class="splash-title">SteaM<span class="splash-purple">Rogue</span></span>
+            </div>
+            <div class="splash-version-pill">v1.1.5 • Yeni Nesil Steam Kiti</div>
+            <div class="splash-progress-track">
+                <div class="splash-progress-bar" id="splash-progress-bar"></div>
+            </div>
+            <div class="splash-status-text" id="splash-status-text">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Sistem ve kütüphane bileşenleri eşitleniyor...
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- TOP NAVIGATION BAR -->
         <header class="app-header">
             <div class="logo-group">
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
-                <span class="version-badge" id="app-version-badge">v1.1.4</span>
+                <span class="version-badge" id="app-version-badge">v1.1.5</span>
             </div>
             <nav class="nav-tabs">
                 <button class="tab-btn active" data-tab="lightning-tools"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
                 <button class="tab-btn" data-tab="onlinefix"><i class="fa-solid fa-network-wired"></i> OnlineFix</button>
                 <button class="tab-btn" data-tab="bypass"><i class="fa-solid fa-shield-halved"></i> Bypass</button>
                 <button class="tab-btn" data-tab="discount-leak"><i class="fa-solid fa-tags"></i> İndirimler</button>
+                <button class="tab-btn" data-tab="achievements"><i class="fa-solid fa-trophy"></i> Başarımlar</button>
                 <button class="tab-btn" data-tab="import"><i class="fa-solid fa-file-arrow-up"></i> İçe Aktar</button>
                 <button class="tab-btn" data-tab="settings"><i class="fa-solid fa-gear"></i> Ayarlar</button>
             </nav>
@@ -212,23 +230,76 @@
                 </div>
             </section>
 
+            <!-- TAB: ACHIEVEMENTS (SAM - STEAM ACHIEVEMENT MANAGER) -->
+            <section class="tab-content" id="tab-achievements">
+                <div class="achievements-container" style="max-width: 1400px; margin: 0 auto;">
+                    
+                    <!-- HEADER BAR -->
+                    <div class="achievements-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(124, 58, 237, 0.12); border: 1px solid rgba(124, 58, 237, 0.25); display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-trophy" style="font-size: 1.15rem; color: #c084fc;"></i>
+                                </div>
+                                <div>
+                                    <h2 class="section-title" style="margin: 0; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                        Başarımlar (SAM)
+                                        <span style="font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-subtle);">Steam Achievement Manager</span>
+                                    </h2>
+                                    <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Steam hesabınızdaki oyunların başarımlarını görüntüleyin ve yönetin.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Refresh & Counter -->
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary); background: rgba(255, 255, 255, 0.03); padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-gamepad" style="color: var(--accent-purple);"></i>
+                                <span>Kütüphanenizdeki Oyunlar: <strong id="sam-game-count" style="color: #c084fc;">0</strong></span>
+                            </div>
+                            <button id="btn-sam-refresh-library" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.85rem;" title="Kütüphaneyi Yeniden Tara">
+                                <i class="fa-solid fa-rotate"></i> Yenile
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH BAR -->
+                    <div class="panel-card" style="padding: 14px 18px; margin-bottom: 22px; background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: 12px;">
+                        <div style="position: relative; width: 100%;">
+                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
+                            <input type="text" id="sam-search-input" placeholder="Kütüphanenizdeki oyunlar arasında arama yapın veya AppID yazın (Örn: Counter-Strike, Cyberpunk, 730)..." autocomplete="off" style="width: 100%; padding: 12px 18px 12px 46px; border-radius: 8px; border: 1px solid var(--border-medium); background: rgba(0, 0, 0, 0.25); color: var(--text-primary); font-size: 0.92rem; transition: border 0.2s;">
+                        </div>
+                    </div>
+
+                    <!-- LIBRARY GAMES GRID SECTION -->
+                    <div id="sam-games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-bottom: 30px;">
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-muted);">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.2rem; color: var(--accent-purple); margin-bottom: 14px;"></i>
+                            <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">Kütüphaneniz taranıyor...</p>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Steam oyunlarınız ve başarımlar listeleniyor</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
             <!-- TAB: IMPORT FILES -->
             <section class="tab-content" id="tab-import">
-                <div class="import-container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+                <div class="import-container">
                     <h2 class="section-title">Dosya İçe Aktar</h2>
-                    <div class="panel-card" style="padding: 30px; text-align: center;">
-                        <p style="color: var(--text-secondary); margin-bottom: 25px; font-size: 0.95rem;">
+                    <div class="panel-card" style="padding: 24px; text-align: center;">
+                        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.92rem;">
                             İndirdiğiniz Steam manifest (.manifest), kilit açma konfigürasyonu (.lua) veya arşiv dosyalarını (.zip) sürükleyip bırakarak kolayca Steam'e aktarın.
                         </p>
-                        <div class="drag-drop-zone" id="drop-zone" style="min-height: 250px; border: 2px dashed rgba(124, 58, 237, 0.4); background: rgba(124, 58, 237, 0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;">
-                            <i class="fa-solid fa-cloud-arrow-up drag-icon" style="font-size: 3.5rem; color: var(--accent-purple); margin-bottom: 18px;"></i>
-                            <p class="drag-text" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Dosyaları Buraya Sürükleyin ve Bırakın</p>
-                            <span class="drag-subtext" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Desteklenen formatlar: .lua, .zip, .manifest</span>
-                            <button class="btn btn-primary btn-browse" onclick="document.getElementById('file-input').click()" style="padding: 10px 24px;">Dosya Seç</button>
+                        <div class="drag-drop-zone" id="drop-zone" style="min-height: 220px; border: 2px dashed rgba(124, 58, 237, 0.4); background: rgba(124, 58, 237, 0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;">
+                            <i class="fa-solid fa-cloud-arrow-up drag-icon" style="font-size: 3rem; color: var(--accent-purple); margin-bottom: 14px;"></i>
+                            <p class="drag-text" style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Dosyaları Buraya Sürükleyin ve Bırakın</p>
+                            <span class="drag-subtext" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">Desteklenen formatlar: .lua, .zip, .manifest</span>
+                            <button class="btn btn-primary btn-browse" onclick="document.getElementById('file-input').click()" style="padding: 9px 22px;">Dosya Seç</button>
                             <input type="file" id="file-input" multiple accept=".lua,.zip,.manifest" style="display: none;">
                         </div>
                         
-                        <div class="import-instructions" style="margin-top: 35px; text-align: left; background-color: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px;">
+                        <div class="import-instructions" style="margin-top: 20px; text-align: left; background-color: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px;">
                             <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                                 <i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> Nasıl Kullanılır:
                             </h4>
@@ -245,126 +316,240 @@
             <!-- TAB: SETTINGS -->
             <section class="tab-content" id="tab-settings">
                 <div class="settings-container">
-                    <h2 class="section-title">Uygulama Ayarları</h2>
-                    <div class="panel-card">
-                        <div class="settings-group">
-                            <label><i class="fa-solid fa-arrows-rotate" style="color: var(--accent-purple); margin-right: 6px;"></i> SteaMRogue Güncelleme Durumu</label>
-                            <span class="settings-helper" style="margin-bottom: 12px; display: block;">
-                                Uygulama GitHub Releases üzerinden otomatik olarak güncellenir. Dilediğiniz zaman manuel olarak da yeni sürüm kontrolü yapabilirsiniz.
-                            </span>
-                            <div style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                <div>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <strong style="color: var(--text-primary); font-size: 0.95rem;">Mevcut Sürüm:</strong>
-                                        <span class="status-badge status-active" id="settings-app-version-badge" style="background-color: #7c3aed; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">v1.1.2</span>
+                    <div style="margin-bottom: 18px;">
+                        <h2 class="section-title" style="margin-bottom: 4px;">Uygulama Ayarları & Sistem Yönetimi</h2>
+                        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Steam kilit açıcılarını, otomatik güncellemeleri, kütüphane onarımlarını ve güvenlik entegrasyonlarını yönetin.</p>
+                    </div>
+
+                    <div class="settings-list">
+                        
+                        <!-- 1. STEAMROGUE UYGULAMA GÜNCELLEMESİ -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 65%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(124, 58, 237, 0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-arrows-rotate"></i>
                                     </div>
-                                    <p id="app-update-status-text" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Otomatik güncelleme motoru aktif.</p>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">SteaMRogue Uygulama Güncellemesi</h3>
+                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.1.5</span>
+                                        </div>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            Uygulama GitHub Releases üzerinden otomatik güncellenir. Dilediğiniz zaman yeni sürüm kontrolü yapabilir veya mevcut kurulumu onarabilirsiniz.
+                                        </p>
+                                        <p id="app-update-status-text" style="font-size: 0.78rem; color: #38bdf8; margin: 4px 0 0 0;">Otomatik güncelleme motoru aktif.</p>
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <button class="btn btn-primary" id="btn-check-app-update" style="padding: 8px 16px; font-size: 0.82rem;">
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" id="btn-check-app-update" style="padding: 9px 18px; font-size: 0.84rem;">
                                         <i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle
                                     </button>
-                                    <button class="btn btn-secondary" id="btn-repair-app-update" style="padding: 8px 16px; font-size: 0.82rem; background-color: rgba(255,255,255,0.08);" title="Sürüm değişmemiş olsa bile GitHub'daki en güncel kurulum dosyasını sıfırdan indirir ve kurar">
+                                    <button class="btn btn-secondary" id="btn-repair-app-update" style="padding: 9px 18px; font-size: 0.84rem;" title="En güncel kurulum dosyasını sıfırdan indirir ve kurar">
                                         <i class="fa-solid fa-wrench"></i> Son Sürümü Yeniden İndir / Onar
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <hr class="settings-divider">
-                        <div class="settings-group">
-                            <label for="steam-path-input">Steam Kurulum Dizini</label>
-                            <div class="path-input-wrapper">
-                                <input type="text" id="steam-path-input" placeholder="C:\Program Files (x86)\Steam">
-                                <button class="btn btn-primary" id="btn-save-path">Dizini Kaydet</button>
-                            </div>
-                            <span class="settings-helper">Boş bırakılırsa Windows kayıt defterinden (Registry) otomatik tespit edilir.</span>
-                        </div>
-                        <hr class="settings-divider">
-                        <div class="settings-group">
-                            <label><i class="fa-solid fa-heart-pulse" style="color: #10b981; margin-right: 6px;"></i> Kendi Kendini Onaran Sistem (Self-Healing)</label>
-                            <span class="settings-helper" style="margin-bottom: 12px; display: block;">
-                                SteaMRogue her açılışta ve dilediğiniz an Steam kilit açıcılarını, LUA yapılandırmalarını, Spacewar (480) çevrimiçi kaydını, 7-Zip araçlarını ve bozuk Steam önbelleklerini otomatik tarayıp onarır.
-                            </span>
-                            <div style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                <div>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <strong style="color: var(--text-primary); font-size: 0.95rem;">Sistem Sağlığı:</strong>
-                                        <span class="status-badge" id="self-heal-badge" style="background-color: #10b981; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">SAĞLIKLI</span>
+
+                        <!-- 2. BİLEŞEN, MANIFEST & İMZA SENKRONİZASYONU -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 65%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(56, 189, 248, 0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-bolt"></i>
                                     </div>
-                                    <p id="self-heal-status-text" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Tüm bileşenler, kancalar ve servisler aktif ve doğrulanmış durumda.</p>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Bileşen, Manifest & İmza Senkronizasyonu (Canlı Motor)</h3>
+                                            <span class="status-badge" id="components-status-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">GÜNCEL</span>
+                                        </div>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            SteamTools kilit açıcıları, OpenSteamTool TOML imzaları, topluluk manifest veritabanları, OnlineFix bypass listesi ve kütüphanenizdeki oyunların Lua betikleri her açılışta arka planda tam hızla eşitlenir.
+                                        </p>
+                                        <p id="components-update-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Tüm depolar, kancalar ve manifest kaynakları aktif.</p>
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <button class="btn btn-primary" id="btn-self-heal" style="padding: 8px 16px; font-size: 0.82rem; background: linear-gradient(135deg, #10b981, #059669);">
+                                <div>
+                                    <button class="btn btn-primary" id="btn-check-components" style="padding: 9px 18px; font-size: 0.84rem; background: linear-gradient(135deg, #0284c7, #2563eb);">
+                                        <i class="fa-solid fa-arrows-rotate"></i> Bileşenleri & İmzaları Şimdi Güncelle
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08); font-size: 0.78rem;">
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-plug" style="color: #38bdf8; margin-right: 6px;"></i> SteamTools DLL: <span id="comp-st-status" style="color: #4ade80; font-weight: 600;">Eşitlendi</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-fingerprint" style="color: #c084fc; margin-right: 6px;"></i> TOML İmzaları: <span id="comp-sig-status" style="color: #4ade80; font-weight: 600;">Dinamik Uyumlu</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-database" style="color: #fbbf24; margin-right: 6px;"></i> Manifest Depoları: <span id="comp-repo-status" style="color: #4ade80; font-weight: 600;">4/4 Aktif</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-gamepad" style="color: #f43f5e; margin-right: 6px;"></i> OnlineFix Bypass: <span id="comp-bypass-status" style="color: #4ade80; font-weight: 600;">Çevrimiçi Eşit</span></div>
+                            </div>
+                        </div>
+
+                        <!-- 3. STEAM KURULUM DİZİNİ -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 45%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(56, 189, 248, 0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-brands fa-steam"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Steam Kurulum Dizini</h3>
+                                        <span class="settings-helper" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: block;">
+                                            Boş bırakılırsa Windows kayıt defterinden (Registry) otomatik tespit edilir.
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="path-input-wrapper" style="flex: 1; max-width: 580px; display: flex; gap: 8px;">
+                                    <input type="text" id="steam-path-input" placeholder="C:\Program Files (x86)\Steam" style="flex: 1; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-medium); background: rgba(0,0,0,0.25); color: var(--text-primary); font-size: 0.88rem;">
+                                    <button class="btn btn-primary" id="btn-save-path" style="padding: 9px 20px; font-size: 0.84rem; white-space: nowrap;">Dizini Kaydet</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. KENDİ KENDİNİ ONARAN SİSTEM (SELF-HEALING) -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 65%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Kendi Kendini Onaran Sistem (Self-Healing)</h3>
+                                            <span class="status-badge" id="self-heal-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">SAĞLIKLI</span>
+                                        </div>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            SteaMRogue her açılışta Steam kilit açıcılarını, LUA yapılandırmalarını, Spacewar (480) çevrimiçi kaydını, 7-Zip araçlarını ve bozuk önbellekleri otomatik tarayıp onarır.
+                                        </p>
+                                        <p id="self-heal-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Tüm bileşenler, kancalar ve servisler aktif ve doğrulanmış durumda.</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" id="btn-self-heal" style="padding: 9px 18px; font-size: 0.84rem; background: linear-gradient(135deg, #10b981, #059669);">
                                         <i class="fa-solid fa-wand-magic-sparkles"></i> Sistemi Otomatik Tara ve Onar
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <hr class="settings-divider">
-                        <div class="settings-group">
-                            <label>SteamTools Kancası (OpenSteamTool)</label>
-                            <span class="settings-helper" style="margin-bottom: 12px; display: block;">
-                                Gerekli kilit açıcı DLL dosyalarını (dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll) Steam ana klasörüne yerleştirir.
-                            </span>
-                            <div class="st-install-box" style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-                                <div class="st-status-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <span>Kanca Durumu:</span>
-                                    <span class="status-badge status-inactive" id="st-badge" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">PASİF</span>
+
+                        <!-- 5. STEAMTOOLS KANCASI (OPENSTEAMTOOL) -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 50%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(124, 58, 237, 0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">SteamTools Kancası (OpenSteamTool)</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            Gerekli kilit açıcı DLL dosyalarını (dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll) Steam ana klasörüne yerleştirir.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div class="st-status-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <span>Tespit Edilen Dosyalar:</span>
-                                    <span class="diag-value" id="st-active-dlls" style="font-size: 0.85rem; color: var(--text-secondary);">Yok</span>
-                                </div>
-                                <div class="st-actions-row" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <button class="btn btn-primary" id="btn-install-st" style="padding: 8px 16px; font-size: 0.8rem;"><i class="fa-solid fa-download"></i> SteamTools Kur / Onar</button>
-                                    <button class="btn btn-secondary" id="btn-restart-st" style="padding: 8px 16px; font-size: 0.8rem; background-color: rgba(255,255,255,0.08);"><i class="fa-solid fa-arrows-rotate"></i> Steam'i Yeniden Başlat</button>
-                                    <button class="btn btn-secondary" id="btn-clear-cache-st" style="padding: 8px 16px; font-size: 0.8rem; background-color: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4);"><i class="fa-solid fa-broom"></i> İndirme Önbelleğini Temizle ("İnternet Yok" Çözümü)</button>
-                                    <button class="btn btn-danger" id="btn-uninstall-st" style="padding: 8px 16px; font-size: 0.8rem; background-color: #8c2020;"><i class="fa-solid fa-trash-can"></i> SteamTools Kaldır</button>
+                                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Kanca Durumu:</span>
+                                        <span class="status-badge status-active" id="st-badge" style="padding: 3px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700; background-color: #10b981; color: #ffffff;">AKTİF (HER ŞEY YOLUNDA)</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Tespit Edilen Dosyalar:</span>
+                                        <span class="diag-value" id="st-active-dlls" style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">Yok</span>
+                                    </div>
                                 </div>
                             </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08);">
+                                <button class="btn btn-primary" id="btn-install-st" style="padding: 8px 16px; font-size: 0.82rem;"><i class="fa-solid fa-download"></i> SteamTools Kur / Onar</button>
+                                <button class="btn btn-secondary" id="btn-restart-st" style="padding: 8px 16px; font-size: 0.82rem;"><i class="fa-solid fa-arrows-rotate"></i> Steam'i Yeniden Başlat</button>
+                                <button class="btn btn-secondary" id="btn-clear-cache-st" style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(124,58,237,0.4);"><i class="fa-solid fa-broom"></i> İndirme Önbelleğini Temizle ("İnternet Yok" Çözümü)</button>
+                                <button class="btn btn-danger" id="btn-uninstall-st" style="padding: 8px 16px; font-size: 0.82rem; background-color: #8c2020;"><i class="fa-solid fa-trash-can"></i> SteamTools Kaldır</button>
+                            </div>
                         </div>
-                        <hr class="settings-divider">
-                        <div class="settings-group">
-                            <label><i class="fa-solid fa-shield-halved" style="color: var(--accent-purple); margin-right: 6px;"></i> Antivirüs & Güvenlik Ayarları (Yanlış Algılama Önleme)</label>
-                            <span class="settings-helper" style="margin-bottom: 12px; display: block;">
-                                SteaMRogue ve SteamTools dosyalarının Windows Defender veya harici antivirüsler tarafından yanlışlıkla silinmesini veya engellenmesini önleyin.
-                            </span>
-                            <div style="background-color: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 14px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                    <div>
-                                        <strong style="color: var(--text-primary); font-size: 0.9rem; display: block;">Windows Defender Güvenlik Dışlaması Ekle</strong>
-                                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">SteaMRogue uygulamasını ve Steam dizinini tek tıkla Windows Defender dışlama listesine kaydeder.</p>
+
+                        <!-- 6. SİSTEM BAĞIMLILIKLARI (VISUAL C++) -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 65%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(56, 189, 248, 0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-cubes"></i>
                                     </div>
-                                    <button class="btn btn-primary" id="btn-add-defender-exclusion" style="padding: 8px 16px; font-size: 0.82rem;">
-                                        <i class="fa-solid fa-shield-virus"></i> Dışlamayı Uygula
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Sistem Bağımlılıkları (Microsoft Visual C++ 2015-2022)</h3>
+                                            <span class="status-badge" id="vcredist-status-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">KURULU (HER ŞEY YOLUNDA)</span>
+                                        </div>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            Oyunların çökmeden açılması, SteamTools kilit açıcılarının ve OnlineFix çok oyunculu modüllerinin çalışması için 32-bit (x86) ve 64-bit (x64) Visual C++ kütüphaneleri zorunludur.
+                                        </p>
+                                        <p id="vcredist-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Microsoft Visual C++ (x86 & x64) sisteminizde eksiksiz kurulu, her şey yolunda.</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" id="btn-install-vcredist" style="padding: 9px 18px; font-size: 0.84rem; background: linear-gradient(135deg, #0284c7, #0369a1);">
+                                        <i class="fa-solid fa-download"></i> Eksik Paketleri Otomatik İndir & Kur
                                     </button>
                                 </div>
-                                <div style="padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08); font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
-                                    <i class="fa-solid fa-circle-info" style="color: var(--accent-purple); margin-right: 6px;"></i>
-                                    <strong>Avast / Diğer Antivirüs Kullananlar İçin:</strong> Avast > Menü > Ayarlar > İstisnalar (Exceptions) sekmesine gidip SteaMRogue'un kurulu olduğu <code>%localappdata%\Programs\steamtools-auto</code> klasörünü eklemeniz yeterlidir. Böylece gerçek zamanlı korumayı kapatmak zorunda kalmazsınız.
-                                </div>
                             </div>
                         </div>
-                        <hr class="settings-divider">
-                        <div class="settings-group danger-zone-group">
-                            <label style="color: #ff3355; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-triangle-exclamation"></i> Tehlike Bölgesi: Sistemi İmha Et & Kaldır
-                            </label>
-                            <span class="settings-helper" style="margin-bottom: 12px; display: block; color: rgba(255, 120, 120, 0.8);">
-                                SteaMRogue tarafından kütüphanenize eklenen tüm oyunları, Bypass fixlerini, SteamTools kilit açıcı dosyalarını temizler ve uygulamayı bilgisayarınızdan tamamen kaldırır.
-                            </span>
-                            <div class="nuke-panel-box">
-                                <div class="nuke-panel-info">
-                                    <div class="nuke-warning-title"><i class="fa-solid fa-bomb"></i> Geri Dönüşü Olmayan Tam Temizlik</div>
-                                    <p class="nuke-warning-desc">
-                                        SteamTools kancasını kaldırır, kütüphanedeki oyun manifestolarını ve LUA yapılandırmalarını siler, Bypass ile oyunlara uygulanan fix dosyalarını temizler ve SteaMRogue'u sistemden tamamen siler.
-                                    </p>
+
+                        <!-- 7. ANTİVİRÜS & GÜVENLİK AYARLARI -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 60%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(245, 158, 11, 0.15); color: #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Antivirüs & Güvenlik Ayarları (Karantina Önleme)</h3>
+                                            <span class="status-badge" id="av-detected-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">GÜVENLİ (SORUN YOK)</span>
+                                        </div>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            SteaMRogue ve SteamTools dosyalarının Windows Defender veya harici antivirüsler tarafından yanlışlıkla silinmesini veya karantinaya alınmasını önleyin.
+                                        </p>
+                                        <p id="av-quarantine-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.</p>
+                                    </div>
                                 </div>
-                                <button class="btn btn-nuke-danger" id="btn-self-destruct">
-                                    <i class="fa-solid fa-radiation"></i> Sistemi İmha Et & SteaMRogue'u Kaldır
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button class="btn btn-secondary" id="btn-restore-quarantine" style="padding: 8px 16px; font-size: 0.82rem;">
+                                        <i class="fa-solid fa-life-ring"></i> Karantinadan Kurtar ve Onar
+                                    </button>
+                                    <button class="btn btn-primary" id="btn-add-defender-exclusion" style="padding: 8px 16px; font-size: 0.82rem;">
+                                        <i class="fa-solid fa-shield-virus"></i> Windows Defender Dışlaması Ekle
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="third-party-av-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08);">
+                                <div>
+                                    <strong id="third-party-av-title" style="font-size: 0.84rem; color: var(--text-primary);"><i class="fa-solid fa-circle-info" style="color: #c084fc; margin-right: 6px;"></i> Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:</strong>
+                                    <p style="margin: 3px 0 0 0; font-size: 0.78rem; color: var(--text-muted);">İstisnalar (Exceptions / Exclusions) listesine Steam ve SteaMRogue klasörlerini eklemeniz yeterlidir.</p>
+                                </div>
+                                <button class="btn btn-secondary" id="btn-copy-exclusion-paths" style="padding: 6px 14px; font-size: 0.78rem; color: #c4b5fd; border-color: rgba(124,58,237,0.4);">
+                                    <i class="fa-solid fa-copy"></i> İstisna Yollarını Kopyala
                                 </button>
                             </div>
                         </div>
+
+                        <!-- 8. TEHLİKE BÖLGESİ (SİSTEMİ SIFIRLA & KALDIR) -->
+                        <div class="settings-section-card danger-zone-group" style="border-color: rgba(239, 68, 68, 0.25); background: linear-gradient(180deg, rgba(239, 68, 68, 0.04) 0%, rgba(18, 21, 33, 0.85) 100%);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 65%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: #ef4444; margin: 0;">Tehlike Bölgesi: Sistemi İmha Et & Kaldır</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            SteamTools kancasını kaldırır, kütüphanedeki oyun manifestolarını ve LUA yapılandırmalarını siler, Bypass ile oyunlara uygulanan fix dosyalarını temizler ve SteaMRogue'u sistemden tamamen siler.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-danger" id="btn-self-destruct" style="padding: 10px 20px; font-size: 0.84rem; font-weight: 700; background: linear-gradient(135deg, #dc2626, #991b1b); white-space: nowrap;">
+                                        <i class="fa-solid fa-bomb"></i> Sistemi Tamamen İmha Et & Kaldır
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -383,7 +568,7 @@
             </section>
 
             <section class="tab-content" id="tab-onlinefix">
-                <div class="onlinefix-container" style="padding: 20px;">
+                <div class="onlinefix-container">
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 25px;">
                         <div>
                             <h2 class="section-title" style="margin-bottom: 6px;">OnlineFix Çok Oyunculu Yamalar</h2>
@@ -682,6 +867,77 @@
         </div>
     </div>
 
+    <!-- NATIVE IN-APP ACHIEVEMENT MANAGER MODAL -->
+    <div id="modal-sam-achievements" class="custom-modal" style="z-index: 10500;">
+        <div class="custom-modal-content" style="max-width: 880px; width: 92%; max-height: 86vh; display: flex; flex-direction: column; background: #121422; border: 1px solid var(--border-medium); border-radius: var(--radius-lg); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75); overflow: hidden;">
+            
+            <!-- Header Banner -->
+            <div style="padding: 16px 22px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.02);">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <img id="sam-modal-game-icon" src="icon.ico" alt="" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-medium);" onerror="this.src='icon.ico'">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h3 id="sam-modal-game-name" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Oyun Başarımları</h3>
+                            <span id="sam-modal-game-appid" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.75rem; padding: 2px 7px; border-radius: 4px; font-weight: 600;">AppID: --</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: 0.82rem; color: var(--text-secondary);">
+                            <span>Açılan: <strong id="sam-modal-unlocked-count" style="color: #34d399;">0</strong> / <strong id="sam-modal-total-count" style="color: #fff;">0</strong></span>
+                            <span style="color: rgba(255,255,255,0.2);">|</span>
+                            <span>Tamamlanma Oranı: <strong id="sam-modal-percent" style="color: #c084fc;">%0</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <button id="sam-modal-close-btn" class="custom-modal-close" style="font-size: 1.4rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: transparent; cursor: pointer;" title="Kapat">&times;</button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.06);">
+                <div id="sam-modal-progress-bar" style="width: 0%; height: 100%; background: #7c3aed; transition: width 0.25s ease;"></div>
+            </div>
+
+            <!-- Toolbar: Quick Actions, Search & Save -->
+            <div style="padding: 10px 22px; border-bottom: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(0, 0, 0, 0.2);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="sam-btn-unlock-all" class="btn" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-lock-open"></i> Tümünü Aç
+                    </button>
+                    <button id="sam-btn-lock-all" class="btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-lock"></i> Tümünü Kilitle
+                    </button>
+                    <button id="sam-btn-invert" class="btn" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-arrows-rotate"></i> Tersine Çevir
+                    </button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; max-width: 280px; min-width: 180px;">
+                    <div style="position: relative; width: 100%;">
+                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.78rem;"></i>
+                        <input type="text" id="sam-modal-search" placeholder="Başarım ara..." style="width: 100%; padding: 6px 10px 6px 28px; border-radius: 6px; border: 1px solid var(--border-medium); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.8rem;">
+                    </div>
+                </div>
+
+                <div>
+                    <button id="sam-btn-save-steam" class="btn btn-primary" style="font-size: 0.84rem; font-weight: 600; padding: 7px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 7px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Steam'e Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Achievement List Container (Scrollable only if content overflows) -->
+            <div id="sam-modal-achievements-container" style="flex: 1; overflow-y: auto; padding: 14px 22px; max-height: calc(86vh - 180px);">
+                <!-- Dynamic Items -->
+            </div>
+
+            <!-- Footer Status -->
+            <div style="padding: 9px 22px; border-top: 1px solid var(--border-subtle); background: rgba(0,0,0,0.25); font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                <span id="sam-modal-status-text"><i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> Değişiklikleri kaydetmek için <strong>Steam'e Kaydet</strong> butonuna basın.</span>
+                <span id="sam-modal-filter-count" style="font-weight: 600; color: var(--text-secondary);"></span>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+
     <!-- FORCED SYSTEM HEALTH / REPAIR MODAL -->
     <div id="health-warning-modal" class="custom-modal">
         <div class="custom-modal-content" style="max-width: 480px; border: 1px solid rgba(234, 179, 8, 0.4); box-shadow: 0 0 35px rgba(234, 179, 8, 0.15);">
@@ -866,7 +1122,7 @@
             <div class="update-header-info">
                 <div class="update-title-row">
                     <h4 id="updater-title">Yeni Güncelleme Mevcut!</h4>
-                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.2</span>
+                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.5</span>
                 </div>
                 <p id="updater-desc">Güncelleme arka planda otomatik indiriliyor...</p>
             </div>
@@ -895,6 +1151,6 @@
 
 
     <!-- JS SCRIPTS -->
-    <script src="script.js"></script>
+    <script src="script.js?v=1.1.6"></script>
 </body>
 </html>

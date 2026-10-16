@@ -8,6 +8,19 @@ const { autoUpdater } = require('electron-updater');
 
 app.name = 'SteaMRogue';
 app.commandLine.appendSwitch('disable-features', 'SpareRendererForSitePerProcess');
+// Low-End PC & Legacy GPU (Intel HD Graphics) Optimization & Crash Resilience
+app.commandLine.appendSwitch('disable-gpu-process-crash-limit');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+
+// Graceful fallback for legacy GPU driver crashes
+app.on('child-process-gone', (event, details) => {
+    if (details.type === 'GPU') {
+        console.warn(`[GPU Safety] GPU process exited (${details.reason}, code ${details.exitCode}). Safe software fallback engaged.`);
+        try {
+            app.disableHardwareAcceleration();
+        } catch (e) {}
+    }
+});
 
 let backendProcess = null;
 let mainWindow = null;
@@ -118,6 +131,9 @@ function createWindow() {
 
 function loadAppUI() {
     if (!mainWindow || mainWindow.isDestroyed()) return;
+    try {
+        mainWindow.webContents.session.clearCache().catch(() => {});
+    } catch (_) {}
     const targetUrl = `http://127.0.0.1:${BACKEND_PORT}/?v=${Date.now()}`;
 
     // Auto-retry on failed load so slow machine startup never results in a blank/error screen
@@ -444,7 +460,7 @@ ipcMain.on('restart-and-update', () => {
     }
 });
 
-function waitForBackendAndLoad(maxRetries = 150, retryInterval = 80) {
+function waitForBackendAndLoad(maxRetries = 350, retryInterval = 100) {
     let attempts = 0;
     let loaded = false;
     

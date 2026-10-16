@@ -71,7 +71,7 @@ def is_steam_running() -> bool:
             encoding="utf-8",
             errors="ignore"
         ).lower()
-        return ("steam.exe" in output) or ("steamwebhelper.exe" in output) or ("steamservice.exe" in output)
+        return ("steam.exe" in output) or ("steamwebhelper.exe" in output)
     except Exception as e:
         logger.debug(f"Failed checking process list for Steam status: {e}")
         return False
@@ -217,25 +217,16 @@ def ensure_opensteamtool_signatures(steam_path: str) -> bool:
     synced_any = False
 
     targets = []
-    if hash_ui:
-        targets.append(("pattern", "steamui", hash_ui))
     if hash_client:
         targets.append(("pattern", "steamclient", hash_client))
         targets.append(("ipc", "steamclient", hash_client))
+    if hash_ui:
+        targets.append(("pattern", "steamui", hash_ui))
 
     for channel, comp, sha in targets:
         comp_dir = os.path.join(ost_dir, channel, comp)
         os.makedirs(comp_dir, exist_ok=True)
         target_file = os.path.join(comp_dir, f"{sha}.toml")
-
-        # Clean unverified/obsolete steamui signature that disrupts UI frame loop
-        if comp == "steamui" and sha == "1b9457943205dc3af0bd53463ba331cbd2a381388699705c02271aac7a2b1252" and os.path.isfile(target_file):
-            try:
-                os.remove(target_file)
-                logger.info(f"[OST Signatures] Removed unverified steamui signature: {sha}.toml")
-            except Exception:
-                pass
-            continue
 
         # If file already exists and is non-empty, keep it
         if os.path.isfile(target_file) and os.path.getsize(target_file) > 100:
@@ -243,17 +234,95 @@ def ensure_opensteamtool_signatures(steam_path: str) -> bool:
 
         downloaded = False
         try:
-            import requests
+            import urllib.request
             url = f"https://raw.githubusercontent.com/OpenSteam001/steam-monitor/{channel}/{comp}/{sha}.toml"
-            resp = requests.get(url, timeout=2.0)
-            if resp.status_code == 200 and len(resp.content) > 100:
-                with open(target_file, "wb") as f_out:
-                    f_out.write(resp.content)
-                logger.info(f"[OST Signatures] Downloaded upstream {channel}/{comp}/{sha}.toml")
-                downloaded = True
-                synced_any = True
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=3.0) as resp:
+                content = resp.read()
+                if resp.status == 200 and len(content) > 100:
+                    with open(target_file, "wb") as f_out:
+                        f_out.write(content)
+                    logger.info(f"[OST Signatures] Downloaded upstream {channel}/{comp}/{sha}.toml")
+                    downloaded = True
+                    synced_any = True
         except Exception:
             pass
+
+        # Dynamic local AOB signature scanner fallback
+        if not downloaded:
+            try:
+                # Find an existing template toml in the same directory
+                existing_tomls = [os.path.join(comp_dir, f) for f in os.listdir(comp_dir) if f.endswith(".toml") and os.path.isfile(os.path.join(comp_dir, f))]
+                if existing_tomls:
+                    latest_toml = max(existing_tomls, key=os.path.getmtime)
+                    if channel == "ipc":
+                        import shutil
+                        shutil.copy2(latest_toml, target_file)
+                        logger.info(f"[OST Signatures] Generated dynamic IPC signature: {sha}.toml from template {os.path.basename(latest_toml)}")
+                        synced_any = True
+                    elif channel == "pattern":
+                        # Scan binary for AOB signatures
+                        dll_name = "SteamUI.dll" if comp == "steamui" else "steamclient64.dll"
+                        target_dll = os.path.join(steam_path, dll_name)
+                        if os.path.isfile(target_dll):
+                            import re, struct
+                            with open(target_dll, "rb") as df:
+                                dll_bytes = df.read()
+
+                            def pe_offset_to_rva(pe_data, offset):
+                                e_lfanew = struct.unpack('<I', pe_data[0x3C:0x40])[0]
+                                num_sections = struct.unpack('<H', pe_data[e_lfanew+6:e_lfanew+8])[0]
+                                opt_header_size = struct.unpack('<H', pe_data[e_lfanew+20:e_lfanew+22])[0]
+                                section_table_offset = e_lfanew + 24 + opt_header_size
+                                for i in range(num_sections):
+                                    sec_offset = section_table_offset + i * 40
+                                    virtual_size, virtual_addr, raw_size, raw_ptr = struct.unpack('<IIII', pe_data[sec_offset+8:sec_offset+24])
+                                    if raw_ptr <= offset < raw_ptr + raw_size:
+                                        return offset - raw_ptr + virtual_addr
+                                return offset
+
+                            with open(latest_toml, "r", encoding="utf-8") as tf:
+                                tlines = tf.readlines()
+
+                            c_sec = None
+                            t_sigs = {}
+                            for tl in tlines:
+                                tl = tl.strip()
+                                if tl.startswith("[") and tl.endswith("]"):
+                                    c_sec = tl
+                                    t_sigs[c_sec] = {}
+                                elif "=" in tl and c_sec:
+                                    k, v = tl.split("=", 1)
+                                    t_sigs[c_sec][k.strip()] = v.strip().strip('"')
+
+                            out_lines = []
+                            for sec_k, sdata in t_sigs.items():
+                                sig_str = sdata.get("sig")
+                                if not sig_str:
+                                    continue
+                                pat_bytes = []
+                                for part in sig_str.split():
+                                    if part in ("??", "?"):
+                                        pat_bytes.append(b".")
+                                    else:
+                                        pat_bytes.append(re.escape(bytes.fromhex(part)))
+                                rx = b"".join(pat_bytes)
+                                m_list = list(re.finditer(rx, dll_bytes, re.DOTALL))
+                                if len(m_list) == 1:
+                                    raw_start = m_list[0].start()
+                                    matched_rva = pe_offset_to_rva(dll_bytes, raw_start)
+                                    out_lines.append(sec_k)
+                                    out_lines.append(f'name = "{sdata["name"]}"')
+                                    out_lines.append(f'rva = "0x{matched_rva:X}"')
+                                    out_lines.append(f'sig = "{sig_str}"\n')
+
+                            if out_lines:
+                                with open(target_file, "w", encoding="utf-8") as out_f:
+                                    out_f.write("\n".join(out_lines))
+                                logger.info(f"[OST Signatures] Auto-generated dynamic AOB pattern signature: {sha}.toml ({len(out_lines)//4} functions mapped)")
+                                synced_any = True
+            except Exception as d_err:
+                logger.debug(f"[OST Signatures] Dynamic generation error: {d_err}")
 
     return synced_any
 
@@ -306,13 +375,19 @@ def cleanup_steam_crashes(steam_path: str) -> bool:
 
     # 5. Clean stale ActiveProcess PID in Registry if Steam is not running
     try:
-        if not is_steam_running():
-            import winreg
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess", 0, winreg.KEY_READ | winreg.KEY_SET_VALUE) as key:
-                cur_pid, _ = winreg.QueryValueEx(key, "pid")
-                if cur_pid != 0:
+        import winreg, ctypes
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess", 0, winreg.KEY_READ | winreg.KEY_SET_VALUE) as key:
+            cur_pid, _ = winreg.QueryValueEx(key, "pid")
+            if cur_pid != 0:
+                # Check if process is still alive
+                is_alive = False
+                h_proc = ctypes.windll.kernel32.OpenProcess(0x1000, False, cur_pid)
+                if h_proc:
+                    ctypes.windll.kernel32.CloseHandle(h_proc)
+                    is_alive = True
+                if not is_alive or not is_steam_running():
                     winreg.SetValueEx(key, "pid", 0, winreg.REG_DWORD, 0)
-                    logger.info("[cleanup_steam_crashes] Reset stale ActiveProcess pid to 0.")
+                    logger.info(f"[cleanup_steam_crashes] Reset stale ActiveProcess pid ({cur_pid}) to 0.")
                     cleaned = True
     except Exception as re:
         logger.debug(f"[cleanup_steam_crashes] ActiveProcess check: {re}")
@@ -423,4 +498,312 @@ def launch_steam(steam_exe: str) -> bool:
         time.sleep(0.5)
 
     return launched
+
+# %%
+def check_vcredist_installed() -> dict:
+    """Checks whether Microsoft Visual C++ 2015-2022 Redistributable (x86 and x64) are installed."""
+    results = {
+        "x86": False,
+        "x64": False,
+        "all_installed": False,
+        "details": ""
+    }
+    
+    if sys.platform != "win32":
+        results["all_installed"] = True
+        return results
+
+    sys_root = os.environ.get("SystemRoot", r"C:\Windows")
+    
+    # 1. File existence check
+    x86_dll = os.path.join(sys_root, "SysWOW64", "vcruntime140.dll")
+    x64_dll = os.path.join(sys_root, "System32", "vcruntime140.dll")
+    
+    if os.path.isfile(x86_dll):
+        results["x86"] = True
+    if os.path.isfile(x64_dll):
+        results["x64"] = True
+
+    # 2. Registry check (authoritative for Visual Studio 2015-2022 v14.x)
+    try:
+        import winreg
+        for reg_path in [
+            r"SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X86",
+            r"SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\X86"
+        ]:
+            try:
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path, 0, winreg.KEY_READ) as k:
+                    val, _ = winreg.QueryValueEx(k, "Installed")
+                    if val == 1:
+                        results["x86"] = True
+                        break
+            except Exception:
+                pass
+
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64", 0, winreg.KEY_READ) as k:
+                val, _ = winreg.QueryValueEx(k, "Installed")
+                if val == 1:
+                    results["x64"] = True
+        except Exception:
+            pass
+    except Exception as e:
+        logger.debug(f"[check_vcredist_installed] Registry check error: {e}")
+
+    results["all_installed"] = results["x86"] and results["x64"]
+    if results["all_installed"]:
+        results["details"] = "Microsoft Visual C++ 2015-2022 (x86 ve x64) sistemde kurulu ve hazır."
+    elif not results["x86"] and not results["x64"]:
+        results["details"] = "Microsoft Visual C++ 2015-2022 (x86 ve x64) paketleri eksik!"
+    elif not results["x86"]:
+        results["details"] = "Microsoft Visual C++ 2015-2022 (x86) 32-bit çalışma zamanı paketi eksik (SteamTools için zorunlu)."
+    else:
+        results["details"] = "Microsoft Visual C++ 2015-2022 (x64) 64-bit çalışma zamanı paketi eksik (Oyunlar için zorunlu)."
+
+    return results
+
+# %%
+def install_vcredist_silently(arch: str = "all") -> tuple:
+    """
+    Downloads and silently installs Microsoft Visual C++ 2015-2022 Redistributables.
+    arch can be: 'x86', 'x64', or 'all'.
+    Returns (success: bool, message: str).
+    """
+    if sys.platform != "win32":
+        return False, "Sadece Windows sistemlerde desteklenir."
+
+    current_status = check_vcredist_installed()
+    to_install = []
+    
+    if arch in ("x86", "all") and not current_status["x86"]:
+        to_install.append(("x86", "https://aka.ms/vs/17/release/vc_redist.x86.exe"))
+    if arch in ("x64", "all") and not current_status["x64"]:
+        to_install.append(("x64", "https://aka.ms/vs/17/release/vc_redist.x64.exe"))
+
+    if not to_install:
+        return True, "Gerekli Visual C++ çalışma zamanı paketleri zaten sistemde kurulu."
+
+    import tempfile
+    import urllib.request
+    
+    installed_any = False
+    temp_dir = tempfile.gettempdir()
+
+    for item_arch, download_url in to_install:
+        temp_file = os.path.join(temp_dir, f"vc_redist_{item_arch}.exe")
+        logger.info(f"[VC++ Redist] İndiriliyor: {item_arch} -> {download_url}")
+        
+        try:
+            req = urllib.request.Request(
+                download_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            )
+            with urllib.request.urlopen(req, timeout=45.0) as resp:
+                with open(temp_file, "wb") as f_out:
+                    while chunk := resp.read(65536):
+                        f_out.write(chunk)
+                        
+            if not os.path.isfile(temp_file) or os.path.getsize(temp_file) < 1000000:
+                return False, f"Visual C++ ({item_arch}) indirme dosyası bozuk veya tamamlanamadı."
+
+            logger.info(f"[VC++ Redist] Sessiz kurulum başlatılıyor: {temp_file}")
+            cmd = [temp_file, "/install", "/quiet", "/norestart"]
+            flags = 0x08000000 # CREATE_NO_WINDOW
+            
+            proc = subprocess.run(
+                cmd,
+                creationflags=flags,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=180
+            )
+            
+            if proc.returncode in (0, 1638, 3010):
+                logger.info(f"[VC++ Redist] {item_arch} başarıyla kuruldu (çıkış kodu: {proc.returncode}).")
+                installed_any = True
+            else:
+                logger.warning(f"[VC++ Redist] {item_arch} kurulum kodu: {proc.returncode}")
+                new_check = check_vcredist_installed()
+                if new_check.get(item_arch):
+                    installed_any = True
+
+        except subprocess.TimeoutExpired:
+            logger.error(f"[VC++ Redist] {item_arch} kurulum zaman aşımına uğradı.")
+        except Exception as e:
+            logger.error(f"[VC++ Redist] {item_arch} kurulum hatası: {e}")
+        finally:
+            try:
+                if os.path.isfile(temp_file):
+                    os.remove(temp_file)
+            except Exception:
+                pass
+
+    final_check = check_vcredist_installed()
+    if final_check["all_installed"] or installed_any:
+        return True, "Visual C++ çalışma zamanı paketleri başarıyla sisteme kuruldu."
+    else:
+        return False, "Visual C++ paketleri kurulurken bir hata oluştu veya yönetici izni gerekebilir."
+
+# %%
+def get_system_antivirus_info() -> dict:
+    """Detects active antivirus software installed on the system via Windows Security Center (WMI)."""
+    info = {
+        "products": [],
+        "has_third_party": False,
+        "primary_av": "Windows Defender",
+        "names": [],
+        "defender_active": True
+    }
+    if sys.platform != "win32":
+        return info
+
+    try:
+        import json
+        cmd = "Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Select-Object displayName, productState | ConvertTo-Json"
+        res = subprocess.check_output(
+            ["powershell", "-NoProfile", "-Command", cmd],
+            creationflags=0x08000000,
+            encoding="utf-8",
+            errors="ignore"
+        )
+        if res.strip():
+            data = json.loads(res.strip())
+            if isinstance(data, dict):
+                data = [data]
+            for item in data:
+                name = item.get("displayName", "Bilinmeyen Antivirüs")
+                state = item.get("productState", 0)
+                is_enabled = bool(state & 0x1000) or bool(state & 0x040000)
+                info["products"].append({"name": name, "state": state, "enabled": is_enabled})
+                info["names"].append(name)
+                if "defender" not in name.lower():
+                    info["has_third_party"] = True
+                    if is_enabled:
+                        info["primary_av"] = name
+
+            if info["has_third_party"] and info["primary_av"] != "Windows Defender":
+                info["defender_active"] = False
+    except Exception as e:
+        logger.debug(f"[get_system_antivirus_info] Query failed: {e}")
+
+    return info
+
+# %%
+def check_security_quarantine(steam_path: str) -> dict:
+    """Checks whether key SteamTools DLLs have been deleted or quarantined by an antivirus."""
+    res = {
+        "is_quarantined": False,
+        "missing_files": [],
+        "av_info": get_system_antivirus_info(),
+        "details": ""
+    }
+    if not steam_path or not os.path.isdir(steam_path):
+        return res
+
+    required = ["xinput1_4.dll", "OpenSteamTool.dll"]
+    for f in required:
+        fp = os.path.join(steam_path, f)
+        if not os.path.isfile(fp) or os.path.getsize(fp) < 1000:
+            res["missing_files"].append(f)
+
+    if res["missing_files"]:
+        res["is_quarantined"] = True
+        av_name = res["av_info"].get("primary_av", "Antivirüs")
+        res["details"] = f"{', '.join(res['missing_files'])} Steam klasöründe eksik veya {av_name} tarafından karantinaya alınmış olabilir."
+    else:
+        res["details"] = "Steam kilit açıcı dosyaları eksiksiz ve yerinde duruyor."
+
+    return res
+
+# %%
+def auto_restore_quarantined_files(steam_path: str, bundled_dir: str = None) -> tuple:
+    """
+    Restores missing or quarantined SteamTools DLLs from bundled storage or upstream.
+    Applies MessageBoxA silencing patch to OpenSteamTool.dll.
+    Returns (success: bool, message: str).
+    """
+    if not steam_path or not os.path.isdir(steam_path):
+        return False, "Geçerli bir Steam dizini bulunamadı."
+
+    import shutil
+
+    # 1. Resolve bundled steamtools_files folder
+    if not bundled_dir:
+        curr = os.path.dirname(os.path.abspath(__file__))
+        cand1 = os.path.join(curr, "steamtools_files")
+        cand2 = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto", "steamtools_files")
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            cand0 = os.path.join(sys._MEIPASS, "steamtools_files")
+            if os.path.isdir(cand0):
+                bundled_dir = cand0
+        if not bundled_dir and os.path.isdir(cand1):
+            bundled_dir = cand1
+        elif not bundled_dir and os.path.isdir(cand2):
+            bundled_dir = cand2
+
+    restored = []
+    targets = ["xinput1_4.dll", "OpenSteamTool.dll"]
+
+    # Terminate Steam first if running to release DLL locks
+    was_running = is_steam_running()
+    if was_running:
+        kill_steam(steam_path)
+        wait_for_steam_exit(timeout=6.0)
+
+    for f in targets:
+        dst = os.path.join(steam_path, f)
+        needs_restore = not os.path.isfile(dst) or os.path.getsize(dst) < 1000
+
+        if needs_restore:
+            src = os.path.join(bundled_dir, f) if bundled_dir else ""
+            if src and os.path.isfile(src):
+                try:
+                    shutil.copy2(src, dst)
+                    restored.append(f)
+                    logger.info(f"[auto_restore] Restored {f} from bundled files.")
+                except Exception as ce:
+                    logger.warning(f"[auto_restore] Could not copy {f}: {ce}")
+            else:
+                try:
+                    import urllib.request
+                    url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
+                    req = urllib.request.Request(url, headers={"User-Agent": "SteaMRogue"})
+                    with urllib.request.urlopen(req, timeout=15.0) as resp:
+                        content = resp.read()
+                        if len(content) > 1000:
+                            with open(dst, "wb") as out_f:
+                                out_f.write(content)
+                            restored.append(f)
+                            logger.info(f"[auto_restore] Downloaded {f} from upstream.")
+                except Exception as de:
+                    logger.warning(f"[auto_restore] Download fallback failed for {f}: {de}")
+
+    # Patch OpenSteamTool.dll MessageBoxA to prevent freeze
+    ost_dll = os.path.join(steam_path, "OpenSteamTool.dll")
+    if os.path.isfile(ost_dll):
+        try:
+            with open(ost_dll, "r+b") as f_ost:
+                f_ost.seek(0x7423b)
+                b_check = f_ost.read(6)
+                if b_check == bytes.fromhex("ff15d7d60700"):
+                    f_ost.seek(0x7423b)
+                    f_ost.write(bytes.fromhex("909090909090"))
+                    logger.info("[auto_restore] OpenSteamTool.dll MessageBoxA silenced.")
+        except Exception:
+            pass
+
+    # Ensure signatures
+    try:
+        ensure_opensteamtool_signatures(steam_path)
+    except Exception:
+        pass
+
+    q_check = check_security_quarantine(steam_path)
+    if not q_check["is_quarantined"]:
+        msg = f"Karantinaya alınan/eksik dosyalar ({', '.join(restored) if restored else 'tümü'}) başarıyla geri yüklendi ve korumaya alındı."
+        return True, msg
+    else:
+        return False, f"Bazı dosyalar ({', '.join(q_check['missing_files'])}) geri yüklenemedi. Antivirüsünüzün gerçek zamanlı korumasından dışlama ekleyin."
+
+
 

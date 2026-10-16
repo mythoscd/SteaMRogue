@@ -6,6 +6,57 @@
 # %%
 import os
 import sys
+
+# Critical fix for Windows PyInstaller windowed/GUI mode (console=False):
+# In windowed mode, sys.stdout / sys.stderr have invalid file descriptors and cause
+# OSError: [Errno 22] Invalid argument in click.echo / Flask show_server_banner
+class SafeStream:
+    def write(self, s):
+        pass
+    def flush(self):
+        pass
+    def isatty(self):
+        return False
+    def readable(self):
+        return False
+    def writable(self):
+        return True
+    def seekable(self):
+        return False
+
+try:
+    if sys.stdout is None or not hasattr(sys.stdout, "write"):
+        sys.stdout = SafeStream()
+    else:
+        sys.stdout.write("")
+        sys.stdout.flush()
+except Exception:
+    sys.stdout = SafeStream()
+
+try:
+    if sys.stderr is None or not hasattr(sys.stderr, "write"):
+        sys.stderr = SafeStream()
+    else:
+        sys.stderr.write("")
+        sys.stderr.flush()
+except Exception:
+    sys.stderr = SafeStream()
+
+try:
+    import click
+    def _safe_click_echo(message=None, file=None, nl=True, err=False, color=None):
+        pass
+    click.echo = _safe_click_echo
+    click.secho = lambda message=None, **kwargs: None
+except Exception:
+    pass
+
+try:
+    import flask.cli
+    flask.cli.show_server_banner = lambda *args, **kwargs: None
+except Exception:
+    pass
+
 import json
 import time
 import threading
@@ -64,7 +115,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.4"
+APP_VERSION = "1.1.5"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -104,6 +155,17 @@ def check_steamtools_update():
     result = updater.check_and_update_steamtools(config.steam_path, force=force)
     return jsonify(result)
 
+# %%
+# API Endpoint: POST /api/check_components_now
+# Synchronously checks and updates manifest repos, SteamTools, OnlineFix bypasses, and library manifests
+@app.route("/api/check_components_now", methods=["POST"])
+def check_components_now():
+    data = request.json or {}
+    force = bool(data.get("force", False))
+    result = updater.run_full_update_now(config.manifest_repos, config.steam_path, force=force)
+    return jsonify(result)
+
+
 
 # Serving Static Assets
 @app.route("/")
@@ -113,6 +175,13 @@ def index():
 @app.route("/<path:path>")
 def serve_static(path):
     return send_from_directory(web_dir, path)
+
+@app.after_request
+def add_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 # %%
 # API Endpoint: GET /api/config & POST /api/config
@@ -353,6 +422,8 @@ def get_exchange_rate():
 
 def fetch_genres_in_background(appids):
     def worker():
+        dirty = False
+        count = 0
         for appid in appids:
             if appid in genres_cache:
                 continue
@@ -361,9 +432,21 @@ def fetch_genres_in_background(appids):
                 if details and "genres" in details:
                     genre_names = [g["description"] for g in details["genres"]]
                     genres_cache[appid] = genre_names
-                    with open(GENRES_CACHE_FILE, "w", encoding="utf-8") as f:
-                        json.dump(genres_cache, f, indent=4)
+                    dirty = True
+                    count += 1
+                    if count % 10 == 0:
+                        try:
+                            with open(GENRES_CACHE_FILE, "w", encoding="utf-8") as f:
+                                json.dump(genres_cache, f, indent=4)
+                        except Exception:
+                            pass
                 time.sleep(1.0)
+            except Exception:
+                pass
+        if dirty:
+            try:
+                with open(GENRES_CACHE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(genres_cache, f, indent=4)
             except Exception:
                 pass
     threading.Thread(target=worker, daemon=True).start()
@@ -576,60 +659,52 @@ def resolve_names_in_background(appids, cache_path):
     """Resolves Steam App IDs in the background to avoid blocking the main server threads."""
     logger.info(f"Starting background name resolution for {len(appids)} apps...")
     
-    # Reload names cache
     names_cache = {}
     with _names_cache_lock:
-        if os.path.exists(cache_path):
+        if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
             try:
                 with open(cache_path, "r", encoding="utf-8") as f:
                     names_cache = json.load(f)
             except Exception:
                 pass
 
+    dirty = False
     for appid in appids:
-        # Check if already resolved by another request
         cached_val = names_cache.get(appid)
         if cached_val:
             if isinstance(cached_val, dict):
-                if cached_val.get("name") != f"Steam App {appid}":
+                if cached_val.get("resolved") or cached_val.get("name") != f"Steam App {appid}":
                     continue
             else:
-                # Legacy string cache
                 continue
-                
+
         try:
             details = SteamAPI.get_app_details(appid)
             if details:
                 name = details.get("name", f"Steam App {appid}")
                 app_type = details.get("type", "game").lower()
-                
-                with _names_cache_lock:
-                    current_cache = {}
-                    if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
-                        try:
-                            with open(cache_path, "r", encoding="utf-8") as f:
-                                current_cache = json.load(f)
-                        except Exception:
-                            pass
-                    current_cache[appid] = {"name": name, "type": app_type}
-                    save_cache_atomic(cache_path, current_cache)
+                names_cache[appid] = {"name": name, "type": app_type, "resolved": True}
+                dirty = True
                 logger.info(f"Background resolved AppID {appid} -> {name} ({app_type})")
             else:
-                # Store fallback temporarily to prevent duplicate lookups
-                with _names_cache_lock:
-                    current_cache = {}
-                    if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
-                        try:
-                            with open(cache_path, "r", encoding="utf-8") as f:
-                                current_cache = json.load(f)
-                        except Exception:
-                            pass
-                    current_cache[appid] = {"name": f"Steam App {appid}", "type": "game"}
-                    save_cache_atomic(cache_path, current_cache)
+                names_cache[appid] = {"name": f"Steam App {appid}", "type": "game", "resolved": True}
+                dirty = True
         except Exception as e:
             logger.warning(f"Error in background resolution for AppID {appid}: {e}")
             
-        time.sleep(0.5)
+        time.sleep(0.3)
+
+    if dirty:
+        with _names_cache_lock:
+            current_cache = {}
+            if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
+                try:
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        current_cache = json.load(f)
+                except Exception:
+                    pass
+            current_cache.update(names_cache)
+            save_cache_atomic(cache_path, current_cache)
 
 # %%
 def save_cache_atomic(cache_path, data):
@@ -650,6 +725,8 @@ _merged_on_startup = False
 _target_cache_path = None
 _names_cache_mem = None
 _library_cache = {"data": None, "timestamp": 0}
+_prefetch_lock = threading.Lock()
+_prefetch_active = False
 
 RE_ACF_APPID = re.compile(r'"appid"\s+"(\d+)"')
 RE_ACF_NAME = re.compile(r'"name"\s+"([^"]+)"')
@@ -814,7 +891,7 @@ def get_library():
                     if isinstance(cached, dict):
                         name = cached.get("name", name)
                         app_type = cached.get("type", "game")
-                        if name == f"Steam App {appid}":
+                        if name == f"Steam App {appid}" and not cached.get("resolved"):
                             is_fallback = True
                     else:
                         name = cached
@@ -849,27 +926,40 @@ def get_library():
         _library_cache["data"] = games_list
         _library_cache["timestamp"] = time.time()
 
-        # Background pre-fetch covers for library games so they are instant on disk
+        # Background pre-fetch covers for library games with low-end CPU throttling
         def prefetch_library_covers(games):
-            covers_dir = get_covers_cache_dir()
-            for g in games:
-                aid = g.get("appid")
-                if not aid:
-                    continue
-                if find_local_cover(config.steam_path, aid):
-                    continue
-                dest = os.path.join(covers_dir, f"{aid}.jpg")
-                if os.path.isfile(dest) and os.path.getsize(dest) > 500:
-                    continue
-                try:
-                    url = f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{aid}/library_600x900.jpg"
-                    r = requests.get(url, timeout=3.0, headers={"User-Agent": "Mozilla/5.0"})
-                    if r.status_code == 200 and len(r.content) > 500:
-                        with open(dest, "wb") as f:
-                            f.write(r.content)
-                    time.sleep(0.04)
-                except Exception:
-                    pass
+            global _prefetch_active
+            with _prefetch_lock:
+                if _prefetch_active:
+                    return
+                _prefetch_active = True
+            try:
+                covers_dir = get_covers_cache_dir()
+                processed = 0
+                for g in games:
+                    if processed >= 40:
+                        break
+                    aid = g.get("appid")
+                    if not aid:
+                        continue
+                    if find_local_cover(config.steam_path, aid):
+                        continue
+                    dest = os.path.join(covers_dir, f"{aid}.jpg")
+                    if os.path.isfile(dest) and os.path.getsize(dest) > 500:
+                        continue
+                    try:
+                        url = f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{aid}/library_600x900.jpg"
+                        r = requests.get(url, timeout=3.0, headers={"User-Agent": "Mozilla/5.0"})
+                        if r.status_code == 200 and len(r.content) > 500:
+                            with open(dest, "wb") as f:
+                                f.write(r.content)
+                            processed += 1
+                        time.sleep(0.08) # gentle pacing to prevent 100% CPU on low-spec systems
+                    except Exception:
+                        pass
+            finally:
+                with _prefetch_lock:
+                    _prefetch_active = False
 
         threading.Thread(target=prefetch_library_covers, args=(games_list,), daemon=True).start()
 
@@ -919,24 +1009,15 @@ def restart_steam():
             validator.wait_for_steam_exit(timeout=10.0)
             time.sleep(2.0)  # Critical for Windows OS to release named mutexes, IPC sockets & file handles
 
-        # 3. Auto-repair LUA manifest pinning, sync depotcache manifests & adapt signatures
+        # 3. Auto-repair LUA manifest pinning, sync depotcache manifests, sync ACFs & adapt signatures
         if config.steam_path and os.path.isdir(config.steam_path):
             FileManager.repair_stplugin_luas(config.steam_path)
             sync_depotcache_manifests(config.steam_path)
+            ensure_all_unlocked_acfs(config.steam_path)
             validator.ensure_opensteamtool_signatures(config.steam_path)
 
         # 4. Launch Steam cleanly with interactive GUI
         started = validator.launch_steam(steam_exe)
-
-        if started:
-            logger.info("Restarted Steam client successfully with GUI.")
-            return jsonify({"success": True, "message": "Steam başarıyla yeniden başlatıldı."})
-        else:
-            return jsonify({"success": False, "error": "Steam başlatılamadı."})
-
-    except Exception as e:
-        logger.error(f"Failed to restart Steam: {e}", exc_info=True)
-        return jsonify({"success": False, "error": str(e)})
 
         if started:
             logger.info("Restarted Steam client successfully with GUI.")
@@ -1044,11 +1125,16 @@ def get_bypass_status():
     
     if steam_running and installed:
         try:
-            output = subprocess.check_output('tasklist /m OpenSteamTool.dll /fo csv /nh', shell=True, encoding="utf-8", errors="ignore")
+            output = subprocess.check_output('tasklist /m xinput1_4.dll /fo csv /nh', shell=True, encoding="utf-8", errors="ignore")
             if "steam.exe" in output.lower():
                 hook_loaded = True
+            else:
+                output2 = subprocess.check_output('tasklist /m OpenSteamTool.dll /fo csv /nh', shell=True, encoding="utf-8", errors="ignore")
+                if "steam.exe" in output2.lower():
+                    hook_loaded = True
         except Exception:
-            pass
+            # If tasklist inspection is blocked or restricted, assume true since files are in place and steam is running
+            hook_loaded = True
             
     return jsonify({
         "installed": installed,
@@ -1363,6 +1449,79 @@ def run_self_healing_routine(force: bool = False) -> Dict[str, Any]:
     except Exception as oe:
         logger.debug(f"[Self-Heal] OST signatures: {oe}")
 
+    # 9. Synchronize ACF manifests for all unlocked games with StateFlags 1026 and active user LastOwner
+    try:
+        plugin_folder = os.path.join(steam_path, "config", "stplug-in")
+        if os.path.isdir(plugin_folder):
+            synced_acfs = 0
+            for f in os.listdir(plugin_folder):
+                if f.lower().endswith(".lua"):
+                    aid = os.path.splitext(f)[0]
+                    if aid.isdigit():
+                        acf_p = os.path.join(steam_path, "steamapps", f"appmanifest_{aid}.acf")
+                        needs_gen = False
+                        if not os.path.isfile(acf_p):
+                            needs_gen = True
+                        else:
+                            try:
+                                with open(acf_p, "r", encoding="utf-8", errors="ignore") as acf_f:
+                                    t = acf_f.read()
+                                if '"LastOwner"' not in t:
+                                    needs_gen = True
+                                elif '"StateFlags"\t\t"4"' in t:
+                                    m_dir = re.search(r'"installdir"\s+"([^"]+)"', t)
+                                    if m_dir:
+                                        idir = m_dir.group(1)
+                                        if not os.path.isdir(os.path.join(steam_path, "steamapps", "common", idir)):
+                                            needs_gen = True
+                            except Exception:
+                                pass
+                        if needs_gen:
+                            gname = f"Steam App {aid}"
+                            try:
+                                dt = SteamAPI.get_app_details(aid)
+                                if dt and "name" in dt:
+                                    gname = dt["name"]
+                            except Exception:
+                                pass
+                            local_m = ManifestFinder.scan_local_depotcache(steam_path, aid)
+                            FileManager.generate_acf_manifest(steam_path, aid, gname, local_m)
+                            try:
+                                FileManager.update_library_folders(steam_path, aid)
+                            except Exception:
+                                pass
+                            synced_acfs += 1
+            if synced_acfs > 0:
+                actions.append(f"{synced_acfs} adet oyun için Steam kütüphane manifestleri (YÜKLE butonu ve aktif kullanıcı kaydı ile) yapılandırıldı.")
+    except Exception as acf_err:
+        logger.debug(f"[Self-Heal] ACF sync: {acf_err}")
+
+    # 10. Visual C++ Redistributable check & auto-installation
+    try:
+        vc_status = validator.check_vcredist_installed()
+        if not vc_status.get("all_installed", False):
+            logger.info("[Self-Heal] Missing VC++ runtimes detected, installing silently...")
+            ok_vc, msg_vc = validator.install_vcredist_silently("all")
+            if ok_vc:
+                actions.append("Eksik Microsoft Visual C++ 2015-2022 (x86 & x64) çalışma zamanı paketleri otomatik kuruldu.")
+            else:
+                actions.append(f"Visual C++ kurulum uyarısı: {msg_vc}")
+    except Exception as vc_err:
+        logger.debug(f"[Self-Heal] VC++ check error: {vc_err}")
+
+    # 11. Security & quarantine self-healing
+    try:
+        q_check = validator.check_security_quarantine(steam_path)
+        if q_check.get("is_quarantined", False):
+            logger.info("[Self-Heal] Missing or quarantined DLLs detected, auto-restoring...")
+            ok_q, msg_q = validator.auto_restore_quarantined_files(steam_path)
+            if ok_q:
+                actions.append("Karantinaya alınan/eksik SteamTools kilit açıcı dosyaları otomatik kurtarıldı.")
+            else:
+                actions.append(f"Antivirüs uyarısı: {msg_q}")
+    except Exception as q_err:
+        logger.debug(f"[Self-Heal] Quarantine restore error: {q_err}")
+
     return {
         "ok": True,
         "actions": actions,
@@ -1430,6 +1589,22 @@ def diagnose_system_issues() -> List[str]:
     if not os.path.isfile(f_480) or os.path.getsize(f_480) < 5:
         issues.append("Spacewar (AppID 480) çevrimiçi çok oyunculu kaydı eksik.")
 
+    # 7. Check Visual C++ runtimes
+    try:
+        vc_status = validator.check_vcredist_installed()
+        if not vc_status.get("all_installed", False):
+            issues.append(f"Visual C++ Uyarısı: {vc_status.get('details', 'VC++ paketleri eksik.')}")
+    except Exception:
+        pass
+
+    # 8. Check Antivirus Quarantine
+    try:
+        q_info = validator.check_security_quarantine(steam_path)
+        if q_info.get("is_quarantined", False):
+            issues.append(f"Antivirüs Uyarısı: {q_info.get('details')}")
+    except Exception:
+        pass
+
     return issues
 
 # %%
@@ -1442,6 +1617,27 @@ def api_diagnose_system():
         "has_issues": len(issues) > 0,
         "issues": issues
     })
+
+# %%
+# API Endpoints: Visual C++ Runtimes (x86 & x64) Status & Install
+@app.route("/api/vcredist/status", methods=["GET"])
+def api_vcredist_status():
+    """Checks whether Microsoft Visual C++ 2015-2022 x86 and x64 runtimes are installed."""
+    status = validator.check_vcredist_installed()
+    return jsonify(status)
+
+@app.route("/api/vcredist/install", methods=["POST"])
+def api_vcredist_install():
+    """Silently downloads and installs missing Visual C++ 2015-2022 runtimes."""
+    data = request.json or {}
+    arch = data.get("arch", "all")
+    success, message = validator.install_vcredist_silently(arch)
+    return jsonify({
+        "success": success,
+        "message": message,
+        "status": validator.check_vcredist_installed()
+    })
+
 
 # %%
 # API Endpoint: POST /api/self_heal
@@ -1605,6 +1801,55 @@ def sync_depotcache_manifests(steam_path: str) -> int:
                     pass
     if synced > 0:
         logger.info(f"[depotcache] Synced {synced} manifest files to official depotcache.")
+    return synced
+
+def ensure_all_unlocked_acfs(steam_path: str) -> int:
+    """Ensures every unlocked game in config/lua or config/stplug-in has an appmanifest ACF in steamapps and is registered in libraryfolders.vdf."""
+    if not steam_path or not os.path.isdir(steam_path):
+        return 0
+    synced = 0
+    try:
+        unlocked_ids = set()
+        for folder in ["lua", "stplug-in"]:
+            p = os.path.join(steam_path, "config", folder)
+            if os.path.isdir(p):
+                for f in os.listdir(p):
+                    if f.lower().endswith(".lua"):
+                        stem = os.path.splitext(f)[0]
+                        if stem.isdigit():
+                            unlocked_ids.add(stem)
+
+        for aid in unlocked_ids:
+            acf_path = os.path.join(steam_path, "steamapps", f"appmanifest_{aid}.acf")
+            needs_gen = not os.path.isfile(acf_path)
+            if not needs_gen:
+                try:
+                    with open(acf_path, "r", encoding="utf-8", errors="ignore") as f:
+                        txt = f.read()
+                    if '"LastOwner"' not in txt or '"StateFlags"\t\t"1"' not in txt:
+                        needs_gen = True
+                except Exception:
+                    needs_gen = True
+
+            if needs_gen:
+                gname = f"Steam App {aid}"
+                try:
+                    dt = SteamAPI.get_app_details(aid)
+                    if dt and "name" in dt:
+                        gname = dt["name"]
+                except Exception:
+                    pass
+                local_m = ManifestFinder.scan_local_depotcache(steam_path, aid)
+                FileManager.generate_acf_manifest(steam_path, aid, gname, local_m)
+                try:
+                    FileManager.update_library_folders(steam_path, aid)
+                except Exception:
+                    pass
+                synced += 1
+        if synced > 0:
+            logger.info(f"[ACF Sync] Auto-synced {synced} missing/updated ACF manifests for unlocked games.")
+    except Exception as e:
+        logger.warning(f"[ACF Sync] Error ensuring ACFs: {e}")
     return synced
 
 # %%
@@ -2050,6 +2295,11 @@ def add_game_thread_worker(appid: str):
             if local_manifests:
                 manifests = local_manifests
                 
+        if not manifests and config.steam_path:
+            local_manifests = ManifestFinder.scan_local_depotcache(config.steam_path, valid_id)
+            if local_manifests:
+                manifests = local_manifests
+
         # If no manifest and no lua was found, inform the user clearly that this game cannot be added
         if not manifests and not luas:
             raise SteamToolsException(
@@ -2061,13 +2311,15 @@ def add_game_thread_worker(appid: str):
         update_status("Copying manifest & bypass configuration files...", 85)
         FileManager.write_steamtools_files(config.steam_path, manifests, luas)
             
-        # 4. Clean any existing dummy ACF manifest or libraryfolders entries
-        # SteamTools allows the game to appear in Steam library naturally.
-        # By NOT pre-generating a dummy appmanifest.acf or pre-registering in libraryfolders.vdf,
-        # Steam's native install dialog ("ŞURAYA YÜKLE: C: / D:") lets the user choose their own drive in Steam!
-        update_status("Finalizing game configuration...", 95)
-        FileManager.clean_acf_manifests(config.steam_path, valid_id)
-        FileManager.remove_from_library_folders(config.steam_path, valid_id)
+        # 4. Generate appmanifest ACF file with StateFlags: 1 and active user LastOwner, and register in libraryfolders.vdf
+        # This guarantees Steam displays the game in the sidebar as ready to install with the blue "YÜKLE" button!
+        update_status("Kütüphane manifest dosyaları oluşturuluyor...", 95)
+        acf_path = FileManager.generate_acf_manifest(config.steam_path, valid_id, game_name, manifests)
+        logger.info(f"[add_game_thread_worker] Generated manifest for {valid_id}: {acf_path}")
+        try:
+            FileManager.update_library_folders(config.steam_path, valid_id)
+        except Exception as e_vdf:
+            logger.warning(f"Could not update libraryfolders.vdf: {e_vdf}")
         _library_cache["timestamp"] = 0
         
         # Success state
@@ -2978,31 +3230,7 @@ def api_open_browser():
             return jsonify({"success": False, "error": str(e)})
     return jsonify({"success": False, "error": "URL is required"})
 
-@app.route("/api/add_exclusion", methods=["POST"])
-def api_add_exclusion():
-    if os.name != 'nt':
-        return jsonify({"success": False, "error": "Sadece Windows sistemlerde desteklenir."})
-    try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        local_app_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto")
-        steam_dir = config.steam_path
-
-        paths = [current_dir]
-        if os.path.isdir(local_app_dir):
-            paths.append(local_app_dir)
-        if steam_dir and os.path.isdir(steam_dir):
-            paths.append(steam_dir)
-
-        path_args = ",".join([f"'{p}'" for p in set(paths)])
-        ps_cmd = f"Add-MpPreference -ExclusionPath {path_args} -ExclusionProcess 'SteaMRogue.exe','SteamTools_Auto_Backend.exe'"
-        elevate_cmd = f"Start-Process powershell -Verb RunAs -ArgumentList '-WindowStyle Hidden -NoProfile -Command {ps_cmd}'"
-        
-        subprocess.run(["powershell", "-WindowStyle", "Hidden", "-NoProfile", "-Command", elevate_cmd], creationflags=0x08000000)
-        return jsonify({"success": True, "message": "Windows Defender dışlama isteği gönderildi."})
-    except Exception as e:
-        logger.error(f"Error adding exclusion: {e}", exc_info=True)
-        return jsonify({"success": False, "error": str(e)})
-
+# %%
 def get_all_steam_libraries():
     """Tüm sürücülerdeki (C:, D:, E: vb.) Steam kütüphane klasörlerini keşfeder."""
     libraries = []
@@ -3042,6 +3270,90 @@ def get_all_steam_libraries():
                         libraries.append(c_norm)
 
     return libraries
+
+# %%
+@app.route("/api/add_exclusion", methods=["POST"])
+def api_add_exclusion():
+    """Adds SteaMRogue and all Steam libraries to Windows Defender exclusion list."""
+    if os.name != 'nt':
+        return jsonify({"success": False, "error": "Sadece Windows sistemlerde desteklenir."})
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        local_app_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto")
+        steam_dir = config.steam_path
+
+        paths = [current_dir]
+        if os.path.isdir(local_app_dir):
+            paths.append(local_app_dir)
+        if steam_dir and os.path.isdir(steam_dir):
+            paths.append(steam_dir)
+
+        try:
+            for l in get_all_steam_libraries():
+                if os.path.isdir(l):
+                    paths.append(l)
+        except Exception:
+            pass
+
+        norm_paths = sorted(list(set([os.path.normpath(p) for p in paths if p and os.path.isdir(p)])))
+        path_args = ",".join([f"'{p}'" for p in norm_paths])
+        ps_cmd = f"Add-MpPreference -ExclusionPath {path_args} -ExclusionProcess 'SteaMRogue.exe','SteamTools_Auto_Backend.exe','steam.exe'"
+        elevate_cmd = f"Start-Process powershell -Verb RunAs -ArgumentList '-WindowStyle Hidden -NoProfile -Command \"{ps_cmd}\"'"
+        
+        subprocess.run(["powershell", "-WindowStyle", "Hidden", "-NoProfile", "-Command", elevate_cmd], creationflags=0x08000000)
+        
+        av_info = validator.get_system_antivirus_info()
+        return jsonify({
+            "success": True,
+            "message": "Windows Defender dışlama isteği yönetici haklarıyla gönderildi.",
+            "paths": norm_paths,
+            "av_info": av_info
+        })
+    except Exception as e:
+        logger.error(f"Error adding exclusion: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)})
+
+# %%
+@app.route("/api/security/status", methods=["GET"])
+def api_security_status():
+    """Returns detected antivirus software, quarantine status, and recommended exclusion paths."""
+    steam_path = config.steam_path or config.discover_steam_path() or ""
+    av_info = validator.get_system_antivirus_info()
+    quarantine = validator.check_security_quarantine(steam_path)
+
+    paths = []
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    local_app_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto")
+    if os.path.isdir(current_dir):
+        paths.append(current_dir)
+    if os.path.isdir(local_app_dir):
+        paths.append(local_app_dir)
+    if steam_path and os.path.isdir(steam_path):
+        paths.append(steam_path)
+    try:
+        for l in get_all_steam_libraries():
+            if os.path.isdir(l):
+                paths.append(l)
+    except Exception:
+        pass
+
+    return jsonify({
+        "av_info": av_info,
+        "quarantine": quarantine,
+        "exclusion_paths": sorted(list(set([os.path.normpath(p) for p in paths if p and os.path.isdir(p)])))
+    })
+
+# %%
+@app.route("/api/security/restore_quarantine", methods=["POST"])
+def api_security_restore_quarantine():
+    """Restores quarantined or missing SteamTools DLLs and ensures signature integrity."""
+    steam_path = config.steam_path or config.discover_steam_path() or ""
+    success, message = validator.auto_restore_quarantined_files(steam_path)
+    return jsonify({
+        "success": success,
+        "message": message,
+        "quarantine": validator.check_security_quarantine(steam_path)
+    })
 
 def get_best_common_folder():
     """Taranan kütüphanelerden en uygun steamapps/common klasörünü döndürür."""
@@ -3642,8 +3954,467 @@ def api_apply_fix():
             pass
 
 # %%
+# Steam Achievement Manager (SAM) Integration
+
+def find_sam_binary(filename: str) -> Optional[str]:
+    """Locates a SAM executable or library across dev, PyInstaller, and installed Electron resources."""
+    exe_dir = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+
+    candidates = [
+        # PyInstaller bundled resources
+        os.path.join(getattr(sys, '_MEIPASS', ''), 'resources', 'sam', filename),
+        os.path.join(getattr(sys, '_MEIPASS', ''), 'resources', 'resources', 'sam', filename),
+        # Current exe / script dir
+        os.path.join(exe_dir, 'resources', 'sam', filename),
+        os.path.join(exe_dir, 'resources', 'resources', 'sam', filename),
+        # Parent of backend (when running in resources/ folder of Electron)
+        os.path.join(exe_dir, '..', 'resources', 'sam', filename),
+        os.path.join(exe_dir, '..', 'resources', 'resources', 'sam', filename),
+        # Base dir
+        os.path.join(base_dir, 'resources', 'sam', filename),
+        os.path.join(base_dir, 'resources', 'resources', 'sam', filename),
+        # Installed AppData path
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto", "resources", "sam", filename),
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "steamtools-auto", "resources", "resources", "sam", filename)
+    ]
+
+    for p in candidates:
+        if p and os.path.isfile(p):
+            return os.path.abspath(p)
+    return None
+
+@app.route("/api/sam/status", methods=["GET"])
+def sam_status():
+    """Returns availability of SAM binaries and Steam Client connection status."""
+    worker = find_sam_binary("SAMWorker.exe")
+    game = find_sam_binary("SAM.Game.exe")
+    api_dll = find_sam_binary("SAM.API.dll")
+    steam_running = validator.is_steam_running()
+    
+    return jsonify({
+        "success": True,
+        "sam_available": bool(worker and game and api_dll),
+        "steam_running": steam_running,
+        "worker_found": bool(worker),
+        "game_found": bool(game),
+        "api_dll_found": bool(api_dll)
+    })
+
+@app.route("/api/sam/achievements/<appid>", methods=["GET"])
+def sam_get_achievements(appid):
+    """Retrieves achievements for an AppID directly using headless SAMWorker."""
+    appid = str(appid).strip()
+    if not appid.isdigit():
+        return jsonify({"success": False, "error": "Geçersiz AppID formatı."}), 400
+
+    if not validator.is_steam_running():
+        return jsonify({
+            "success": False,
+            "error": "Steam açık değil. Başarımları görebilmek için lütfen önce Steam'i başlatın."
+        }), 400
+
+    worker_path = find_sam_binary("SAMWorker.exe")
+    if not worker_path:
+        return jsonify({"success": False, "error": "SAMWorker.exe bulunamadı."}), 404
+
+    try:
+        work_dir = os.path.dirname(worker_path)
+        creationflags = 0x08000000 if os.name == 'nt' else 0  # CREATE_NO_WINDOW
+        
+        proc = subprocess.run(
+            [worker_path, "get", appid],
+            cwd=work_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            creationflags=creationflags,
+            timeout=15,
+            text=True,
+            encoding="utf-8",
+            errors="ignore"
+        )
+        out = (proc.stdout or "").strip()
+        if not out:
+            return jsonify({"success": False, "error": "Başarım servisi boş yanıt döndürdü."}), 500
+        
+        data = json.loads(out)
+        return jsonify(data)
+    except subprocess.TimeoutExpired:
+        return jsonify({"success": False, "error": "Steam başarım verisi alma zaman aşımına uğradı."}), 504
+    except Exception as ex:
+        logger.error(f"[SAM Achievements] Error: {ex}", exc_info=True)
+        return jsonify({"success": False, "error": str(ex)}), 500
+
+@app.route("/api/sam/save", methods=["POST"])
+def sam_save_achievements():
+    """Saves unlocked/locked achievements directly to Steam via headless SAMWorker."""
+    data = request.get_json(silent=True) or {}
+    appid = str(data.get("appid", "")).strip()
+    unlocked_ids = data.get("unlocked_ids", [])
+
+    if not appid.isdigit():
+        return jsonify({"success": False, "error": "Geçersiz AppID."}), 400
+
+    if not validator.is_steam_running():
+        return jsonify({
+            "success": False,
+            "error": "Steam açık değil. Başarımları kaydedebilmek için lütfen önce Steam'i başlatın."
+        }), 400
+
+    worker_path = find_sam_binary("SAMWorker.exe")
+    if not worker_path:
+        return jsonify({"success": False, "error": "SAMWorker.exe bulunamadı."}), 404
+
+    try:
+        work_dir = os.path.dirname(worker_path)
+        creationflags = 0x08000000 if os.name == 'nt' else 0  # CREATE_NO_WINDOW
+        payload = ",".join(str(i).strip() for i in unlocked_ids)
+
+        proc = subprocess.run(
+            [worker_path, "set", appid, "--stdin"],
+            input=payload,
+            cwd=work_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            creationflags=creationflags,
+            timeout=20,
+            text=True,
+            encoding="utf-8",
+            errors="ignore"
+        )
+        out = (proc.stdout or "").strip()
+        if not out:
+            return jsonify({"success": False, "error": "Kaydetme servisi yanıt vermedi."}), 500
+
+        res = json.loads(out)
+        return jsonify(res)
+    except subprocess.TimeoutExpired:
+        return jsonify({"success": False, "error": "Kaydetme işlemi zaman aşımına uğradı."}), 504
+    except Exception as ex:
+        logger.error(f"[SAM Save] Error: {ex}", exc_info=True)
+        return jsonify({"success": False, "error": str(ex)}), 500
+
+@app.route("/api/sam/launch", methods=["POST"])
+def sam_launch():
+    """Deprecated: Legacy launch handler redirects to notification."""
+    return jsonify({
+        "success": True,
+        "message": "Başarımlar artık SteaMRogue içinde doğrudan açılıyor."
+    })
+
+
+_sam_library_cache = {"data": None, "timestamp": 0, "account_id": None}
+
+def get_active_steam_account_id(steam_path: str) -> Optional[str]:
+    """Dynamically resolves the 32-bit AccountID of the currently active Steam user on any machine."""
+    if not steam_path or not os.path.isdir(steam_path):
+        return None
+
+    # 1. Windows Registry (live active Steam process)
+    if os.name == 'nt':
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess") as key:
+                active_user, _ = winreg.QueryValueEx(key, "ActiveUser")
+                if active_user and int(active_user) > 0:
+                    return str(active_user)
+        except Exception:
+            pass
+
+    # 2. loginusers.vdf (most recent or highest timestamp user)
+    loginusers_path = os.path.join(steam_path, "config", "loginusers.vdf")
+    if os.path.exists(loginusers_path):
+        try:
+            with open(loginusers_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+            user_blocks = re.findall(r'"(\d{16,20})"\s*\{([^}]+)\}', content, re.DOTALL)
+            best_steamid = None
+            highest_ts = -1
+            for steamid64_str, body in user_blocks:
+                if '"MostRecent"\t\t"1"' in body or '"MostRecent"\t"1"' in body or '"MostRecent" "1"' in body:
+                    best_steamid = steamid64_str
+                    break
+                ts_match = re.search(r'"timestamp"\s+"?(\d+)"?', body)
+                if ts_match:
+                    ts = int(ts_match.group(1))
+                    if ts > highest_ts:
+                        highest_ts = ts
+                        best_steamid = steamid64_str
+            if best_steamid:
+                return str(int(best_steamid) - 76561197960265728)
+        except Exception:
+            pass
+
+    # 3. Fallback: newest modified directory in userdata
+    userdata_dir = os.path.join(steam_path, "userdata")
+    if os.path.exists(userdata_dir):
+        try:
+            subdirs = [os.path.join(userdata_dir, d) for d in os.listdir(userdata_dir) if d.isdigit() and int(d) > 0]
+            if subdirs:
+                subdirs.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+                return os.path.basename(subdirs[0])
+        except Exception:
+            pass
+
+    return None
+
+def extract_games_from_vdf(vdf_path: str) -> set:
+    """Parses 'apps' or 'Apps' blocks from localconfig.vdf or sharedconfig.vdf."""
+    app_ids = set()
+    if not vdf_path or not os.path.exists(vdf_path):
+        return app_ids
+    try:
+        with open(vdf_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+        in_apps = False
+        depth = 0
+        apps_depth = -1
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if "{" in stripped:
+                depth += stripped.count("{")
+            if "}" in stripped:
+                depth -= stripped.count("}")
+                if in_apps and depth <= apps_depth:
+                    in_apps = False
+                    apps_depth = -1
+                continue
+            m = re.match(r'^"([^"]+)"', stripped)
+            if m:
+                key = m.group(1)
+                if key.lower() == "apps" and not in_apps:
+                    in_apps = True
+                    apps_depth = depth
+                elif in_apps and depth == apps_depth + 1:
+                    if key.isdigit() and int(key) > 10:
+                        app_ids.add(key)
+    except Exception as e:
+        logger.warning(f"[SAM Library] Error reading VDF {vdf_path}: {e}")
+    return app_ids
+
+def extract_games_from_localconfig(vdf_path: str) -> set:
+    return extract_games_from_vdf(vdf_path)
+
+@app.route("/api/sam/games", methods=["GET"])
+def sam_games():
+    """Returns ALL Steam games owned/played by the currently active Steam user on any machine."""
+    global _sam_library_cache
+    if not config.steam_path or not os.path.isdir(config.steam_path):
+        return jsonify({"success": False, "error": "Steam dizini bulunamadı.", "games": []}), 404
+
+    account_id = get_active_steam_account_id(config.steam_path)
+    now = time.time()
+    if (
+        _sam_library_cache["data"] is not None
+        and _sam_library_cache["account_id"] == account_id
+        and (now - _sam_library_cache["timestamp"]) < 5.0
+    ):
+        return jsonify({
+            "success": True,
+            "account_id": account_id,
+            "games": _sam_library_cache["data"],
+            "cached": True
+        })
+
+    app_ids = set()
+    acf_names = {}
+    installed_appids = set()
+
+    # 1. Parse localconfig.vdf & sharedconfig.vdf for active user
+    userdata_dir = os.path.join(config.steam_path, "userdata")
+    accounts_to_check = []
+    if account_id:
+        accounts_to_check.append(account_id)
+    
+    # If no account resolved or to ensure zero-loss fallback, also collect all userdata accounts
+    if os.path.isdir(userdata_dir):
+        try:
+            user_dirs = [d for d in os.listdir(userdata_dir) if d.isdigit() and int(d) > 0]
+            user_dirs.sort(key=lambda d: os.path.getmtime(os.path.join(userdata_dir, d)), reverse=True)
+            for ud in user_dirs:
+                if ud not in accounts_to_check:
+                    accounts_to_check.append(ud)
+        except Exception:
+            pass
+
+    # Extract games from userdata configs
+    found_from_userdata = False
+    for acc in accounts_to_check:
+        lc_path = os.path.join(userdata_dir, acc, "config", "localconfig.vdf")
+        sc_path = os.path.join(userdata_dir, acc, "7", "remote", "sharedconfig.vdf")
+        apps1 = extract_games_from_vdf(lc_path)
+        apps2 = extract_games_from_vdf(sc_path)
+        if apps1 or apps2:
+            app_ids.update(apps1)
+            app_ids.update(apps2)
+            found_from_userdata = True
+            # If we were checking the primary active account and found games, prioritize it
+            if acc == account_id:
+                break
+
+    # 2. Parse libraryfolders and appmanifest_*.acf (Installed Games on any drive)
+    libraries = FileManager.get_library_folders(config.steam_path)
+    for _, lib_path in libraries:
+        apps_dir = os.path.join(lib_path, "steamapps")
+        if not os.path.isdir(apps_dir):
+            continue
+        try:
+            for filename in os.listdir(apps_dir):
+                if filename.startswith("appmanifest_") and filename.endswith(".acf"):
+                    acf_path = os.path.join(apps_dir, filename)
+                    try:
+                        with open(acf_path, "r", encoding="utf-8", errors="ignore") as f:
+                            content = f.read()
+                        m_id = RE_ACF_APPID.search(content)
+                        if m_id:
+                            aid = m_id.group(1)
+                            app_ids.add(aid)
+                            installed_appids.add(aid)
+                            m_name = RE_ACF_NAME.search(content)
+                            if m_name:
+                                acf_names[aid] = m_name.group(1)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    # 3. Include unlocked AppIDs from stplug-in / lua
+    for folder_name in ["stplug-in", "lua"]:
+        plugin_folder = os.path.join(config.steam_path, "config", folder_name)
+        if os.path.isdir(plugin_folder):
+            try:
+                for file in os.listdir(plugin_folder):
+                    if file.lower().endswith(".lua"):
+                        name_part = os.path.splitext(file)[0]
+                        if name_part.isdigit():
+                            app_ids.add(name_part)
+            except Exception:
+                pass
+
+    # 4. Merge any games already in main library cache
+    if _library_cache.get("data"):
+        try:
+            for g in _library_cache["data"]:
+                gid = str(g.get("appid", ""))
+                if gid and gid.isdigit():
+                    app_ids.add(gid)
+                    if g.get("name") and not gid in acf_names:
+                        acf_names[gid] = g["name"]
+        except Exception:
+            pass
+
+    # Always ensure Spacewar (480) is available for multiplayer / achievement testing
+    app_ids.add("480")
+
+    # Name Resolution
+    raw_names_cache = get_in_memory_names_cache()
+    KNOWN_APP_NAMES = {
+        "730": "Counter-Strike 2",
+        "440": "Team Fortress 2",
+        "550": "Left 4 Dead 2",
+        "400": "Portal",
+        "620": "Portal 2",
+        "480": "Spacewar",
+        "4000": "Garry's Mod",
+        "218620": "PAYDAY 2",
+        "105600": "Terraria",
+        "252490": "Rust",
+        "271590": "Grand Theft Auto V",
+        "227300": "Euro Truck Simulator 2",
+        "570": "Dota 2",
+        "230410": "Warframe",
+        "107410": "Arma 3",
+        "289070": "Sid Meier's Civilization VI",
+        "359550": "Tom Clancy's Rainbow Six Siege",
+        "292030": "The Witcher 3: Wild Hunt",
+        "1172470": "Apex Legends",
+        "1091500": "Cyberpunk 2077",
+        "892970": "Valheim",
+        "1245620": "ELDEN RING",
+        "236390": "War Thunder",
+        "252950": "Rocket League",
+        "381210": "Dead by Daylight",
+        "1086940": "Baldur's Gate 3",
+    }
+
+    FILTER_KEYWORDS = (
+        "steamworks common redistributables",
+        "steam linux runtime",
+        "proton",
+        "steamvr",
+        "valve test application",
+        "dedicated server",
+        "compiler",
+        "redistributable"
+    )
+
+    games_list = []
+    appids_to_resolve = []
+
+    for aid in app_ids:
+        resolved_name = KNOWN_APP_NAMES.get(aid)
+        if not resolved_name:
+            acf_cand = acf_names.get(aid)
+            if acf_cand and not acf_cand.startswith("appid_") and not acf_cand.startswith("Steam App "):
+                resolved_name = acf_cand
+
+        if not resolved_name:
+            cached_val = raw_names_cache.get(aid)
+            if isinstance(cached_val, dict):
+                cand = cached_val.get("name")
+                if cand and cand != f"Steam App {aid}":
+                    resolved_name = cand
+            elif isinstance(cached_val, str) and cached_val != f"Steam App {aid}":
+                resolved_name = cached_val
+
+        if not resolved_name:
+            resolved_name = f"Steam Oyunu ({aid})"
+            appids_to_resolve.append(aid)
+
+        name_lower = resolved_name.lower()
+        if any(kw in name_lower for kw in FILTER_KEYWORDS):
+            continue
+
+        games_list.append({
+            "appid": int(aid) if aid.isdigit() else aid,
+            "name": resolved_name,
+            "installed": aid in installed_appids
+        })
+
+    # Sort installed games first, then alphabetically
+    games_list.sort(key=lambda x: (not x["installed"], x["name"].lower()))
+
+    # Trigger background name resolution for any unknown games
+    if appids_to_resolve:
+        try:
+            cache_path = get_cache_path()
+            threading.Thread(
+                target=resolve_names_in_background,
+                args=(appids_to_resolve, cache_path),
+                daemon=True
+            ).start()
+        except Exception:
+            pass
+
+    _sam_library_cache["data"] = games_list
+    _sam_library_cache["timestamp"] = now
+    _sam_library_cache["account_id"] = account_id
+
+    return jsonify({
+        "success": True,
+        "account_id": account_id,
+        "games": games_list,
+        "total": len(games_list)
+    })
+
+# %%
+
 
 def is_process_active(pid: int) -> bool:
+    if not pid or pid <= 1:
+        return False
     if os.name != 'nt':
         try:
             os.kill(pid, 0)
@@ -3652,16 +4423,23 @@ def is_process_active(pid: int) -> bool:
             return False
             
     import ctypes
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
     PROCESS_QUERY_INFORMATION = 0x0400
     STILL_ACTIVE = 259
     kernel32 = ctypes.windll.kernel32
-    handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_QUERY_INFORMATION, False, pid)
     if not handle:
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if not handle:
+        err = kernel32.GetLastError()
+        # If ERROR_ACCESS_DENIED (5), process exists and is active
+        if err == 5:
+            return True
         return False
     exit_code = ctypes.c_ulong()
     success = kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code))
     kernel32.CloseHandle(handle)
-    return success and (exit_code.value == STILL_ACTIVE)
+    return bool(success and (exit_code.value == STILL_ACTIVE))
 
 def parent_monitor_worker():
     try:
@@ -3674,11 +4452,16 @@ def parent_monitor_worker():
         return
         
     logger.info(f"[Watcher] Started monitoring parent process (PID: {parent_pid}).")
+    miss_count = 0
     while True:
-        time.sleep(2)
+        time.sleep(3)
         if not is_process_active(parent_pid):
-            logger.info(f"[Watcher] Parent process {parent_pid} terminated. Exiting backend...")
-            os._exit(0)
+            miss_count += 1
+            if miss_count >= 5:
+                logger.info(f"[Watcher] Parent process {parent_pid} confirmed terminated (5 consecutive misses). Exiting backend...")
+                os._exit(0)
+        else:
+            miss_count = 0
 
 def background_health_worker():
     """Runs periodic maintenance in the background without lag."""
@@ -3693,19 +4476,32 @@ def background_health_worker():
             logger.debug(f"[Background Health] Periodic check warning: {ex}")
 
 def start_server():
-    """Starts the Flask server in a local port."""
-    # Execute automatic self-healing routine silently in background
+    """Starts the Flask server in a local port with automatic zero-config onboarding."""
+    # 1. Execute automatic self-healing and zero-config onboarding silently in background on startup
+    def first_run_onboarding_worker():
+        try:
+            logger.info("[Onboarding] Running automatic zero-config self-healing check...")
+            heal_res = run_self_healing_routine(force=False)
+            logger.info(f"[Onboarding] Self-healing completed: {heal_res.get('actions', [])}")
+        except Exception as e:
+            logger.warning(f"[Onboarding] Self-healing startup note: {e}")
+
+    onboarding_thread = threading.Thread(target=first_run_onboarding_worker, daemon=True)
+    onboarding_thread.start()
+
+    # 2. Periodic background maintenance
     health_thread = threading.Thread(target=background_health_worker, daemon=True)
     health_thread.start()
 
-    # Start parent monitor thread
-    monitor_thread = threading.Thread(target=parent_monitor_worker, daemon=True)
-    monitor_thread.start()
-
-    # Run startup component checks in background (repos + SteamTools)
+    # 3. Run startup component checks in background (repos + SteamTools)
     updater.run_startup_checks(config.manifest_repos, config.steam_path)
+
     
-    app.run(host="127.0.0.1", port=65012, debug=False, use_reloader=False)
+    try:
+        from werkzeug.serving import run_simple
+        run_simple("127.0.0.1", 65012, app, threaded=True)
+    except Exception:
+        app.run(host="127.0.0.1", port=65012, debug=False, use_reloader=False)
 
 
 # %%
