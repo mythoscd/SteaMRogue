@@ -10,7 +10,7 @@
 [![Lisans](https://img.shields.io/badge/Lisans-MIT-informational?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <b>SteaMRogue</b>, Steam kütüphanenizi tek tıkla zenginleştiren, oyunları orijinal disk seçim penceresiyle entegre eden, çok oyunculu (OnlineFix) yamalarını otomatik indirip kuran ve yerleşik güncelleme motoruyla daima en son sürümde kalan yeni nesil masaüstü platformudur.
+  <b>SteaMRogue</b>, Steam kütüphanenizi tek tıkla zenginleştiren, oyunları orijinal disk seçim penceresiyle entegre eden, çok oyunculu (OnlineFix) yamalarını otomatik indirip kuran, yerleşik başarımlar (SAM) yöneticisi sunan ve kendi kendini onaran motoruyla daima en son sürümde kalan yeni nesil masaüstü platformudur.
 </p>
 
 [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--kurulum) • [✨ Öne Çıkan Özellikler](#-öne-çıkan-özellikler) • [🛠️ Teknoloji Mimarisi](#️-teknoloji-mimarisi) • [❓ Sıkça Sorulan Sorular (SSS)](#-sıkça-sorulan-sorular-sss) • [📦 Sürümler](https://github.com/mythoscd/SteaMRogue/releases)
@@ -25,13 +25,13 @@ SteaMRogue, bağımsız tek tık kurulum yürütücüsü (NSIS) ile birlikte gel
 
 ### 📥 1. İndirme
 En son kararlı sürümü doğrudan aşağıdaki bağlantıdan edinebilirsiniz:
-* ⬇️ **[SteaMRogue-Setup-1.1.2.exe (Doğrudan İndir)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.2/SteaMRogue-Setup-1.1.2.exe)**
+* ⬇️ **[SteaMRogue-Setup-1.1.5.exe (Doğrudan İndir)](https://github.com/mythoscd/SteaMRogue/releases/download/v1.1.5/SteaMRogue-Setup-1.1.5.exe)**
 * 📋 Tüm geçmiş ve güncel sürümler için: **[GitHub Releases](https://github.com/mythoscd/SteaMRogue/releases)**
 
 ### ⚡ 2. Kurulum
-1. İndirdiğiniz `SteaMRogue-Setup-1.1.2.exe` dosyasını çalıştırın.
+1. İndirdiğiniz `SteaMRogue-Setup-1.1.5.exe` dosyasını çalıştırın.
 2. Kurulum otomatik olarak tamamlanır ve masaüstünüze **SteaMRogue** kısayolu eklenir.
-3. Uygulama açıldığında Steam istemcinizi otomatik olarak algılar ve kullanıma hazır hale gelir.
+3. Uygulama açıldığında Steam istemcinizi otomatik olarak algılar, arka plan bileşenlerini eşitler ve kullanıma hazır hale gelir.
 
 > [!TIP]
 > **Yerleşik Otomatik Güncelleme (In-App Auto-Update):**  
@@ -41,32 +41,40 @@ En son kararlı sürümü doğrudan aşağıdaki bağlantıdan edinebilirsiniz:
 
 ## ✨ Öne Çıkan Özellikler
 
-### 🎮 1. Akıllı Steam Kütüphane Entegrasyonu
-* **Çok Yönlü Arama & Ekleme:** Sayısal **AppID**, doğrudan **Oyun Adı** veya tarayıcınızdan kopyaladığınız **Steam Mağaza Linkleri** (`store.steampowered.com/app/...`) ile anında oyun arayıp ekleyin.
-* **Yaş Kısıtlamalı & Yetişkin İçerik Desteği:** Steam Store API üzerindeki yaş doğrulamalı (*Cyberpunk 2077*, *Ready or Not*, *GTA V* vb.) veya paket yönlendirmeli (*Counter-Strike 2*, *Terraria* vb.) tüm oyunların kapak resimleri ve meta verileri eksiksiz işlenir.
-* **Serbest Disk Seçimi:** Sahte ACF yapılandırmalarıyla sisteminizi C: sürücüsüne zorlamaz; oyunu kurarken Steam'in kendi kurulum penceresinden istediğiniz diski (C, D veya harici SSD) seçebilirsiniz.
-* **Otomatik Manifest & Lua Yönetimi:** Topluluk veritabanlarından (ProjectLightning, SPIN0ZAi, ManifestHub vb.) en güncel manifestleri otomatik çeker ve kütüphanenize işler.
-* **Çevrimdışı Kanca & İmza Motoru:** OpenSteamTool `.toml` imza dosyaları kurulum paketine tam gömülüdür; sıfır kurulumlarda veya ağ kısıtlamalarında kanca sorunsuz çalışır.
+### 🎮 1. Akıllı Kütüphane Izgarası & 20'li Sayfalama
+* **10 Üst + 10 Alt Izgara Düzeni:** Geniş ekranlarda 1. satırda 10, 2. satırda 10 olmak üzere sayfa başına tam 20 oyunluk poster yerleşimi sağlar.
+* **Dinamik Sayfalama:** 20 oyunu aşan kütüphanelerde `Sayfa 1/2`, `Sonraki >` ve `< Önceki` kontrolleri devreye girer. Arama veya filtreleme yapıldığında otomatik olarak ilk sayfaya döner.
+* **Sıfır Boşluklu Tasarım:** Kütüphane kutusu dikeyde esneyerek sayfanın altındaki boş siyah alanları tamamen kapatır ve gereksiz kaydırma çubuklarını engeller.
+* **Çok Yönlü Arama & Ekleme:** Sayısal **AppID**, doğrudan **Oyun Adı** veya tarayıcınızdan kopyaladığınız **Steam Mağaza Linkleri** (`store.steampowered.com/app/...`) ile anında oyun ekleyin.
+* **Serbest Disk Seçimi:** Sahte ACF yapılandırmalarıyla sisteminizi C: sürücüsüne zorlamaz; oyunu kurarken Steam'in kendi resmi penceresinden istediğiniz diski (C, D veya harici SSD) seçebilirsiniz.
 * **Tek Tıkla Steam Yeniden Başlatıcı:** Kütüphane değişikliklerinin anında geçerli olması için Steam istemcisini arka plan kilitlenmelerine yol açmadan tek tıkla güvenle yeniden başlatır.
 
-### 🌐 2. OnlineFix Çok Oyunculu (Multiplayer) Desteği
+### 🏆 2. Entegre Başarımlar (SAM — Steam Achievement Manager)
+* **Tam Uyumlu Yerel Arayüz:** Üçüncü taraf bağımsız pencereler yerine SteaMRogue'un siberpunk mor/neon temasıyla birebir uyumlu yerel başarımlar modülü.
+* **Gelişmiş Başarım Yönetimi:** Kütüphanenizdeki oyunların başarımlarını listeleyin, istatistikleri görüntüleyin, tek tek veya topluca kilitleyip açın.
+
+### 🚀 3. Canlı Senkronizasyon & Modern Açılış Ekranı (Splash Screen)
+* **Canlı Açılış Ekranı:** Uygulama başlatılırken animasyonlu yüklenme çubuğu eşliğinde sistem bileşenleri, SteamTools DLL kancaları, TOML imzaları ve manifest depoları arka planda eşitlenir.
+* **Dinamik Arka Plan Takibi:** Eşitleme bittiği anda durum kendiliğinden yeşil **`GÜNCEL`** rozetine dönüşür.
+* **Yanıltıcı Bildirimler Giderildi:** Dosyalar yerindeyken oluşan yanıltıcı *"Yeniden Başlatma Gerekli"* ve asılı kalan *"Kontrol ediliyor..."* durumları giderilmiş, rahatlatıcı yeşil durumlar getirilmiştir.
+
+### 🧩 4. Sistem Bağımlılıkları (Microsoft Visual C++ 2015-2022)
+* **Çift Mimari Denetimi:** Steam 32-bit (`SysWOW64\vcruntime140.dll`) ve oyunlar/OnlineFix 64-bit (`System32\vcruntime140.dll`) kütüphaneleri eksiksiz taranır.
+* **Tek Tıkla Sessiz Kurulum:** Eksik olması durumunda resmi Microsoft CDN sunucularından indirilerek arka planda sessizce kurulur.
+
+### 🛡️ 5. Antivirüs Yanlış Pozitif Koruması & Karantinadan Kurtarma
+* **Otomatik Güvenlik Algılama:** Sistemdeki aktif antivirüs (Windows Defender, Avast, Kaspersky vb.) otomatik tespit edilir.
+* **Karantinadan Otomatik Kurtarma:** Güvenlik yazılımı kilit açıcı dosyaları yanlışlıkla silerse veya engellerse, SteaMRogue bunları tek tıkla dahili temiz yedeğinden geri yükler.
+* **Tüm Diskler İçin Dışlama:** Farklı disklerdeki tüm Steam kütüphaneleri tek tıkla Windows Defender dışlamalarına eklenir; harici antivirüsler için istisna yolları tek tıkla kopyalanır.
+
+### 🌐 6. OnlineFix Çok Oyunculu (Multiplayer) Desteği
 * **Doğrudan Veritabanı Taraması:** Kütüphanenizdeki veya aradığınız herhangi bir oyun için OnlineFix altyapısında anında çok oyunculu yama taraması yapar.
-* **Yüksek Hızlı İndiriciler:**
-  * ⚡ **Pixeldrain:** Yüksek hızlı doğrudan indirme motoru.
-  * 🚀 **Gofile:** Otomatik token ve sunucu çözücü ile kesintisiz indirme.
-  * 🛡️ **FileDitch & Alternatif Aynalar:** Kesintisiz yedek indirme hatları.
+* **Yüksek Hızlı İndiriciler:** Pixeldrain, Gofile ve alternatif sunucularla kesintisiz indirme.
 * **Otomatik Kurulum & Entegrasyon:** İndirilen çok oyunculu yamaları otomatik arşivden çıkarır ve oyun dizinine uygular.
 
-### 🛡️ 3. Güvenlik & Sistem Uyumluluğu
-* **SteamTools Entegrasyonu:** En güncel SteamTools DLL bileşenlerini (`OpenSteamTool.dll`, `dwmapi.dll`, `xinput1_4.dll`) otomatik denetler ve entegre eder.
-* **Windows Defender Asistanı:** Çok oyunculu crack ve kanca dosyalarının antivirüs tarafından yanlış pozitif (false-positive) olarak engellenmesini önlemek için tek tıkla Windows Defender İstisnası oluşturur.
-* **Hafif ve Kararlı:** Minimum CPU ve RAM kullanımıyla sisteminizi yormadan arka planda veya ön planda akıcı çalışır.
-
-### 🔄 4. Hibrit Otomatik Güncelleme & Onarım Sistemi
-* **Kesintisiz Arka Plan Taraması:** Uygulama açılışında yeni sürümler otomatik olarak denetlenir ve arka planda güvenle indirilir.
-* **Akıllı Tarih & Hash Algılama:** Sürüm numarası artırılmasa bile (`1.1.2 == 1.1.2`), GitHub üzerindeki en son yayın tarihi ve SHA-512 dosya imzası taranarak en güncel düzeltmeler anında algılanır.
-* **Tek Tıkla Güncelleme & Onarım:** Ayarlar sekmesinde bulunan **"Güncellemeleri Denetle"** ile anlık durum sorgulaması yapabilir, **"Son Sürümü Yeniden İndir / Onar"** butonu ile olası bozulmalarda en son sürüm kurulum paketini tek tıkla temiz olarak kurabilirsiniz.
-* **Tam Dinamik Sürüm Senkronizasyonu:** Arayüzdeki tüm sürüm etiketleri doğrudan Electron çekirdeğinden dinamik beslenir; eski yazı kalması tamamen engellenmiştir.
+### 🏷️ 7. SteamDB İndirim Fırsatları Radarı
+* Steam üzerindeki aktif indirimleri anlık olarak tarar.
+* Tür, indirim oranı (%70+, %80+, %90+) ve maksimum fiyat filtreleriyle en avantajlı fırsatları listeler.
 
 ---
 
@@ -97,6 +105,7 @@ SteaMRogue, masaüstü deneyimini modern web teknolojilerinin esnekliği ve Pyth
 |---|---|---|
 | **Kullanıcı Arayüzü (Frontend)** | Electron 33, HTML5, CSS3, Vanilla JS | Siberpunk mor neon temalı modern, akıcı ve duyarlı arayüz |
 | **Arka Plan Çekirdeği (Backend)** | Python 3.14 (Flask API, PyInstaller) | Manifest ayrıştırma, Steam Store API, çoklu indirme motoru |
+| **Başarımlar (SAM Engine)** | .NET / C# SAMWorker & SteamWorks API | Yerel başarımları listeleme, kilitleme ve açma motoru |
 | **Otomatik Güncelleme** | Electron Updater & GitHub Releases | Hibrit güncelleme motoru (SemVer + Tarih & Hash kontrolü + Manuel onarım) |
 | **Veritabanı & Önbellek** | SQLite3 / Yerel JSON Cache | Hızlı arama ve önbellek mekanizması |
 | **Paketleyici & Kurulum** | NSIS Installer (x64) | Sessiz, kullanıcı odaklı bağımsız kurulum |
@@ -111,7 +120,7 @@ SteaMRogue, masaüstü deneyimini modern web teknolojilerinin esnekliği ve Pyth
 | **İşlemci / Mimari** | x64 Uyumlu İşlemci |
 | **Steam** | Resmi Steam istemcisi kurulu olmalıdır |
 | **Yönetici İzni** | Gerekmez (Kullanıcı profiline özel kurulum) |
-| **Disk Alanı** | ~150 MB (Uygulama) + Oyun & Yama İndirmeleri |
+| **Disk Alanı** | ~180 MB (Uygulama) + Oyun & Yama İndirmeleri |
 | **Ağ** | Manifest ve yama indirmeleri için aktif internet bağlantısı |
 
 ---
@@ -123,10 +132,9 @@ SteaMRogue, masaüstü deneyimini modern web teknolojilerinin esnekliği ve Pyth
 <br>
 
 Bu durum tamamen Steam istemcisinin eski indirme önbelleğini tutmasından kaynaklanır. Çözümü çok basittir:
-1. Steam'in sol üst köşesindeki **Steam** menüsüne tıklayın ve **Ayarlar**'a girin.
-2. Sol taraftaki menüden **İndirmeler** sekmesine geçin.
-3. Sayfayı aşağı kaydırarak **"İndirme Önbelleğini Temizle"** butonuna basın.
-4. Steam yeniden başladığında oyun kütüphanenizde belirecek ve indirme sorunsuz şekilde başlayacaktır.
+1. SteaMRogue **Ayarlar** sekmesine gidin.
+2. SteamTools kartındaki **"İndirme Önbelleğini Temizle"** butonuna basın.
+3. Steam otomatik olarak önbelleğini temizleyip yeniden başladığında indirme sorunsuz şekilde başlayacaktır.
 </details>
 
 <details>
@@ -143,14 +151,16 @@ Arkadaşınızla çok oyunculu oynayabilmek için:
 <summary><b>3. Antivirüs veya Windows Defender uyarı verirse ne yapmalıyım?</b></summary>
 <br>
 
-Çok oyunculu crack ve kanca dosyaları (SteamTools DLL'leri), oyun fonksiyonlarını yönlendirdikleri için bazı antivirüsler tarafından yanlış pozitif (*false-positive*) olarak algılanabilir. SteaMRogue arayüzündeki **"Defender İstisnası Ekle"** butonunu kullanarak Steam ve uygulama klasörlerini güvenli istisnalara ekleyebilirsiniz.
+Çok oyunculu crack ve kanca dosyaları (SteamTools DLL'leri), oyun fonksiyonlarını yönlendirdikleri için bazı antivirüsler tarafından yanlış pozitif (*false-positive*) olarak algılanabilir. SteaMRogue arayüzündeki **"Defender Dışlaması Ekle"** butonunu kullanarak Steam ve uygulama klasörlerini güvenli istisnalara ekleyebilirsiniz. Dosyalar karantinaya alınmışsa **"Karantinadan Kurtar ve Onar"** düğmesiyle anında kurtarabilirsiniz.
 </details>
 
 <details>
-<summary><b>4. Oyuna yeni bir yama veya güncelleme geldiğinde ne yapmalıyım?</b></summary>
+<summary><b>4. Başarımları nasıl açıp kapatabilirim?</b></summary>
 <br>
 
-SteaMRogue, kütüphanenizdeki oyunların manifestlerini otomatik olarak senkronize eder. Oyuna resmi güncelleme geldiğinde doğrudan Steam üzerinden indirmeyi başlatabilirsiniz. Herhangi bir takılma durumunda Steam indirme önbelleğini temizlemeniz yeterlidir.
+1. Üst menüden **Başarımlar** sekmesine tıklayın.
+2. Kütüphanenizdeki oyunu seçin.
+3. Açmak istediğiniz başarımların kutucuklarını işaretleyin ve sağ üstteki **"Değişiklikleri Kaydet"** butonuna basın.
 </details>
 
 <details>
