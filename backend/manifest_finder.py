@@ -25,6 +25,9 @@ class ManifestFinder:
             stripped = line.strip()
             # Always keep addappid and setManifestid (critical for SteamTools to hook manifests and prevent Access Denied)
             if stripped.startswith("addappid(") or stripped.startswith("setManifestid(") or stripped.startswith("setmanifestid("):
+                if stripped.startswith("addappid("):
+                    stripped = re.sub(r'^addappid\s*\(\s*(\d+)\s*\)', r'addappid(\1, 1)', stripped)
+                    stripped = re.sub(r'^addappid\s*\(\s*(\d+)\s*,\s*0\s*,', r'addappid(\1, 1,', stripped)
                 filtered_lines.append(stripped)
             elif stripped.startswith("setAppTicket(") or stripped.startswith("setETicket(") or stripped.startswith("addtoken("):
                 filtered_lines.append(stripped)

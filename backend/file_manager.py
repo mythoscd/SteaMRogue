@@ -304,6 +304,16 @@ class FileManager:
                     modified = False
                     lines = content.splitlines()
 
+                    # Normalize addappid calls to have license flag 1 (full license)
+                    new_lines = []
+                    for line in lines:
+                        l_sub = re.sub(r'^(\s*addappid\s*\(\s*\d+)\s*\)', r'\1, 1)', line)
+                        l_sub = re.sub(r'^(\s*addappid\s*\(\s*\d+\s*),\s*0\s*,', r'\1, 1,', l_sub)
+                        if l_sub != line:
+                            modified = True
+                        new_lines.append(l_sub)
+                    lines = new_lines
+
                     for d in depots:
                         if d in depot_manifests:
                             pattern = rf"setManifestid\s*\(\s*['\"]?{d}['\"]?\s*,"
@@ -422,12 +432,12 @@ class FileManager:
         library_path: str, 
         appid: str, 
         game_name: str, 
-        manifests: List[Dict[str, Any]] = None
+        manifests: List[Dict[str, Any]] = None,
+        actual_size: int = 0
     ) -> str:
         """Auto-generates appmanifest_<AppID>.acf file under steamapps folder.
         
-        Uses StateFlags: 1 (Uninstalled) and active user LastOwner so Steam shows the blue
-        'YÜKLE' (Install) button and never shows 'SATIN AL'.
+        Uses StateFlags: 4 (Installed) and real SizeOnDisk so Steam knows the game is ready to play.
         """
         dest_dir = os.path.join(library_path, "steamapps")
         os.makedirs(dest_dir, exist_ok=True)
@@ -451,23 +461,112 @@ class FileManager:
 
         steam_exe = os.path.join(main_steam_path, "steam.exe").replace("/", "\\")
         
-        # Leave InstalledDepots empty so Steam detects uninstalled state
-        # and calculates real download sizes accurately.
+        # Collect all depots for this AppID
+        depot_map = {}  # depot_id -> {"manifest": manifest_id, "size": size_str}
+
+        # 1. From manifests list
+        if manifests:
+            for item in manifests:
+                fname = item.get("name", "") if isinstance(item, dict) else str(item)
+                m = re.match(r'^(\d+)_(\d+)\.manifest$', fname, re.IGNORECASE)
+                if m:
+                    depot_map[m.group(1)] = {"manifest": m.group(2), "size": "0"}
+
+        # 2. From LUA files in config/stplug-in and config/lua
+        lua_folders = [
+            os.path.join(main_steam_path, "config", "stplug-in"),
+            os.path.join(main_steam_path, "config", "lua")
+        ]
+        for l_folder in lua_folders:
+            lp = os.path.join(l_folder, f"{appid}.lua")
+            if os.path.isfile(lp):
+                try:
+                    with open(lp, "r", encoding="utf-8", errors="ignore") as fp:
+                        txt = fp.read()
+                    for m in re.finditer(r'setManifestid\s*\(\s*(\d+)\s*,\s*["\'](\d+)["\'](?:\s*,\s*(\d+))?', txt):
+                        d_id, m_id, d_sz = m.group(1), m.group(2), m.group(3) or "0"
+                        depot_map[d_id] = {"manifest": m_id, "size": str(d_sz)}
+                    for m in re.finditer(r'addappid\s*\(\s*(\d+)', txt):
+                        d_id = m.group(1)
+                        if d_id != appid and d_id not in depot_map:
+                            depot_map[d_id] = {"manifest": "0", "size": "0"}
+                except Exception:
+                    pass
+
+        # 3. Check depotcache for manifests matching any depot that has manifest '0'
+        depotcache_dirs = [
+            os.path.join(main_steam_path, "depotcache"),
+            os.path.join(main_steam_path, "config", "depotcache"),
+            os.path.join(library_path, "depotcache")
+        ]
+        for d_dir in depotcache_dirs:
+            if os.path.isdir(d_dir):
+                try:
+                    for f in os.listdir(d_dir):
+                        m = re.match(r'^(\d+)_(\d+)\.manifest$', f, re.IGNORECASE)
+                        if m:
+                            d_id, m_id = m.group(1), m.group(2)
+                            if d_id in depot_map and depot_map[d_id]["manifest"] == "0":
+                                depot_map[d_id]["manifest"] = m_id
+                except Exception:
+                    pass
+
+        # Format InstalledDepots entries
+        depot_lines = []
+        total_size = 0
+        for d_id, d_info in depot_map.items():
+            m_id = d_info["manifest"]
+            sz = d_info["size"]
+            try:
+                total_size += int(sz)
+            except Exception:
+                pass
+            depot_lines.append(f'\t\t"{d_id}"')
+            depot_lines.append("\t\t{")
+            depot_lines.append(f'\t\t\t"manifest"\t\t"{m_id}"')
+            depot_lines.append(f'\t\t\t"size"\t\t"{sz}"')
+            depot_lines.append("\t\t}")
+
+        depots_str = "\n".join(depot_lines)
+        common_game_dir = os.path.join(library_path, "steamapps", "common", installdir)
+        disk_size = actual_size
+        if disk_size <= 0 and os.path.isdir(common_game_dir):
+            try:
+                disk_size = sum(os.path.getsize(os.path.join(r, f)) for r, d, fs in os.walk(common_game_dir) for f in fs)
+            except Exception:
+                pass
+
+        if disk_size > 5 * 1024 * 1024:
+            state_flags = "4"
+            size_on_disk = str(disk_size)
+            bytes_to_download = "0"
+            bytes_downloaded = "0"
+        else:
+            # Game is uninstalled, ready to be downloaded natively via Steam!
+            # StateFlags 1026 = StateUpdateRequired (2) + StateUpdateQueued (1024)
+            state_flags = "1026"
+            size_on_disk = "0"
+            bytes_to_download = str(total_size if total_size > 1000000 else 10737418240)
+            bytes_downloaded = "0"
+
+        last_updated = str(int(time.time()))
+        final_depots_str = depots_str
+
         acf_content = f'''"AppState"
 {{
 	"appid"		"{appid}"
 	"Universe"		"1"
 	"LauncherPath"		"{steam_exe}"
 	"name"		"{game_name}"
-	"StateFlags"		"1"
+	"StateFlags"		"{state_flags}"
 	"installdir"		"{installdir}"
-	"LastUpdated"		"0"
+	"LastUpdated"		"{last_updated}"
 	"UpdateResult"		"0"
-	"SizeOnDisk"		"0"
+	"SizeOnDisk"		"{size_on_disk}"
 	"buildid"		"0"
 	"LastOwner"		"{active_owner}"
-	"BytesToDownload"		"0"
-	"BytesDownloaded"		"0"
+	"BytesToDownload"		"{bytes_to_download}"
+	"BytesDownloaded"		"{bytes_downloaded}"
 	"BytesToStage"		"0"
 	"BytesStaged"		"0"
 	"TargetBuildID"		"0"
@@ -475,9 +574,11 @@ class FileManager:
 	"AllowOtherDownloadsWhileRunning"		"0"
 	"UserConfig"
 	{{
+		"language"		"turkish"
 	}}
 	"InstalledDepots"
 	{{
+{final_depots_str}
 	}}
 }}
 '''
@@ -488,5 +589,5 @@ class FileManager:
         with open(acf_path, "w", encoding="utf-8") as f:
             f.write(acf_content)
             
-        logger.info(f"Generated appmanifest file in {library_path} (StateFlags: 1, LastOwner: {active_owner}): {acf_path}")
+        logger.info(f"Generated ACF manifest (StateFlags={state_flags}) for AppID {appid} at: {acf_path}")
         return acf_path

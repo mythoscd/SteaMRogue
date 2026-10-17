@@ -165,7 +165,7 @@ def check_and_update_repos(manifest_repos: List[str], force: bool = False) -> Di
                 repo_etags[url] = new_etag
 
             old_sha = cached_sha
-            if not force and old_sha == latest_sha:
+            if old_sha and old_sha == latest_sha:
                 logger.info(f"[Updater] {short}: güncel (SHA: {latest_sha[:8]})")
                 _set_repo_status(url, updated=False)
                 return url, {"updated": False, "sha": latest_sha}
@@ -243,6 +243,13 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
         except Exception:
             pass
 
+    # If official SteamTools xinput1_4.dll (> 200KB) is present, preserve it unconditionally
+    official_st = os.path.join(steam_path, "xinput1_4.dll")
+    if os.path.isfile(official_st) and os.path.getsize(official_st) > 200000:
+        logger.info("[Updater] Official SteamTools hook active. Preserving configuration.")
+        _set_st_status(checked=True, updated=False, error=None)
+        return {"updated": False, "actions": ["Resmi SteamTools kilit açıcı modülü korundu."]}
+
     # 1. First priority: Check bundled files for missing DLLs & opensteamtool patterns
     bundled_dir = _find_bundled_steamtools()
     if bundled_dir and os.path.isdir(bundled_dir):
@@ -281,12 +288,13 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
     missing_dlls = []
     for dll_name in _STEAMTOOLS_DLLS:
         target = os.path.join(steam_path, dll_name)
-        if not os.path.isfile(target):
+        min_sz = 50000 if dll_name == "xinput1_4.dll" else 500000
+        if not os.path.isfile(target) or os.path.getsize(target) < min_sz:
             missing_dlls.append(dll_name)
 
     # 3. If any DLL missing or force update requested, fetch from GitHub
-    if missing_dlls or force:
-        dlls_to_fetch = _STEAMTOOLS_DLLS if force else missing_dlls
+    if missing_dlls or (force and not any(os.path.isfile(os.path.join(steam_path, f)) and os.path.getsize(os.path.join(steam_path, f)) > 500000 for f in _STEAMTOOLS_DLLS)):
+        dlls_to_fetch = missing_dlls if not force else _STEAMTOOLS_DLLS
         logger.info(f"[Updater] Fetching SteamTools components from GitHub: {dlls_to_fetch}...")
         for dll_name in dlls_to_fetch:
             url = f"{_STEAMTOOLS_GITHUB_URL}/{dll_name}"
@@ -467,7 +475,26 @@ def run_full_update_now(manifest_repos: List[str], steam_path: str, force: bool 
         repo_res = check_and_update_repos(manifest_repos, force=force)
         st_res = check_and_update_steamtools(steam_path, force=force)
         bp_res = check_and_update_bypass_database()
-        lib_res = check_and_update_library_manifests(steam_path, manifest_repos)
+
+        # Only scan and re-download individual game manifests if repos actually have new commits
+        any_repo_updated = any(r.get("updated", False) for r in repo_res.values()) if isinstance(repo_res, dict) else False
+        if any_repo_updated:
+            logger.info("[Updater] Repo commits changed: updating game manifests...")
+            lib_res = check_and_update_library_manifests(steam_path, manifest_repos)
+        else:
+            logger.info("[Updater] Repos are already at latest commit. Skipping repetitive individual game scans.")
+            with _status_lock:
+                _status["library"] = {"checked": 0, "updated": 0, "running": False, "skipped": True}
+
+        # Auto-clean any dummy 0-byte ACF manifests across libraries to prevent Steam 0B bug
+        try:
+            from app import ensure_all_unlocked_acfs
+            cleaned_acfs = ensure_all_unlocked_acfs(steam_path)
+            if cleaned_acfs > 0:
+                _append_action(f"{cleaned_acfs} adet kütüphane kaydı ve dosya uyumsuzluğu onarıldı.")
+        except Exception as acf_ex:
+            logger.debug(f"[Updater] ACF clean check note: {acf_ex}")
+
         logger.info("[Updater] === Full component & manifest synchronization completed ===")
 
         current_status = get_status()

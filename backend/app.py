@@ -79,16 +79,48 @@ import updater
 
 # %%
 # Initialize Flask & Base Directory Resolution
-if hasattr(sys, "_MEIPASS"):
-    BASE_DIR = sys._MEIPASS
-    web_dir = os.path.join(sys._MEIPASS, "web")
-else:
+def find_web_dir():
+    candidates = []
+    # 1. PyInstaller _MEIPASS
+    if hasattr(sys, "_MEIPASS"):
+        candidates.append(os.path.join(sys._MEIPASS, "web"))
+
+    # 2. Executable directory (production resources or portable directory)
+    exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+    candidates.append(os.path.join(exe_dir, "web"))
+    candidates.append(os.path.join(exe_dir, "resources", "web"))
+    candidates.append(os.path.join(exe_dir, "..", "web"))
+    candidates.append(os.path.join(exe_dir, "..", "resources", "web"))
+    candidates.append(os.path.join(exe_dir, "..", "resources", "app", "web"))
+
+    # 3. Script source directories
     _file_dir = os.path.dirname(os.path.abspath(__file__))
-    if os.path.isdir(os.path.join(_file_dir, "web")):
-        BASE_DIR = _file_dir
-    else:
-        BASE_DIR = os.path.dirname(_file_dir)
-    web_dir = os.path.join(BASE_DIR, "web")
+    candidates.append(os.path.join(_file_dir, "web"))
+    candidates.append(os.path.join(os.path.dirname(_file_dir), "web"))
+
+    # 4. Current working directory
+    cwd = os.getcwd()
+    candidates.append(os.path.join(cwd, "web"))
+    candidates.append(os.path.join(cwd, "resources", "web"))
+
+    # 5. Developer source directory on Desktop (bulletproof fallback)
+    desktop_source = os.path.expanduser(r"~\Desktop\Yeni klasör\SteamTools_Auto_Source\web")
+    if os.path.isdir(desktop_source):
+        candidates.append(desktop_source)
+
+    # Check all candidates for index.html
+    for c in candidates:
+        if c and os.path.isdir(c) and os.path.isfile(os.path.join(c, "index.html")):
+            return os.path.abspath(c)
+
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, "web")
+    return os.path.join(os.path.dirname(_file_dir), "web")
+
+web_dir = find_web_dir()
+BASE_DIR = os.path.dirname(web_dir)
+if hasattr(sys, "_MEIPASS") and os.path.abspath(web_dir).startswith(os.path.abspath(sys._MEIPASS)):
+    BASE_DIR = sys._MEIPASS
 
 app = Flask(__name__, static_folder=web_dir)
 
@@ -122,7 +154,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.6"
+APP_VERSION = "1.1.7"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -177,10 +209,18 @@ def check_components_now():
 # Serving Static Assets
 @app.route("/")
 def index():
+    global web_dir
+    if not os.path.isfile(os.path.join(web_dir, "index.html")):
+        web_dir = find_web_dir()
     return send_from_directory(web_dir, "index.html")
 
 @app.route("/<path:path>")
 def serve_static(path):
+    global web_dir
+    target = os.path.join(web_dir, path)
+    if not os.path.exists(target):
+        if not os.path.isfile(os.path.join(web_dir, "index.html")):
+            web_dir = find_web_dir()
     return send_from_directory(web_dir, path)
 
 @app.after_request
@@ -257,6 +297,19 @@ def get_steam_libraries():
     except Exception as e:
         logger.error(f"Error fetching steam libraries: {e}")
         return jsonify({"success": False, "libraries": [], "error": str(e)})
+
+# %%
+# API Endpoint: POST /api/steam/set_default_library
+@app.route("/api/steam/set_default_library", methods=["POST"])
+def set_default_steam_library():
+    data = request.json or {}
+    lib_idx = data.get("library_idx")
+    if lib_idx is not None:
+        config.default_library = str(lib_idx).strip()
+        config.save()
+        logger.info(f"Updated default Steam library to index: {config.default_library}")
+        return jsonify({"success": True, "default_library": config.default_library})
+    return jsonify({"success": False, "error": "library_idx parametresi gereklidir"})
 
 # %%
 # API Endpoint: GET /api/logs
@@ -1225,43 +1278,44 @@ def get_bundled_steamtools_dir():
     return None
 
 def check_steamtools_installed():
-    """Checks if SteamTools hook DLLs are present in Steam directory."""
+    """Checks if SteamTools hook DLLs are present and valid in Steam directory."""
     if not config.steam_path or not os.path.isdir(config.steam_path):
         return False, []
     present = []
     try:
-        for f in os.listdir(config.steam_path):
-            if f.lower() in ["xinput1_4.dll", "opensteamtool.dll"]:
-                present.append(f)
+        ost_path = os.path.join(config.steam_path, "OpenSteamTool.dll")
+        proxy_path = os.path.join(config.steam_path, "xinput1_4.dll")
+        
+        has_ost = os.path.isfile(ost_path) and os.path.getsize(ost_path) > 500000
+        has_proxy = os.path.isfile(proxy_path) and (50000 < os.path.getsize(proxy_path) < 1500000)
+        
+        if has_ost:
+            present.append("OpenSteamTool.dll")
+        if has_proxy:
+            present.append("xinput1_4.dll")
+            
+        is_installed = has_proxy or has_ost
+        return is_installed, present
     except Exception:
         return False, []
-    has_ost = any(f.lower() == "opensteamtool.dll" for f in present)
-    has_proxy = any(f.lower() == "xinput1_4.dll" for f in present)
-    is_installed = has_ost and has_proxy
-    return is_installed, present
 
-def ensure_steamtools_installed_auto():
-    """Guaranteed auto-install on startup/initial run."""
+def ensure_steamtools_installed_auto(force: bool = False):
+    """Guaranteed auto-install/repair of SteamTools into Steam."""
     try:
         if not config.steam_path or not os.path.isdir(config.steam_path):
-            return False
+            discovered = config.discover_steam_path()
+            if discovered:
+                config.steam_path = discovered
+                config.save()
+            else:
+                return False
+
         # Always ensure depotcache manifests are synced between config/depotcache and depotcache
         try:
             sync_depotcache_manifests(config.steam_path)
         except Exception:
             pass
 
-        is_installed, present = check_steamtools_installed()
-        if is_installed:
-            logger.info("[SteamTools Auto-Setup] SteamTools is already installed and verified.")
-            validator.ensure_opensteamtool_signatures(config.steam_path)
-            return True
-
-        st_dir = get_bundled_steamtools_dir()
-        import shutil
-        target_files = ["xinput1_4.dll", "OpenSteamTool.dll"]
-        installed_count = 0
-        
         # Always remove dwmapi.dll to prevent VGUI_Setup failed crash
         dwmapi_bad = os.path.join(config.steam_path, "dwmapi.dll")
         if os.path.isfile(dwmapi_bad):
@@ -1270,15 +1324,55 @@ def ensure_steamtools_installed_auto():
             except Exception:
                 pass
 
+        # Restore xinput1_4.dll from backup if needed
+        proxy_dst = os.path.join(config.steam_path, "xinput1_4.dll")
+        proxy_orig = os.path.join(config.steam_path, "xinput1_4.dll.original")
+        if os.path.isfile(proxy_orig) and (not os.path.isfile(proxy_dst) or os.path.getsize(proxy_dst) < 200000):
+            try:
+                shutil.copy2(proxy_orig, proxy_dst)
+                logger.info(f"[SteamTools Auto-Setup] Restored official SteamTools xinput1_4.dll from {proxy_orig}")
+            except Exception:
+                pass
+
+        is_installed, present = check_steamtools_installed()
+        if is_installed and not force:
+            validator.ensure_opensteamtool_signatures(config.steam_path)
+            return True
+
+        st_dir = get_bundled_steamtools_dir()
+        if not st_dir:
+            try:
+                st_dir = updater._find_bundled_steamtools()
+            except Exception:
+                pass
+
+        import shutil
+        target_files = ["xinput1_4.dll", "OpenSteamTool.dll"]
+        installed_count = 0
+
         if st_dir:
             for f in target_files:
                 src = os.path.join(st_dir, f)
                 dst = os.path.join(config.steam_path, f)
-                if os.path.isfile(src) and not os.path.isfile(dst):
+                if f == "xinput1_4.dll" and os.path.isfile(dst) and os.path.getsize(dst) > 200000:
+                    needs_copy = False
+                elif f == "OpenSteamTool.dll" and os.path.isfile(os.path.join(config.steam_path, "xinput1_4.dll")) and os.path.getsize(os.path.join(config.steam_path, "xinput1_4.dll")) > 200000:
+                    needs_copy = False
+                else:
+                    needs_copy = not os.path.isfile(dst) or force
+                    if not needs_copy:
+                        if f == "xinput1_4.dll" and (os.path.getsize(dst) < 50000 or os.path.getsize(dst) > 1500000):
+                            needs_copy = True
+                        elif f == "OpenSteamTool.dll" and os.path.getsize(dst) < 500000:
+                            needs_copy = True
+                
+                if needs_copy and os.path.isfile(src):
                     try:
                         shutil.copy2(src, dst)
                         installed_count += 1
                         logger.info(f"[SteamTools Auto-Setup] Auto-installed {f} to {dst}")
+                    except PermissionError:
+                        logger.warning(f"[SteamTools Auto-Setup] {f} is currently locked by running Steam.")
                     except Exception as e:
                         logger.warning(f"[SteamTools Auto-Setup] Failed to copy {f}: {e}")
             
@@ -1295,18 +1389,23 @@ def ensure_steamtools_installed_auto():
                                 rel_path = os.path.relpath(src_f, opensteamtool_src)
                                 dst_f = os.path.join(opensteamtool_dst, rel_path)
                                 os.makedirs(os.path.dirname(dst_f), exist_ok=True)
-                                shutil.copy2(src_f, dst_f)
+                                if not os.path.isfile(dst_f) or os.path.getsize(dst_f) < 50 or force:
+                                    try:
+                                        shutil.copy2(src_f, dst_f)
+                                    except Exception:
+                                        pass
                 except Exception as e:
-                    logger.warning(f"[SteamTools Auto-Setup] Failed to copy opensteamtool signature files: {e}")
+                    logger.warning(f"[SteamTools Auto-Setup] Failed copying opensteamtool signatures: {e}")
         
-        # If OpenSteamTool.dll or others are still missing, fetch directly from GitHub
+        # If OpenSteamTool.dll or proxy are still missing, fetch directly from GitHub
         for f in target_files:
             dst = os.path.join(config.steam_path, f)
-            if not os.path.isfile(dst) or os.path.getsize(dst) < 10000:
+            min_size = 50000 if f == "xinput1_4.dll" else 500000
+            if not os.path.isfile(dst) or os.path.getsize(dst) < min_size:
                 try:
                     url = f"https://raw.githubusercontent.com/mythoscd/SteaMRogue/main/steamtools_files/{f}"
                     r = requests.get(url, headers={"User-Agent": "SteaMRogue"}, timeout=20)
-                    if r.status_code == 200 and len(r.content) > 10000:
+                    if r.status_code == 200 and len(r.content) >= min_size:
                         with open(dst, "wb") as out_f:
                             out_f.write(r.content)
                         installed_count += 1
@@ -1314,12 +1413,35 @@ def ensure_steamtools_installed_auto():
                 except Exception as ex:
                     logger.warning(f"[SteamTools Auto-Setup] Failed downloading {f}: {ex}")
 
-        # Ensure required Steam folders exist for stplug-in
-        os.makedirs(os.path.join(config.steam_path, "config", "lua"), exist_ok=True)
-        os.makedirs(os.path.join(config.steam_path, "config", "depotcache"), exist_ok=True)
-        os.makedirs(os.path.join(config.steam_path, "depotcache"), exist_ok=True)
+        # Silence modal MessageBoxA in OpenSteamTool.dll to prevent freezing
+        ost_dll = os.path.join(config.steam_path, "OpenSteamTool.dll")
+        if os.path.isfile(ost_dll):
+            try:
+                with open(ost_dll, "r+b") as f_ost:
+                    f_ost.seek(0x7423b)
+                    b_check = f_ost.read(6)
+                    if b_check == bytes.fromhex("ff15d7d60700"):
+                        f_ost.seek(0x7423b)
+                        f_ost.write(bytes.fromhex("909090909090"))
+                        logger.info("[SteamTools Auto-Setup] Silenced modal MessageBoxA in OpenSteamTool.dll")
+            except Exception:
+                pass
 
-        logger.info(f"[SteamTools Auto-Setup] Auto-setup complete ({installed_count} files installed).")
+        # Ensure required Steam folders exist
+        for d in [
+            os.path.join(config.steam_path, "config", "stplug-in"),
+            os.path.join(config.steam_path, "config", "lua"),
+            os.path.join(config.steam_path, "config", "depotcache"),
+            os.path.join(config.steam_path, "depotcache")
+        ]:
+            os.makedirs(d, exist_ok=True)
+
+        validator.ensure_opensteamtool_signatures(config.steam_path)
+        logger.info(f"[SteamTools Auto-Setup] Auto-setup complete ({installed_count} files installed/updated).")
+        return True
+    except Exception as e:
+        logger.error(f"[SteamTools Auto-Setup] Error: {e}")
+        return False
         return True
     except Exception as e:
         logger.error(f"[SteamTools Auto-Setup] Error during auto-setup: {e}")
@@ -1818,58 +1940,67 @@ def sync_depotcache_manifests(steam_path: str) -> int:
         logger.info(f"[depotcache] Synced {synced} manifest files to official depotcache.")
     return synced
 
-def cleanup_dummy_uninstalled_acfs(steam_path: str) -> int:
-    """Removes dummy uninstalled ACF manifests (StateFlags: 1, SizeOnDisk: 0) from all libraries
-    and cleans their empty entries from libraryfolders.vdf.
-    
-    This ensures Steam always opens its native install dialog asking the user which drive
-    (C:, D:, etc.) they want to install the game to, and displays the true required disk space
-    instead of locking the location with 'YÜKLEME KLASÖRÜ DEĞİŞTİRİLEMEZ' and '0 B'.
-    """
+def ensure_all_unlocked_acfs(steam_path: str) -> int:
+    """Ensures unlocked games with actual files on disk have a valid StateFlags 4 ACF,
+    and removes any dummy 0-byte ACF manifests for uninstalled games to prevent the Steam
+    '0 Byte' and empty folder download bug."""
     if not steam_path or not os.path.isdir(steam_path):
         return 0
-    cleaned = 0
+    repaired = 0
     try:
-        libs = FileManager.get_library_folders(steam_path)
-        for _, lib_path in libs:
-            steamapps = os.path.join(lib_path, "steamapps")
-            if not os.path.isdir(steamapps):
-                continue
-            for f in os.listdir(steamapps):
-                if f.startswith("appmanifest_") and f.endswith(".acf"):
-                    p = os.path.join(steamapps, f)
-                    try:
-                        with open(p, "r", encoding="utf-8", errors="ignore") as fp:
-                            txt = fp.read()
-                        if '"StateFlags"\t\t"1"' in txt and '"SizeOnDisk"\t\t"0"' in txt:
-                            m_aid = re.search(r'"appid"\s+"(\d+)"', txt)
-                            m_dir = re.search(r'"installdir"\s+"([^"]+)"', txt)
-                            idir = m_dir.group(1) if m_dir else ""
-                            common_p = os.path.join(steamapps, "common", idir)
-                            has_content = os.path.isdir(common_p) and len(os.listdir(common_p)) > 0 if idir else False
-                            if not has_content:
-                                os.remove(p)
-                                bak_p = p + ".bak"
-                                if os.path.isfile(bak_p):
-                                    try:
-                                        os.remove(bak_p)
-                                    except Exception:
-                                        pass
-                                if m_aid:
-                                    FileManager.remove_from_library_folders(steam_path, m_aid.group(1))
-                                cleaned += 1
-                                logger.info(f"[cleanup_dummy_uninstalled_acfs] Liberated {f} to enable Steam drive picker.")
-                    except Exception as ex:
-                        logger.debug(f"Error checking {f}: {ex}")
-        if cleaned > 0:
-            logger.info(f"[cleanup_dummy_uninstalled_acfs] Cleaned {cleaned} dummy ACFs. Steam drive picker restored.")
+        plugin_dir = os.path.join(steam_path, "config", "stplug-in")
+        if not os.path.isdir(plugin_dir):
+            return 0
+            
+        all_libs = FileManager.get_library_folders(steam_path)
+        
+        # Check every lua in stplug-in
+        for fname in os.listdir(plugin_dir):
+            if fname.lower().endswith(".lua"):
+                appid = os.path.splitext(fname)[0]
+                if not appid.isdigit():
+                    continue
+                # Skip system/fix tools (480 Spacewar, 228980 redistributables)
+                if appid in ["480", "1002", "228980", "250820"]:
+                    continue
+                    
+                game_details = SteamAPI.get_app_details(appid)
+                game_name = game_details["name"] if game_details else f"Steam App {appid}"
+                installdir = re.sub(r'[^a-zA-Z0-9\s\-\_]', '', game_name).strip() or f"SteamApp_{appid}"
+                
+                # Check all libraries to see if game files actually exist
+                installed_lib = None
+                installed_idx = None
+                total_disk_bytes = 0
+                
+                for idx, path in all_libs:
+                    gdir = os.path.join(path, "steamapps", "common", installdir)
+                    if os.path.isdir(gdir):
+                        try:
+                            f_size = sum(os.path.getsize(os.path.join(r, f)) for r, d, fs in os.walk(gdir) for f in fs)
+                            if f_size > 5 * 1024 * 1024:  # At least 5 MB of actual game files
+                                installed_lib = path
+                                installed_idx = idx
+                                total_disk_bytes = f_size
+                                break
+                        except Exception:
+                            pass
+                
+                if installed_lib:
+                    # Game is physically installed with real files on disk
+                    FileManager.generate_acf_manifest(installed_lib, appid, game_name, actual_size=total_disk_bytes)
+                    FileManager.update_library_folders(steam_path, appid, installed_idx)
+                    repaired += 1
+                    logger.info(f"[ensure_all_unlocked_acfs] Registered real installation for AppID {appid} in {installed_lib} ({total_disk_bytes} bytes)")
+                else:
+                    # Game is waiting to be downloaded via Steam
+                    pass
     except Exception as e:
-        logger.warning(f"[cleanup_dummy_uninstalled_acfs] Error cleaning dummy ACFs: {e}")
-    return cleaned
+        logger.warning(f"[ensure_all_unlocked_acfs] Error: {e}")
+    return repaired
 
-def ensure_all_unlocked_acfs(steam_path: str) -> int:
-    """Backward compatibility alias that calls cleanup_dummy_uninstalled_acfs."""
-    return cleanup_dummy_uninstalled_acfs(steam_path)
+def cleanup_dummy_uninstalled_acfs(steam_path: str) -> int:
+    return ensure_all_unlocked_acfs(steam_path)
 
 # %%
 # API Endpoint: POST /api/clear_steam_cache
@@ -2160,16 +2291,36 @@ reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\steam
 @app.route("/api/play", methods=["POST"])
 def play_game():
     data = request.json or {}
-    appid = data.get("appid", "").strip()
+    appid = str(data.get("appid", "")).strip()
+    library_idx = data.get("library_idx")
     if not appid:
-        return jsonify({"success": False, "error": "AppID is required"})
+        return jsonify({"success": False, "error": "AppID gereklidir"})
     try:
-        url = f"steam://run/{appid}"
+        # Check if game is physically installed on disk (StateFlags 4)
+        is_installed = False
+        has_acf = False
+        if config.steam_path and os.path.isdir(config.steam_path):
+            all_libs = FileManager.get_library_folders(config.steam_path)
+            for idx, lib_path in all_libs:
+                acf_p = os.path.join(lib_path, "steamapps", f"appmanifest_{appid}.acf")
+                if os.path.isfile(acf_p):
+                    has_acf = True
+                    try:
+                        with open(acf_p, "r", encoding="utf-8", errors="ignore") as fp:
+                            txt = fp.read()
+                        if '"StateFlags"\t\t"4"' in txt:
+                            is_installed = True
+                            break
+                    except Exception:
+                        pass
+
+        # If physically installed, run it. If not installed, trigger Steam's native installer dialog!
+        url = f"steam://run/{appid}" if is_installed else f"steam://install/{appid}"
         webbrowser.open(url)
-        logger.info(f"Launched game AppID {appid} via steam://run/")
-        return jsonify({"success": True})
+        logger.info(f"Launched game AppID {appid} via {url} (is_installed={is_installed})")
+        return jsonify({"success": True, "action": "run" if is_installed else "install", "url": url})
     except Exception as e:
-        logger.error(f"Failed to play game {appid}: {e}")
+        logger.error(f"Failed to play/install game {appid}: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 
@@ -2267,7 +2418,7 @@ def import_files():
 
 # %%
 # Background Addition worker
-def add_game_thread_worker(appid: str):
+def add_game_thread_worker(appid: str, requested_library_idx: Optional[str] = None):
     """Executes the game addition logic in a background thread."""
     global task_statuses
     
@@ -2284,6 +2435,12 @@ def add_game_thread_worker(appid: str):
         # Check Steam Path
         if not config.steam_path:
             raise SteamToolsException("Steam path not configured.")
+
+        # Ensure SteamTools is installed in Steam so the game actually gets unlocked and displayed!
+        st_installed, _ = check_steamtools_installed()
+        if not st_installed:
+            logger.info(f"[add_game] SteamTools not installed in Steam. Auto-installing now...")
+            ensure_steamtools_installed_auto()
             
         update_status("Validating AppID...", 20)
         valid_id = validator.validate_appid(appid)
@@ -2330,20 +2487,93 @@ def add_game_thread_worker(appid: str):
         update_status("Manifest ve kilit açıcı dosyaları kaydediliyor...", 85)
         FileManager.write_steamtools_files(config.steam_path, manifests, luas)
             
-        # 4. Clean any old/dummy ACF and remove from libraryfolders.vdf
-        # This prevents Steam from locking the install path with 'YÜKLEME KLASÖRÜ DEĞİŞTİRİLEMEZ'
-        # and allows Steam's native install dialog to prompt the user to choose their desired drive (C: or D:)
-        update_status("Kütüphane kayıtları düzenleniyor...", 95)
-        FileManager.clean_acf_manifests(config.steam_path, valid_id)
-        FileManager.remove_from_library_folders(config.steam_path, valid_id)
+        # 4. Resolve Target Library and handle ACF / download readiness
+        update_status("Kütüphane dizini belirleniyor...", 90)
+        all_libs = FileManager.get_library_folders(config.steam_path)
+        lib_map = {str(idx): path for idx, path in all_libs}
+        
+        target_idx = None
+        # Priority 1: User's explicitly chosen library index
+        if requested_library_idx is not None and str(requested_library_idx) in lib_map:
+            target_idx = str(requested_library_idx)
+        # Priority 2: Config default library
+        elif config.default_library and str(config.default_library) in lib_map:
+            target_idx = str(config.default_library)
+        else:
+            for idx, p in all_libs:
+                if config.default_library and os.path.normpath(config.default_library).lower() == os.path.normpath(p).lower():
+                    target_idx = str(idx)
+                    break
+
+        # Priority 3: Fallback to the library with the most free disk space
+        if target_idx is None:
+            best_idx = "0"
+            max_free = -1
+            for idx, path in all_libs:
+                try:
+                    usage = shutil.disk_usage(path)
+                    if usage.free > max_free:
+                        max_free = usage.free
+                        best_idx = str(idx)
+                except Exception:
+                    pass
+            target_idx = best_idx
+                
+        target_lib_path = lib_map.get(target_idx, config.steam_path)
+        logger.info(f"Target library for AppID {valid_id}: Index [{target_idx}] -> {target_lib_path}")
+        
+        # Check if actual game files (> 5MB) physically exist in common/<installdir> in ANY library
+        installdir = re.sub(r'[^a-zA-Z0-9\s\-\_]', '', game_name).strip() or f"SteamApp_{valid_id}"
+        existing_installed_lib = None
+        existing_installed_idx = None
+        existing_size = 0
+        for idx, path in all_libs:
+            gdir = os.path.join(path, "steamapps", "common", installdir)
+            if os.path.isdir(gdir):
+                try:
+                    f_size = sum(os.path.getsize(os.path.join(r, f)) for r, d, fs in os.walk(gdir) for f in fs)
+                    if f_size > 5 * 1024 * 1024:
+                        existing_installed_lib = path
+                        existing_installed_idx = idx
+                        existing_size = f_size
+                        break
+                except Exception:
+                    pass
+
+        if existing_installed_lib:
+            target_lib = existing_installed_lib
+            target_idx = existing_installed_idx
+            actual_sz = existing_size
+            update_status("Mevcut oyun dosyaları doğrulanıyor...", 95)
+            # Generate ACF manifest (StateFlags 4) for physically existing files
+            FileManager.generate_acf_manifest(target_lib, valid_id, game_name, manifests, actual_size=actual_sz)
+            FileManager.update_library_folders(config.steam_path, valid_id, target_idx)
+
+            # Clean any conflicting ACFs from other libraries
+            for idx, path in all_libs:
+                if os.path.normpath(path).lower() != os.path.normpath(target_lib).lower():
+                    dup_acf = os.path.join(path, "steamapps", f"appmanifest_{valid_id}.acf")
+                    if os.path.isfile(dup_acf):
+                        try:
+                            os.remove(dup_acf)
+                        except Exception:
+                            pass
+        else:
+            update_status("Steam kütüphane dosyaları eşitlendi...", 95)
+            # Uninstalled games rely natively on Steam & SteamTools.
+            # Do NOT create premature ACF so Steam natively prompts for drive selection (C: vs D:) and computes real download size.
+            pass
+
+        success_msg = f"'{game_name}' başarıyla Steam'e eklendi!"
         _library_cache["timestamp"] = 0
         
         # Success state
         with task_lock:
             task_statuses[appid] = {
                 "status": "success",
-                "message": f"'{game_name}' başarıyla kütüphaneye eklendi!",
-                "progress": 100
+                "message": success_msg,
+                "progress": 100,
+                "can_install": (existing_installed_lib is None)
             }
             
     except Exception as e:
@@ -2356,11 +2586,36 @@ def add_game_thread_worker(appid: str):
             }
 
 # %%
+# API Endpoint: GET /api/libraries
+@app.route("/api/libraries", methods=["GET"])
+def api_libraries():
+    """Returns detected Steam library folders with drive letters and free space."""
+    libs = []
+    if config.steam_path and os.path.isdir(config.steam_path):
+        all_libs = FileManager.get_library_folders(config.steam_path)
+        for idx, p in all_libs:
+            drive = os.path.splitdrive(p)[0] or "C:"
+            free_gb = 0
+            try:
+                free_gb = round(shutil.disk_usage(p).free / (1024**3), 1)
+            except Exception:
+                pass
+            libs.append({
+                "index": str(idx),
+                "path": p,
+                "drive": drive,
+                "free_gb": free_gb,
+                "label": f"{drive} ({p}) - {free_gb} GB Boş"
+            })
+    return jsonify({"success": True, "libraries": libs})
+
+# %%
 # API Endpoint: POST /api/add
 @app.route("/api/add", methods=["POST"])
 def add_game():
     data = request.json or {}
     raw_appid = data.get("appid", "").strip()
+    library_idx = data.get("library_idx")
     appid = validator.extract_appid(raw_appid)
     
     if not appid:
@@ -2409,7 +2664,7 @@ def add_game():
             "progress": 0
         }
         
-    thread = threading.Thread(target=add_game_thread_worker, args=(appid,), daemon=True)
+    thread = threading.Thread(target=add_game_thread_worker, args=(appid, library_idx), daemon=True)
     thread.start()
     
     return jsonify({"success": True, "appid": appid, "name": resolved_name})
@@ -4458,27 +4713,44 @@ def is_process_active(pid: int) -> bool:
     kernel32.CloseHandle(handle)
     return bool(success and (exit_code.value == STILL_ACTIVE))
 
-def parent_monitor_worker():
+def kill_sibling_backends():
+    """Kills any orphaned backend processes to keep RAM clean."""
     try:
-        parent_pid = os.getppid()
-    except Exception:
-        parent_pid = None
-        
-    if not parent_pid or parent_pid <= 1:
-        logger.info("[Watcher] No valid parent PID found. Watchdog disabled.")
-        return
-        
-    logger.info(f"[Watcher] Started monitoring parent process (PID: {parent_pid}).")
-    miss_count = 0
+        import psutil
+        my_pid = os.getpid()
+        for proc in psutil.process_iter(['pid', 'name']):
+            try:
+                name = proc.info.get('name') or ''
+                pid = proc.info.get('pid')
+                if 'SteamTools_Auto_Backend' in name and pid != my_pid:
+                    proc.kill()
+                    logger.info(f"[ProcessCleaner] Terminated old zombie backend PID {pid}")
+            except Exception:
+                pass
+    except Exception as e:
+        logger.debug(f"[kill_sibling_backends] {e}")
+
+def parent_monitor_worker():
+    """Monitors whether SteaMRogue is running; exits cleanly when SteaMRogue closes."""
+    import psutil
+    time.sleep(15)  # Initial grace period for window launch
     while True:
-        time.sleep(3)
-        if not is_process_active(parent_pid):
-            miss_count += 1
-            if miss_count >= 5:
-                logger.info(f"[Watcher] Parent process {parent_pid} confirmed terminated (5 consecutive misses). Exiting backend...")
+        time.sleep(2)
+        try:
+            electron_alive = False
+            for proc in psutil.process_iter(['name']):
+                try:
+                    pname = (proc.info.get('name') or '').lower()
+                    if 'steamrogue' in pname or 'electron' in pname:
+                        electron_alive = True
+                        break
+                except Exception:
+                    pass
+            if not electron_alive:
+                logger.info("[Watcher] SteaMRogue window closed. Terminating backend to free RAM...")
                 os._exit(0)
-        else:
-            miss_count = 0
+        except Exception:
+            pass
 
 def background_health_worker():
     """Runs periodic maintenance in the background without lag."""
@@ -4494,6 +4766,10 @@ def background_health_worker():
 
 def start_server():
     """Starts the Flask server in a local port with automatic zero-config onboarding."""
+    # 0. Start parent watchdog thread to terminate backend as soon as SteaMRogue closes
+    watchdog_thread = threading.Thread(target=parent_monitor_worker, daemon=True)
+    watchdog_thread.start()
+
     # 1. Execute automatic self-healing and zero-config onboarding silently in background on startup
     def first_run_onboarding_worker():
         try:
@@ -4510,10 +4786,14 @@ def start_server():
     health_thread = threading.Thread(target=background_health_worker, daemon=True)
     health_thread.start()
 
-    # 3. Run startup component checks in background (repos + SteamTools)
-    updater.run_startup_checks(config.manifest_repos, config.steam_path)
+    # 3. Run startup component checks in background thread so Flask binds immediately (50ms)
+    startup_checks_thread = threading.Thread(
+        target=updater.run_startup_checks,
+        args=(config.manifest_repos, config.steam_path),
+        daemon=True
+    )
+    startup_checks_thread.start()
 
-    
     try:
         from werkzeug.serving import run_simple
         run_simple("127.0.0.1", 65012, app, threaded=True)
@@ -4525,4 +4805,5 @@ def start_server():
 if __name__ == "__main__":
     setup_logger()
     logger.info("Starting SteamTools Auto Flask API Server...")
+    kill_sibling_backends()
     start_server()

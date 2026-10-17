@@ -333,6 +333,7 @@ function initTabs() {
                 if (typeof updateVCRedistStatus === "function") updateVCRedistStatus();
                 if (typeof updateSecurityStatus === "function") updateSecurityStatus();
                 if (typeof pollComponentUpdateStatus === "function") pollComponentUpdateStatus();
+                if (typeof loadSteamLibraries === "function") loadSteamLibraries();
             }
 
             if (targetTab === "discount-leak" && typeof fetchDealsGlobal === "function") {
@@ -461,6 +462,8 @@ function initAppLogic() {
                 if (typeof updateVCRedistStatus === "function") updateVCRedistStatus();
                 if (typeof updateSecurityStatus === "function") updateSecurityStatus();
                 if (typeof pollComponentUpdateStatus === "function") pollComponentUpdateStatus();
+                loadSteamLibraries();
+                loadSettings();
                 loadLibrary();
 
                 setTimeout(() => {
@@ -949,7 +952,7 @@ function initAppLogic() {
     }
 
     // Add AppID
-    btnAddAppid.addEventListener("click", () => {
+    btnAddAppid.addEventListener("click", async () => {
         const raw = appidInput.value.trim();
         const appid = extractAppId(raw);
         if (!appid) {
@@ -1004,7 +1007,8 @@ function initAppLogic() {
                         loadingOverlay.classList.remove("active");
                         appidInput.value = "";
                         loadLibrary(); // Reload list
-                        showCustomConfirm("Oyun kütüphaneye eklendi!\n\nSteam'de hemen görünmesi için Steam'i şimdi yeniden başlatmak ister misiniz?").then((yes) => {
+                        const successMsg = data.message || "Oyun kütüphaneye başarıyla eklendi!";
+                        showCustomConfirm(`${successMsg}\n\nSteam'in oyunu algılaması için Steam istemcisini şimdi yeniden başlatmak ister misiniz?`).then((yes) => {
                             if (yes) {
                                 btnRestartSteam.click();
                             }
@@ -1163,7 +1167,75 @@ function initAppLogic() {
             });
     }
 
-    function loadSteamLibraries() {}
+    async function loadSteamLibraries() {
+        const adderSelect = document.getElementById("steam-library-select");
+        const settingsSelect = document.getElementById("settings-default-library-select");
+        const statusText = document.getElementById("default-library-status-text");
+
+        try {
+            const res = await fetch("/api/steam/libraries");
+            const data = await res.json();
+            if (data.success && data.libraries && data.libraries.length > 0) {
+                const defaultLib = data.default_library || "";
+                
+                let optionsHtml = "";
+                data.libraries.forEach(lib => {
+                    const isSelected = (defaultLib && (String(lib.index) === String(defaultLib) || lib.path.toLowerCase() === defaultLib.toLowerCase())) ? "selected" : "";
+                    optionsHtml += `<option value="${lib.index}" ${isSelected}>💾 ${lib.short_label}</option>`;
+                });
+
+                if (adderSelect) {
+                    adderSelect.innerHTML = optionsHtml;
+                }
+                if (settingsSelect) {
+                    settingsSelect.innerHTML = optionsHtml;
+                }
+                if (statusText) {
+                    const activeLib = data.libraries.find(l => String(l.index) === String(defaultLib) || l.path.toLowerCase() === defaultLib.toLowerCase()) || data.libraries[0];
+                    statusText.textContent = `Aktif Sürücü: ${activeLib.short_label} (${activeLib.path})`;
+                    statusText.style.color = "#10b981";
+                }
+            } else {
+                const fallbackHtml = '<option value="0">💾 Ana Steam Klasörü</option>';
+                if (adderSelect) adderSelect.innerHTML = fallbackHtml;
+                if (settingsSelect) settingsSelect.innerHTML = fallbackHtml;
+                if (statusText) statusText.textContent = "Ek kütüphane bulunamadı, ana Steam klasörü kullanılıyor.";
+            }
+        } catch (err) {
+            console.error("Failed loading steam libraries:", err);
+            const errHtml = '<option value="0">💾 Varsayılan Kütüphane</option>';
+            if (adderSelect) adderSelect.innerHTML = errHtml;
+            if (settingsSelect) settingsSelect.innerHTML = errHtml;
+        }
+    }
+
+    const btnSaveDefLib = document.getElementById("btn-save-default-library");
+    if (btnSaveDefLib) {
+        btnSaveDefLib.addEventListener("click", async () => {
+            const settingsSelect = document.getElementById("settings-default-library-select");
+            if (!settingsSelect) return;
+            const chosenIdx = settingsSelect.value;
+            btnSaveDefLib.disabled = true;
+            try {
+                const res = await fetch("/api/steam/set_default_library", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ library_idx: chosenIdx })
+                });
+                const data = await res.json();
+                btnSaveDefLib.disabled = false;
+                if (data.success) {
+                    alert("Varsayılan kurulum sürücüsü başarıyla kaydedildi!");
+                    loadSteamLibraries();
+                } else {
+                    alert("Hata: " + (data.error || "Kaydedilemedi"));
+                }
+            } catch (e) {
+                btnSaveDefLib.disabled = false;
+                alert("Bağlantı hatası: " + e);
+            }
+        });
+    }
 
     // Helper: Identify hidden system/fix utilities (Spacewar 480, redistributables)
     function isHiddenLibraryApp(game) {
@@ -1336,8 +1408,14 @@ function initAppLogic() {
             const cdnFallback1 = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${game.appid}/library_600x900.jpg`;
             const cdnFallback2 = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`;
             
+            const isInst = Boolean(game.installed);
+            const statusBadgeHtml = isInst 
+                ? `<span style="position: absolute; top: 8px; left: 8px; background: rgba(16, 185, 129, 0.92); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; z-index: 4; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fa-solid fa-circle-check"></i> YÜKLÜ</span>`
+                : `<span style="position: absolute; top: 8px; left: 8px; background: rgba(37, 99, 235, 0.92); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; z-index: 4; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fa-solid fa-download"></i> İNDİRİLEBİLİR</span>`;
+
             card.innerHTML = `
                 <div class="card-image-wrapper">
+                    ${statusBadgeHtml}
                     <img class="card-image" src="${primaryCoverUrl}" alt="${game.name}" loading="lazy" decoding="async">
                     <div class="card-overlay-actions">
                         <button class="btn-delete-card" data-appid="${game.appid}" title="Kütüphaneden Kaldır">
@@ -1688,11 +1766,21 @@ function initAppLogic() {
         modalDescription.textContent = "Loading details from Steam Store API...";
         
         // Show/hide buttons based on library membership
-        const isAdded = gameLibrary.some(g => g.appid == appid);
+        const gameItem = gameLibrary.find(g => g.appid == appid);
+        const isAdded = Boolean(gameItem);
+        const isInstalled = gameItem ? Boolean(gameItem.installed) : false;
+
         if (isAdded) {
             modalBtnPlay.style.display = "";
             modalBtnDelete.style.display = "";
             modalBtnAdd.style.display = "none";
+            if (isInstalled) {
+                modalBtnPlay.innerHTML = '<i class="fa-solid fa-play"></i> Oyna';
+                modalBtnPlay.title = "Oyunu Steam üzerinden başlat";
+            } else {
+                modalBtnPlay.innerHTML = '<i class="fa-solid fa-download"></i> Steam ile İndir / Yükle';
+                modalBtnPlay.title = "Steam'in resmi indirme ve sürücü seçim (C/D) ekranını aç";
+            }
         } else {
             modalBtnPlay.style.display = "none";
             modalBtnDelete.style.display = "none";
@@ -1733,6 +1821,7 @@ function initAppLogic() {
 
     modalBtnPlay.addEventListener("click", () => {
         if (!activeModalAppid) return;
+
         fetch("/api/play", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1741,7 +1830,7 @@ function initAppLogic() {
         .then(res => res.json())
         .then(data => {
             if (!data.success) {
-                alert("Launch failed: " + data.error);
+                alert("Başlatma başarısız: " + data.error);
             }
         });
     });

@@ -1,6 +1,6 @@
 {
   "name": "steamrogue",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Hepsi Bir Arada Steam Kütüphane Yöneticisi, OnlineFix Multiplayer Entegrasyonu & Otomatik Güncelleme Platformu",
   "main": "main.js",
   "scripts": {
@@ -26,7 +26,8 @@
       "extraResources": [
         "SteamTools_Auto_Backend.exe",
         "steamtools_files",
-        "resources"
+        "resources",
+        "web"
       ]
     },
     "nsis": {
@@ -41,7 +42,8 @@
     "files": [
       "main.js",
       "preload.js",
-      "package.json"
+      "package.json",
+      "web/**/*"
     ],
     "publish": {
       "provider": "github",

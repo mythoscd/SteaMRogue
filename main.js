@@ -45,6 +45,9 @@ function findBackendExecutable() {
 
 function startBackend() {
     console.log("Starting Python backend...");
+    try {
+        require('child_process').execSync('taskkill /F /T /IM SteamTools_Auto_Backend.exe', { stdio: 'ignore' });
+    } catch (_) {}
     const env = { ...process.env, UV_SYSTEM_CERTS: 'true' };
     
     const backendExe = findBackendExecutable();
@@ -192,8 +195,33 @@ ipcMain.on('open-external', (event, url) => {
 });
 
 // Auto-Updater Logic (electron-updater + Hybrid Hotfix / Repair Support)
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+
+function ensureWebAssets() {
+    try {
+        const webDest = path.join(process.resourcesPath, 'web');
+        const indexHtmlDest = path.join(webDest, 'index.html');
+        if (!fs.existsSync(indexHtmlDest)) {
+            console.warn(`[Self-Healing] ${indexHtmlDest} not found. Attempting recovery...`);
+            const possibleSources = [
+                path.join(__dirname, 'web'),
+                path.join(app.getAppPath(), 'web'),
+                path.join(process.resourcesPath, 'web'),
+                path.join(path.dirname(process.resourcesPath), 'web')
+            ];
+            for (const src of possibleSources) {
+                if (fs.existsSync(path.join(src, 'index.html'))) {
+                    fs.cpSync(src, webDest, { recursive: true });
+                    console.log(`[Self-Healing] Successfully restored web assets from ${src}`);
+                    break;
+                }
+            }
+        }
+    } catch (err) {
+        console.error('[Self-Healing] Error ensuring web assets:', err);
+    }
+}
 
 function getMetaFilePath() {
     return path.join(app.getPath('userData'), 'installed-build-meta.json');
@@ -264,6 +292,22 @@ function downloadFile(url, destPath, onProgress) {
     });
 }
 
+function fetchJson(url) {
+    return new Promise((resolve) => {
+        https.get(url, { headers: { 'User-Agent': 'SteaMRogue-App' } }, (res) => {
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                return fetchJson(res.headers.location).then(resolve);
+            }
+            if (res.statusCode !== 200) return resolve(null);
+            let raw = '';
+            res.on('data', chunk => raw += chunk);
+            res.on('end', () => {
+                try { resolve(JSON.parse(raw)); } catch { resolve(null); }
+            });
+        }).on('error', () => resolve(null));
+    });
+}
+
 let isRepairing = false;
 let downloadedInstallerPath = null;
 
@@ -276,11 +320,25 @@ async function runRepairDownload() {
             mainWindow.webContents.send('updater-status', {
                 status: 'downloading',
                 percent: 0,
-                message: 'GitHub üzerinden en güncel kurulum paketi indiriliyor...'
+                message: 'GitHub üzerinden en güncel kurulum paketi sorgulanıyor ve indiriliyor...'
             });
         }
 
-        const downloadUrl = `https://github.com/mythoscd/SteaMRogue/releases/latest/download/SteaMRogue-Setup-${app.getVersion()}.exe`;
+        // Dynamically resolve release asset from GitHub API so version changes never 404
+        const releaseData = await fetchJson('https://api.github.com/repos/mythoscd/SteaMRogue/releases/latest');
+        let downloadUrl = null;
+        let latestVersion = app.getVersion();
+        if (releaseData && releaseData.assets && releaseData.assets.length > 0) {
+            latestVersion = (releaseData.tag_name || '').replace(/^v/i, '') || latestVersion;
+            const exeAsset = releaseData.assets.find(a => a.name.endsWith('.exe') && !a.name.toLowerCase().includes('backend'));
+            if (exeAsset && exeAsset.browser_download_url) {
+                downloadUrl = exeAsset.browser_download_url;
+            }
+        }
+        if (!downloadUrl) {
+            downloadUrl = `https://github.com/mythoscd/SteaMRogue/releases/latest/download/SteaMRogue-Setup-${latestVersion}.exe`;
+        }
+
         const tempDest = path.join(app.getPath('temp'), `SteaMRogue-Setup-Latest.exe`);
 
         await downloadFile(downloadUrl, tempDest, (percent) => {
@@ -509,6 +567,9 @@ function waitForBackendAndLoad(maxRetries = 350, retryInterval = 100) {
 }
 
 app.whenReady().then(() => {
+    // 0. Ensure web assets exist (self-healing if updater wiped them)
+    ensureWebAssets();
+
     // 1. Create native window immediately (0ms user click feedback)
     createWindow();
 
@@ -541,4 +602,10 @@ app.on('window-all-closed', () => {
         }
     }
     if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('will-quit', () => {
+    try {
+        require('child_process').execSync('taskkill /F /T /IM SteamTools_Auto_Backend.exe', { stdio: 'ignore' });
+    } catch (_) {}
 });

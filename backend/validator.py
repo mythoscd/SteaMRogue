@@ -324,7 +324,12 @@ def ensure_opensteamtool_signatures(steam_path: str) -> bool:
             except Exception as d_err:
                 logger.debug(f"[OST Signatures] Dynamic generation error: {d_err}")
 
-    return synced_any
+    all_present = all(
+        os.path.isfile(os.path.join(ost_dir, channel, comp, f"{sha}.toml")) and 
+        os.path.getsize(os.path.join(ost_dir, channel, comp, f"{sha}.toml")) > 100
+        for channel, comp, sha in targets
+    )
+    return all_present or synced_any
 
 # %%
 def cleanup_steam_crashes(steam_path: str) -> bool:
@@ -700,10 +705,17 @@ def check_security_quarantine(steam_path: str) -> dict:
     if not steam_path or not os.path.isdir(steam_path):
         return res
 
+    # If official SteamTools xinput1_4.dll (> 200KB) is present, it is completely self-contained
+    official_st = os.path.join(steam_path, "xinput1_4.dll")
+    if os.path.isfile(official_st) and os.path.getsize(official_st) > 200000:
+        res["details"] = "Resmi SteamTools kilit açıcı modülü aktif ve sorunsuz çalışıyor."
+        return res
+
     required = ["xinput1_4.dll", "OpenSteamTool.dll"]
     for f in required:
         fp = os.path.join(steam_path, f)
-        if not os.path.isfile(fp) or os.path.getsize(fp) < 1000:
+        min_sz = 50000 if f == "xinput1_4.dll" else 500000
+        if not os.path.isfile(fp) or os.path.getsize(fp) < min_sz:
             res["missing_files"].append(f)
 
     if res["missing_files"]:
@@ -755,10 +767,11 @@ def auto_restore_quarantined_files(steam_path: str, bundled_dir: str = None) -> 
 
     for f in targets:
         dst = os.path.join(steam_path, f)
-        needs_restore = not os.path.isfile(dst) or os.path.getsize(dst) < 1000
+        src = os.path.join(bundled_dir, f) if bundled_dir else ""
+        min_sz = 50000 if f == "xinput1_4.dll" else 500000
+        needs_restore = not os.path.isfile(dst) or os.path.getsize(dst) < min_sz
 
         if needs_restore:
-            src = os.path.join(bundled_dir, f) if bundled_dir else ""
             if src and os.path.isfile(src):
                 try:
                     shutil.copy2(src, dst)
