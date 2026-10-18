@@ -81,17 +81,19 @@ import updater
 # Initialize Flask & Base Directory Resolution
 def find_web_dir():
     candidates = []
-    # 1. PyInstaller _MEIPASS
-    if hasattr(sys, "_MEIPASS"):
-        candidates.append(os.path.join(sys._MEIPASS, "web"))
 
-    # 2. Executable directory (production resources or portable directory)
+    # 1. Executable directory (production resources or portable directory)
     exe_dir = os.path.dirname(os.path.abspath(sys.executable))
     candidates.append(os.path.join(exe_dir, "web"))
     candidates.append(os.path.join(exe_dir, "resources", "web"))
     candidates.append(os.path.join(exe_dir, "..", "web"))
     candidates.append(os.path.join(exe_dir, "..", "resources", "web"))
     candidates.append(os.path.join(exe_dir, "..", "resources", "app", "web"))
+
+    # 2. Developer source directory on Desktop (bulletproof fallback)
+    desktop_source = os.path.expanduser(r"~\Desktop\Yeni klasör\SteamTools_Auto_Source\web")
+    if os.path.isdir(desktop_source):
+        candidates.append(desktop_source)
 
     # 3. Script source directories
     _file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -103,10 +105,9 @@ def find_web_dir():
     candidates.append(os.path.join(cwd, "web"))
     candidates.append(os.path.join(cwd, "resources", "web"))
 
-    # 5. Developer source directory on Desktop (bulletproof fallback)
-    desktop_source = os.path.expanduser(r"~\Desktop\Yeni klasör\SteamTools_Auto_Source\web")
-    if os.path.isdir(desktop_source):
-        candidates.append(desktop_source)
+    # 5. PyInstaller _MEIPASS (fallback when no external disk assets exist)
+    if hasattr(sys, "_MEIPASS"):
+        candidates.append(os.path.join(sys._MEIPASS, "web"))
 
     # Check all candidates for index.html
     for c in candidates:
@@ -154,7 +155,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.7"
+APP_VERSION = "1.1.8"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -1222,10 +1223,14 @@ def get_bypass_status():
     st_plugin = os.path.join(config.steam_path, "config", "stplug-in")
     has_plugins = os.path.isdir(st_plugin) and len(os.listdir(st_plugin)) > 0 if os.path.isdir(st_plugin) else False
     
-    # SteamTools is installed if OpenSteamTool.dll is present AND proxy dll (xinput1_4) is present
+    # SteamTools is installed if official hook (>200KB) is present, or safe mode is active, or OST+proxy is present
     has_ost = any(d.lower() == "opensteamtool.dll" for d in installed_dlls)
     has_proxy = any(d.lower() == "xinput1_4.dll" for d in installed_dlls)
-    installed = has_ost and has_proxy
+    official_p = os.path.join(config.steam_path, "xinput1_4.dll")
+    official_safe = os.path.join(config.steam_path, "xinput1_4.dll.disabled")
+    has_official = (os.path.isfile(official_p) and os.path.getsize(official_p) > 200000) or \
+                   (os.path.isfile(official_safe) and os.path.getsize(official_safe) > 200000)
+    installed = (has_ost and has_proxy) or has_official
 
     steam_running = validator.is_steam_running()
     hook_loaded = False
@@ -1285,16 +1290,20 @@ def check_steamtools_installed():
     try:
         ost_path = os.path.join(config.steam_path, "OpenSteamTool.dll")
         proxy_path = os.path.join(config.steam_path, "xinput1_4.dll")
+        proxy_disabled = os.path.join(config.steam_path, "xinput1_4.dll.disabled")
         
         has_ost = os.path.isfile(ost_path) and os.path.getsize(ost_path) > 500000
         has_proxy = os.path.isfile(proxy_path) and (50000 < os.path.getsize(proxy_path) < 1500000)
+        has_disabled = os.path.isfile(proxy_disabled) and (50000 < os.path.getsize(proxy_disabled) < 1500000)
         
         if has_ost:
             present.append("OpenSteamTool.dll")
         if has_proxy:
             present.append("xinput1_4.dll")
+        if has_disabled:
+            present.append("xinput1_4.dll.disabled")
             
-        is_installed = has_proxy or has_ost
+        is_installed = has_proxy or has_ost or has_disabled
         return is_installed, present
     except Exception:
         return False, []
@@ -1323,6 +1332,12 @@ def ensure_steamtools_installed_auto(force: bool = False):
                 os.remove(dwmapi_bad)
             except Exception:
                 pass
+
+        # If Safe Mode is active (xinput1_4.dll.disabled exists), preserve it unless force=True
+        proxy_disabled = os.path.join(config.steam_path, "xinput1_4.dll.disabled")
+        if os.path.isfile(proxy_disabled) and os.path.getsize(proxy_disabled) > 50000 and not force:
+            logger.info("[SteamTools Auto-Setup] Safe Mode active (xinput1_4.dll.disabled present). Preserving Safe Mode.")
+            return True
 
         # Restore xinput1_4.dll from backup if needed
         proxy_dst = os.path.join(config.steam_path, "xinput1_4.dll")
@@ -1686,11 +1701,16 @@ def diagnose_system_issues() -> List[str]:
         issues.append("Steam klasöründe çökmeye ve VGUI hatasına neden olan 'dwmapi.dll' kancası tespit edildi.")
 
     # 2. Missing proxy or OpenSteamTool
-    if not os.path.isfile(os.path.join(steam_path, "xinput1_4.dll")):
+    safe_mode = os.path.isfile(os.path.join(steam_path, "xinput1_4.dll.disabled"))
+    if not os.path.isfile(os.path.join(steam_path, "xinput1_4.dll")) and not safe_mode:
         issues.append("SteamTools kanca kütüphanesi (xinput1_4.dll) Steam klasöründe eksik.")
     
     ost_p = os.path.join(steam_path, "OpenSteamTool.dll")
-    if not os.path.isfile(ost_p) or os.path.getsize(ost_p) < 100000:
+    official_active = os.path.join(steam_path, "xinput1_4.dll")
+    official_safe = os.path.join(steam_path, "xinput1_4.dll.disabled")
+    has_official = (os.path.isfile(official_active) and os.path.getsize(official_active) > 200000) or \
+                   (os.path.isfile(official_safe) and os.path.getsize(official_safe) > 200000)
+    if not has_official and not safe_mode and (not os.path.isfile(ost_p) or os.path.getsize(ost_p) < 100000):
         issues.append("OpenSteamTool kilit açıcı modülü eksik veya hasarlı.")
 
     # 3. Crash flag
@@ -1988,10 +2008,26 @@ def ensure_all_unlocked_acfs(steam_path: str) -> int:
                 
                 if installed_lib:
                     # Game is physically installed with real files on disk
-                    FileManager.generate_acf_manifest(installed_lib, appid, game_name, actual_size=total_disk_bytes)
+                    # If appmanifest already exists and has a valid buildid from Steam, NEVER overwrite it!
+                    acf_dest = os.path.join(installed_lib, "steamapps", f"appmanifest_{appid}.acf")
+                    need_generate = True
+                    if os.path.isfile(acf_dest):
+                        try:
+                            with open(acf_dest, "r", encoding="utf-8", errors="ignore") as fp:
+                                existing_acf = fp.read()
+                            # If StateFlags is 4 and buildid is non-zero, Steam is successfully managing updates
+                            m_build = re.search(r'"buildid"\s+"([1-9]\d*)"', existing_acf)
+                            m_state = re.search(r'"StateFlags"\s+"4"', existing_acf)
+                            if m_build and m_state:
+                                need_generate = False
+                        except Exception:
+                            pass
+
+                    if need_generate:
+                        FileManager.generate_acf_manifest(installed_lib, appid, game_name, actual_size=total_disk_bytes)
+                        repaired += 1
+                        logger.info(f"[ensure_all_unlocked_acfs] Generated missing ACF for AppID {appid} in {installed_lib} ({total_disk_bytes} bytes)")
                     FileManager.update_library_folders(steam_path, appid, installed_idx)
-                    repaired += 1
-                    logger.info(f"[ensure_all_unlocked_acfs] Registered real installation for AppID {appid} in {installed_lib} ({total_disk_bytes} bytes)")
                 else:
                     # Game is waiting to be downloaded via Steam
                     pass
@@ -2094,6 +2130,217 @@ def clear_steam_cache():
     except Exception as e:
         logger.error(f"Failed to clear steam cache: {e}")
         return jsonify({"success": False, "error": str(e)})
+
+# %%
+# System Mode Controller: Güvenli Mod (VAC Safe) vs SteaMRogue Modu
+def find_steamtools_companion_exe():
+    """Finds the official SteamTools.exe tray app if installed."""
+    candidates = [
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "SteamTools", "SteamTools.exe"),
+        os.path.join(os.environ.get("PROGRAMFILES", ""), "SteamTools", "SteamTools.exe"),
+        os.path.join(os.environ.get("PROGRAMFILES(X86)", ""), "SteamTools", "SteamTools.exe"),
+    ]
+    for c in candidates:
+        if c and os.path.isfile(c):
+            return os.path.normpath(c)
+    return None
+
+def kill_steamtools_companion():
+    """Kills SteamTools.exe process if running."""
+    try:
+        subprocess.run('taskkill /F /IM SteamTools.exe', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        logger.info("[System Mode] Terminated SteamTools companion process.")
+        return True
+    except Exception as e:
+        logger.debug(f"[System Mode] Note terminating SteamTools: {e}")
+        return False
+
+def is_steamtools_running():
+    """Checks if SteamTools.exe is currently active."""
+    try:
+        import psutil
+        for p in psutil.process_iter(['name']):
+            if (p.info.get('name') or '').lower() == 'steamtools.exe':
+                return True
+        return False
+    except Exception:
+        pass
+    try:
+        output = subprocess.check_output('tasklist /FI "IMAGENAME eq SteamTools.exe" /NH', shell=True, encoding="utf-8", errors="ignore")
+        return "steamtools.exe" in output.lower()
+    except Exception:
+        return False
+
+def suppress_steamtools_notifications():
+    """Suppresses Windows toast and balloon notifications for SteamTools.exe."""
+    try:
+        import winreg
+        # 1. Floating widget in HKCU\Software\Valve\Steamtools
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steamtools") as key:
+            winreg.SetValueEx(key, "FloatingVisible", 0, winreg.REG_SZ, "false")
+
+        # 2. Find any generated AUMID in Control Panel\NotifyIconSettings
+        aumids = ["NotifyIconGeneratedAumid_17504294516972093640", "SteamTools", "SteamTools.exe"]
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Control Panel\NotifyIconSettings") as n_key:
+                i = 0
+                while True:
+                    try:
+                        subkey_name = winreg.EnumKey(n_key, i)
+                        i += 1
+                        with winreg.OpenKey(n_key, subkey_name) as sub:
+                            try:
+                                exe_path, _ = winreg.QueryValueEx(sub, "ExecutablePath")
+                                if "steamtools.exe" in (exe_path or "").lower():
+                                    aumids.append(f"NotifyIconGeneratedAumid_{subkey_name}")
+                            except Exception:
+                                pass
+                    except OSError:
+                        break
+        except Exception:
+            pass
+
+        # 3. Suppress banners and Action Center notifications in Windows settings
+        for aumid in set(aumids):
+            reg_path = rf"Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\{aumid}"
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path) as s_key:
+                winreg.SetValueEx(s_key, "Enabled", 0, winreg.REG_DWORD, 0)
+                winreg.SetValueEx(s_key, "ShowInActionCenter", 0, winreg.REG_DWORD, 0)
+                winreg.SetValueEx(s_key, "ShowBanners", 0, winreg.REG_DWORD, 0)
+    except Exception as e:
+        logger.debug(f"[System Mode] Suppress SteamTools notifications note: {e}")
+
+def start_steamtools_companion():
+    """Starts SteamTools.exe companion process completely silently in tray if installed."""
+    exe = find_steamtools_companion_exe()
+    if exe and os.path.isfile(exe):
+        try:
+            if not is_steamtools_running():
+                suppress_steamtools_notifications()
+
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                si.wShowWindow = 0  # SW_HIDE
+
+                flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+                proc = subprocess.Popen(
+                    [exe, "-silent"],
+                    cwd=os.path.dirname(exe),
+                    startupinfo=si,
+                    creationflags=flags,
+                    close_fds=True
+                )
+                logger.info(f"[System Mode] Launched SteamTools companion completely silent: PID {proc.pid}")
+            return True
+        except Exception as e:
+            logger.warning(f"[System Mode] Note launching silent SteamTools: {e}")
+    return False
+
+def get_system_mode_file():
+    return os.path.join(get_appdata_dir(), "system_mode.json")
+
+def get_system_mode():
+    """
+    Returns 'safe' or 'unlocked'. Default is 'unlocked' (SteaMRogue Modu).
+    Persistently stored in %APPDATA%/SteaMRogue/system_mode.json.
+    """
+    try:
+        mf = get_system_mode_file()
+        if os.path.isfile(mf):
+            with open(mf, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                mode = data.get("mode")
+                if mode in ["safe", "unlocked"]:
+                    return mode
+    except Exception as e:
+        logger.debug(f"[System Mode] Note reading system_mode.json: {e}")
+    return "unlocked"
+
+def set_system_mode(mode):
+    """Saves system mode choice to %APPDATA%/SteaMRogue/system_mode.json."""
+    try:
+        mf = get_system_mode_file()
+        os.makedirs(os.path.dirname(mf), exist_ok=True)
+        with open(mf, "w", encoding="utf-8") as f:
+            json.dump({"mode": mode}, f, indent=2)
+        logger.info(f"[System Mode] Saved mode '{mode}' to {mf}")
+    except Exception as e:
+        logger.error(f"[System Mode] Failed to save mode '{mode}': {e}")
+
+def ensure_steam_hook_active():
+    """
+    Ensures xinput1_4.dll is present and active in Steam directory.
+    Even in Safe Mode, xinput1_4.dll is retained so previously added games
+    never disappear or show 'Satın Alın' in the user's library.
+    """
+    if not config.steam_path or not os.path.isdir(config.steam_path):
+        return
+    hook_active = os.path.join(config.steam_path, "xinput1_4.dll")
+    hook_disabled = os.path.join(config.steam_path, "xinput1_4.dll.disabled")
+    try:
+        if os.path.isfile(hook_disabled):
+            if not os.path.isfile(hook_active):
+                os.rename(hook_disabled, hook_active)
+                logger.info("[System Mode] Restored xinput1_4.dll from disabled state so games remain visible.")
+            else:
+                try:
+                    os.remove(hook_disabled)
+                except Exception:
+                    pass
+    except Exception as e:
+        logger.warning(f"[System Mode] Note ensuring hook active: {e}")
+
+@app.route("/api/system/mode", methods=["GET", "POST"])
+def api_system_mode():
+    ensure_steam_hook_active()
+    if request.method == "GET":
+        mode = get_system_mode()
+        steam_running = validator.is_steam_running()
+        if mode == "unlocked":
+            try:
+                start_steamtools_companion()
+            except Exception as e:
+                logger.debug(f"[System Mode] Auto-start on GET note: {e}")
+        return jsonify({
+            "success": True,
+            "mode": mode,
+            "steam_running": steam_running
+        })
+        
+    # POST
+    data = request.get_json(silent=True) or {}
+    target_mode = data.get("mode")
+    if target_mode not in ["safe", "unlocked"]:
+        return jsonify({"success": False, "error": f"Geçersiz mod: {target_mode}"}), 400
+        
+    try:
+        set_system_mode(target_mode)
+        
+        if target_mode == "safe":
+            # 1. Kill SteamTools companion process and injector tools
+            kill_steamtools_companion()
+            # 2. Keep xinput1_4.dll intact so games are never locked or hidden in Steam!
+            ensure_steam_hook_active()
+            logger.info("[System Mode] Switched to SAFE mode: SteamTools terminated, library games preserved.")
+        elif target_mode == "unlocked":
+            # 1. Ensure hook is active
+            ensure_steam_hook_active()
+            if config.steam_path and not os.path.isfile(os.path.join(config.steam_path, "xinput1_4.dll")):
+                ensure_steamtools_installed_auto(force=True)
+            # 2. Launch SteamTools companion
+            start_steamtools_companion()
+            logger.info("[System Mode] Switched to UNLOCKED mode: SteamTools companion launched.")
+            
+        current_mode = get_system_mode()
+        steam_running = validator.is_steam_running()
+        return jsonify({
+            "success": True,
+            "mode": current_mode,
+            "steam_running": steam_running
+        })
+    except Exception as e:
+        logger.error(f"[System Mode] Error switching mode: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # %%
 # API Endpoint: POST /api/uninstall_steamtools
@@ -4732,7 +4979,10 @@ def kill_sibling_backends():
 
 def parent_monitor_worker():
     """Monitors whether SteaMRogue is running; exits cleanly when SteaMRogue closes."""
-    import psutil
+    try:
+        import psutil
+    except Exception:
+        return
     time.sleep(15)  # Initial grace period for window launch
     while True:
         time.sleep(2)
@@ -4778,6 +5028,15 @@ def start_server():
             logger.info(f"[Onboarding] Self-healing completed: {heal_res.get('actions', [])}")
         except Exception as e:
             logger.warning(f"[Onboarding] Self-healing startup note: {e}")
+
+        # Ensure Steam hook is active so added games are never locked
+        try:
+            ensure_steam_hook_active()
+            if get_system_mode() == "unlocked":
+                logger.info("[Onboarding] SteaMRogue mode active on startup. Ensuring SteamTools companion is running...")
+                start_steamtools_companion()
+        except Exception as e:
+            logger.warning(f"[Onboarding] Auto-start SteamTools note: {e}")
 
     onboarding_thread = threading.Thread(target=first_run_onboarding_worker, daemon=True)
     onboarding_thread.start()

@@ -9,5 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdaterStatus: (callback) => ipcRenderer.on('updater-status', (event, data) => callback(data)),
     checkForUpdates: () => ipcRenderer.send('check-for-updates'),
     repairAndReinstall: () => ipcRenderer.send('repair-and-reinstall'),
-    restartAndUpdate: () => ipcRenderer.send('restart-and-update')
+    restartAndUpdate: () => ipcRenderer.send('restart-and-update'),
+    onModeChanged: (callback) => ipcRenderer.on('system-mode-changed', (event, mode) => callback(mode)),
+    notifyModeChanged: (mode) => ipcRenderer.send('mode-changed-in-ui', mode)
 });

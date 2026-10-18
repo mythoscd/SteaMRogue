@@ -705,10 +705,12 @@ def check_security_quarantine(steam_path: str) -> dict:
     if not steam_path or not os.path.isdir(steam_path):
         return res
 
-    # If official SteamTools xinput1_4.dll (> 200KB) is present, it is completely self-contained
+    # If official SteamTools xinput1_4.dll (> 200KB) is present (active or safe mode), it is completely self-contained
     official_st = os.path.join(steam_path, "xinput1_4.dll")
-    if os.path.isfile(official_st) and os.path.getsize(official_st) > 200000:
-        res["details"] = "Resmi SteamTools kilit açıcı modülü aktif ve sorunsuz çalışıyor."
+    official_st_disabled = os.path.join(steam_path, "xinput1_4.dll.disabled")
+    if (os.path.isfile(official_st) and os.path.getsize(official_st) > 200000) or \
+       (os.path.isfile(official_st_disabled) and os.path.getsize(official_st_disabled) > 200000):
+        res["details"] = "Resmi SteamTools kilit açıcı modülü mevcut ve korumalı durumda."
         return res
 
     required = ["xinput1_4.dll", "OpenSteamTool.dll"]
@@ -764,6 +766,12 @@ def auto_restore_quarantined_files(steam_path: str, bundled_dir: str = None) -> 
     if was_running:
         kill_steam(steam_path)
         wait_for_steam_exit(timeout=6.0)
+
+    # Check if Safe Mode is intentionally activated
+    official_st_disabled = os.path.join(steam_path, "xinput1_4.dll.disabled")
+    if os.path.isfile(official_st_disabled) and os.path.getsize(official_st_disabled) > 50000:
+        logger.info("[auto_restore] Safe Mode (VAC Safe) is active. Skipping hook restoration.")
+        return True, "Güvenli mod devrede, kanca dosyaları korundu."
 
     for f in targets:
         dst = os.path.join(steam_path, f)

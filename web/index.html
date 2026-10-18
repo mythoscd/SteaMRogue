@@ -14,7 +14,7 @@
             overflow: hidden;
         }
     </style>
-    <link rel="stylesheet" href="style.css?v=1.1.7">
+    <link rel="stylesheet" href="style.css?v=1.1.8">
     <!-- Google Fonts for clean, modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
                 <i class="fa-solid fa-bolt splash-bolt"></i>
                 <span class="splash-title">SteaM<span class="splash-purple">Rogue</span></span>
             </div>
-            <div class="splash-version-pill">v1.1.7 • Yeni Nesil Steam Kiti</div>
+            <div class="splash-version-pill">v1.1.8 • Yeni Nesil Steam Kiti</div>
             <div class="splash-progress-track">
                 <div class="splash-progress-bar" id="splash-progress-bar"></div>
             </div>
@@ -45,7 +45,7 @@
         <header class="app-header">
             <div class="logo-group">
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
-                <span class="version-badge" id="app-version-badge">v1.1.7</span>
+                <span class="version-badge" id="app-version-badge">v1.1.8</span>
             </div>
             <nav class="nav-tabs">
                 <button class="tab-btn active" data-tab="lightning-tools"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
@@ -87,10 +87,31 @@
                     <!-- Right: Quick Game Adder -->
                     <div class="adder-panel">
                         <div class="adder-header">
-                            <button id="btn-guide-help" class="btn-guide-pill" title="Nasıl Oyun Eklenir?">
-                                <i class="fa-solid fa-circle-question"></i> Nasıl Yapılır?
-                            </button>
-                            <span class="adder-subtitle"><i class="fa-brands fa-steam"></i> Steam Linki, AppID veya İsim ile Arama</span>
+                            <div class="adder-header-left">
+                                <button id="btn-guide-help" class="btn-guide-pill" title="Nasıl Oyun Eklenir?">
+                                    <i class="fa-solid fa-circle-question"></i> Nasıl Yapılır?
+                                </button>
+                            </div>
+
+                            <!-- Mode Switcher Pill Container -->
+                            <div class="mode-switch-wrapper">
+                                <div class="mode-toggle-segmented" id="mode-toggle-pill" role="group" aria-label="Steam Çalışma Modu">
+                                    <button type="button" class="mode-segment" id="mode-btn-safe" data-mode="safe" title="Kilit açıcı kancaları kaldırır. CS2 ve VAC korumalı oyunlar için %100 temiz ve güvenlidir.">
+                                        <i class="fa-solid fa-shield-halved"></i> <span>Güvenli Mod</span>
+                                    </button>
+                                    <button type="button" class="mode-segment active" id="mode-btn-unlocked" data-mode="unlocked" title="SteaMRogue kütüphane kilitlerini açar ve oyunları aktifleştirir.">
+                                        <i class="fa-solid fa-bolt"></i> <span>SteaMRogue Modu</span>
+                                    </button>
+                                    <div class="mode-segment-thumb" id="mode-segment-thumb"></div>
+                                </div>
+                                <button type="button" class="mode-info-btn" id="btn-mode-info" title="Çalışma Modları ve VAC Güvenliği Hakkında Bilgi">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                </button>
+                                <div class="mode-restart-badge" id="mode-restart-badge" style="display: none;" title="Değişikliklerin geçerli olması için Steam'i yeniden başlatmalısınız!">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    <span>Yeniden Başlatma Gerekli</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="adder-body">
                             <div class="command-search-wrapper" style="flex: 1;">
@@ -333,7 +354,7 @@
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                                             <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">SteaMRogue Uygulama Güncellemesi</h3>
-                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.1.7</span>
+                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.1.8</span>
                                         </div>
                                         <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
                                             Uygulama GitHub Releases üzerinden otomatik güncellenir. Dilediğiniz zaman yeni sürüm kontrolü yapabilir veya mevcut kurulumu onarabilirsiniz.
@@ -525,6 +546,28 @@
                                 <button class="btn btn-secondary" id="btn-copy-exclusion-paths" style="padding: 6px 14px; font-size: 0.78rem; color: #c4b5fd; border-color: rgba(124,58,237,0.4);">
                                     <i class="fa-solid fa-copy"></i> İstisna Yollarını Kopyala
                                 </button>
+                            </div>
+                        </div>
+
+                        <!-- 7.1 YASAL UYARI & SORUMLULUK BEYANI (İSTENDİĞİNDE GÖRÜNTÜLEME) -->
+                        <div class="settings-section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                                <div style="display: flex; align-items: flex-start; gap: 14px; max-width: 65%;">
+                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(167, 139, 250, 0.15); color: #a78bfa; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                                        <i class="fa-solid fa-scale-balanced"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Yasal Uyarı & Kullanıcı Sorumluluk Beyanı</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                            İlk açılışta sunulan yasal sorumluluk bildirimini, VAC koruma hatırlatmasını ve kullanım koşullarını dilediğiniz zaman tekrar inceleyebilirsiniz.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-secondary" id="btn-show-disclaimer-manual" onclick="window.showDisclaimerModal && window.showDisclaimerModal()" style="padding: 9px 18px; font-size: 0.84rem; color: #c4b5fd; border-color: rgba(167, 139, 250, 0.4); cursor: pointer;">
+                                        <i class="fa-solid fa-file-contract"></i> Bildirimi Görüntüle
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1113,6 +1156,93 @@
         </div>
     </div>
 
+    <!-- MODE INFO MODAL -->
+    <div id="mode-info-modal" class="custom-modal">
+        <div class="custom-modal-content" style="max-width: 540px;">
+            <div class="custom-modal-header">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-shield-halved" style="color: #a78bfa;"></i>
+                    SteaMRogue Çalışma Modları Rehberi
+                </span>
+                <button class="custom-modal-close" id="mode-info-modal-close">&times;</button>
+            </div>
+            <div class="custom-modal-body" style="padding: 20px;">
+                <div class="mode-info-cards">
+                    <div class="mode-info-card mode-info-safe">
+                        <div class="mode-info-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="mode-info-content">
+                            <h4>🛡️ Güvenli Mod (Safe Mode)</h4>
+                            <p>Arka plandaki <strong>SteamTools</strong> ve oyun ekleme servisleri tamamen sonlandırılır. Daha önce kütüphanenize eklediğiniz oyunlar <strong>asla kilitlenmez, kaybolmaz veya 'Satın Alın' uyarısı vermez</strong>; kütüphanenizde oynanabilir kalır. Yalnızca yeni oyun ekleme araçları dinlenmeye alınır.</p>
+                            <span class="mode-info-note">🛡️ Oyunlarınız daima kütüphanenizde korunur ve SteamTools arka planda çalışmaz.</span>
+                        </div>
+                    </div>
+                    <div class="mode-info-card mode-info-unlocked">
+                        <div class="mode-info-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="mode-info-content">
+                            <h4>⚡ SteaMRogue Modu</h4>
+                            <p>SteamTools ve kütüphane ekleme motoru arka planda aktiftir. SteaMRogue üzerinden tek tıkla aradığınız tüm oyunları ve DLC'leri kütüphanenize ekleyebilir, doğrudan Steam üzerinden indirip oynayabilirsiniz.</p>
+                            <span class="mode-info-note">⚡ Oyun eklemek ve kütüphanenizi genişletmek için bu modu kullanın.</span>
+                        </div>
+                    </div>
+                    <div class="mode-info-card mode-info-switch">
+                        <div class="mode-info-icon"><i class="fa-solid fa-rotate"></i></div>
+                        <div class="mode-info-content">
+                            <h4>🔄 Anında Geçiş & Sıfır Bekleme</h4>
+                            <p>İster arayüzdeki anahtardan, ister Windows görev çubuğu / sistem tepsisindeki sağ tık menüsünden tek tıkla modlar arasında anında geçiş yapabilirsiniz.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-primary" id="mode-info-modal-confirm" style="padding: 8px 24px; font-size: 0.85rem;">Anladım</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIRST LAUNCH DISCLAIMER & EULA MODAL (10s COUNTDOWN) -->
+    <div id="disclaimer-modal" class="custom-modal disclaimer-backdrop">
+        <div class="custom-modal-content disclaimer-modal-content">
+            <div class="custom-modal-header disclaimer-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="disclaimer-header-title">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Yasal Uyarı ve Kullanıcı Sorumluluk Beyanı
+                </span>
+                <button type="button" class="custom-modal-close" id="disclaimer-modal-close" style="display: none; font-size: 1.4rem; color: #94a3b8; background: transparent; border: none; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div class="custom-modal-body disclaimer-body">
+                <div class="disclaimer-text-card">
+                    <p class="disclaimer-lead">
+                        <strong>SteaMRogue</strong>, yerel kütüphane organizasyonu ve bağımsız araç yönetimi sağlayan açık kaynaklı bir yardımcı yazılımdır.
+                    </p>
+                    <p class="disclaimer-main-text">
+                        Bu uygulamayı, kütüphane kilit açıcılarını ve üçüncü taraf eklentileri kullanırken karşılaşabileceğiniz her türlü hesap uyarısı, oyun içi kısıtlama veya olası yaptırımlar <strong>tamamen kullanıcının kendi sorumluluğundadır</strong>. SteaMRogue geliştiricileri ve katkıda bulunanları hiçbir hukuki, idari veya maddi sorumluluk kabul etmemektedir.
+                    </p>
+                </div>
+
+                <div class="disclaimer-warning-box">
+                    <div class="warning-box-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="warning-box-content">
+                        <h5>📌 Önemli Hatırlatma (VAC & Rekabetçi Oyunlar)</h5>
+                        <p>
+                            <strong>Counter-Strike 2 (CS2), Dota 2</strong> veya <strong>Team Fortress 2</strong> gibi Valve Anti-Cheat (VAC) korumalı rekabetçi oyunlara girmeden önce mutlaka üst kısımdaki anahtardan <strong>Güvenli Mod</strong>'a geçiniz.
+                        </p>
+                        <p class="warning-box-sub">
+                            SteaMRogue modunda unutup oyuna girilmesi durumunda anında kalıcı ban riski çok düşük olsa da Valve sunucuları <em>"VAC oyun oturumunuzu doğrulayamadı"</em> uyarısı vererek maçlara girişi engelleyebilir. <strong>Güvenli Mod</strong>, Steam'i %100 orijinal ve temiz haline getirerek oturum hatalarını ve tüm riskleri tamamen ortadan kaldırır.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-modal-footer disclaimer-footer">
+                <button class="btn btn-primary btn-disclaimer-countdown" id="btn-accept-disclaimer" disabled>
+                    <i class="fa-solid fa-hourglass-half" id="disclaimer-btn-icon"></i>
+                    <span id="disclaimer-countdown-text">Şartları Okudum ve Kabul Ediyorum (10)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- IN-APP UPDATE NOTIFICATION CARD -->
     <div id="updater-banner" class="in-app-update-card">
         <div class="update-card-header">
@@ -1122,7 +1252,7 @@
             <div class="update-header-info">
                 <div class="update-title-row">
                     <h4 id="updater-title">Yeni Güncelleme Mevcut!</h4>
-                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.7</span>
+                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.8</span>
                 </div>
                 <p id="updater-desc">Güncelleme arka planda otomatik indiriliyor...</p>
             </div>
@@ -1151,6 +1281,6 @@
 
 
     <!-- JS SCRIPTS -->
-    <script src="script.js?v=1.1.7"></script>
+    <script src="script.js?v=1.1.8"></script>
 </body>
 </html>

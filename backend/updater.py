@@ -243,10 +243,12 @@ def check_and_update_steamtools(steam_path: str, force: bool = False) -> Dict[st
         except Exception:
             pass
 
-    # If official SteamTools xinput1_4.dll (> 200KB) is present, preserve it unconditionally
+    # If official SteamTools xinput1_4.dll (> 200KB) is present (or Safe Mode is active), preserve it unconditionally
     official_st = os.path.join(steam_path, "xinput1_4.dll")
-    if os.path.isfile(official_st) and os.path.getsize(official_st) > 200000:
-        logger.info("[Updater] Official SteamTools hook active. Preserving configuration.")
+    official_st_disabled = os.path.join(steam_path, "xinput1_4.dll.disabled")
+    if (os.path.isfile(official_st) and os.path.getsize(official_st) > 200000) or \
+       (os.path.isfile(official_st_disabled) and os.path.getsize(official_st_disabled) > 200000):
+        logger.info("[Updater] Official SteamTools hook active (or Safe Mode active). Preserving configuration.")
         _set_st_status(checked=True, updated=False, error=None)
         return {"updated": False, "actions": ["Resmi SteamTools kilit açıcı modülü korundu."]}
 

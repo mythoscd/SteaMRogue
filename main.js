@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, session } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, session, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -24,6 +24,8 @@ app.on('child-process-gone', (event, details) => {
 
 let backendProcess = null;
 let mainWindow = null;
+let tray = null;
+let isQuitting = false;
 const BACKEND_PORT = 65012;
 
 function findBackendExecutable() {
@@ -43,10 +45,34 @@ function findBackendExecutable() {
     return null;
 }
 
+function terminateSteaMRogueAndHelpers() {
+    isQuitting = true;
+    if (process.platform === 'win32') {
+        try {
+            // 1. Close SteamTools companion app completely
+            require('child_process').execSync('taskkill /F /IM SteamTools.exe', { stdio: 'ignore' });
+        } catch (_) {}
+
+        try {
+            // 2. Kill Python backend process explicitly without /T so steam.exe is NEVER touched
+            if (backendProcess && backendProcess.pid) {
+                require('child_process').execSync(`taskkill /F /PID ${backendProcess.pid}`, { stdio: 'ignore' });
+            }
+        } catch (_) {}
+
+        try {
+            // 3. Clean up backend binary by image name
+            require('child_process').execSync('taskkill /F /IM SteamTools_Auto_Backend.exe', { stdio: 'ignore' });
+        } catch (_) {}
+    } else {
+        if (backendProcess) backendProcess.kill();
+    }
+}
+
 function startBackend() {
     console.log("Starting Python backend...");
     try {
-        require('child_process').execSync('taskkill /F /T /IM SteamTools_Auto_Backend.exe', { stdio: 'ignore' });
+        require('child_process').execSync('taskkill /F /IM SteamTools_Auto_Backend.exe', { stdio: 'ignore' });
     } catch (_) {}
     const env = { ...process.env, UV_SYSTEM_CERTS: 'true' };
     
@@ -96,11 +122,200 @@ if (!gotTheLock) {
 } else {
     app.on('second-instance', () => {
         if (mainWindow) {
+            if (!mainWindow.isVisible()) mainWindow.show();
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
         }
     });
 }
+
+function getAppIconPath() {
+    const candidatePaths = [
+        path.join(__dirname, 'icon.ico'),
+        path.join(__dirname, 'build_tools', 'icon.ico'),
+        path.join(__dirname, 'web', 'icon.ico'),
+        path.join(process.resourcesPath, 'web', 'icon.ico'),
+        path.join(process.resourcesPath, 'icon.ico')
+    ];
+    for (const p of candidatePaths) {
+        if (p && fs.existsSync(p)) {
+            return p;
+        }
+    }
+    return path.join(__dirname, 'icon.ico');
+}
+
+let currentSystemMode = 'unlocked';
+
+function fetchSystemModeAndUpdateTray() {
+    try {
+        const req = http.get(`http://127.0.0.1:${BACKEND_PORT}/api/system/mode`, (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.success && parsed.mode) {
+                        currentSystemMode = parsed.mode;
+                        updateTrayContextMenu();
+                    }
+                } catch (_) {}
+            });
+        });
+        req.on('error', () => {});
+    } catch (_) {}
+}
+
+function switchSystemModeFromTray(targetMode) {
+    try {
+        const postData = JSON.stringify({ mode: targetMode });
+        const req = http.request({
+            hostname: '127.0.0.1',
+            port: BACKEND_PORT,
+            path: '/api/system/mode',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.success && parsed.mode) {
+                        currentSystemMode = parsed.mode;
+                        updateTrayContextMenu();
+                        if (mainWindow && !mainWindow.isDestroyed()) {
+                            mainWindow.webContents.send('system-mode-changed', parsed.mode);
+                        }
+                    }
+                } catch (_) {}
+            });
+        });
+        req.on('error', (err) => console.warn('[Tray] switch mode error:', err));
+        req.write(postData);
+        req.end();
+    } catch (e) {
+        console.warn('[Tray] switch mode exception:', e);
+    }
+}
+
+function updateTrayContextMenu() {
+    if (!tray) return;
+    const isSafe = (currentSystemMode === 'safe');
+
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: "⚡ SteaMRogue'u Aç",
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show();
+                    if (mainWindow.isMinimized()) mainWindow.restore();
+                    mainWindow.focus();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: `🛡️ Güvenli Mod (VAC Safe) ${isSafe ? '  ✓' : ''}`,
+            type: 'radio',
+            checked: isSafe,
+            click: () => switchSystemModeFromTray('safe')
+        },
+        {
+            label: `⚡ SteaMRogue Modu ${!isSafe ? '  ✓' : ''}`,
+            type: 'radio',
+            checked: !isSafe,
+            click: () => switchSystemModeFromTray('unlocked')
+        },
+        { type: 'separator' },
+        {
+            label: "🔄 Steam'i Yeniden Başlat",
+            click: () => {
+                try {
+                    const postData = JSON.stringify({ force: false });
+                    const req = http.request({
+                        hostname: '127.0.0.1',
+                        port: BACKEND_PORT,
+                        path: '/api/restart_steam',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Content-Length': Buffer.byteLength(postData)
+                        }
+                    }, (res) => {
+                        console.log(`[Tray] Restart Steam response status: ${res.statusCode}`);
+                    });
+                    req.on('error', (err) => {
+                        console.warn('[Tray] Restart Steam request error:', err.message);
+                    });
+                    req.write(postData);
+                    req.end();
+                } catch (e) {
+                    console.warn('[Tray] Failed to request restart_steam:', e);
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: '🎮 Tamamen Kapat (Sıfır RAM - Oyunlar Etkin Kalır)',
+            click: () => {
+                terminateSteaMRogueAndHelpers();
+                if (mainWindow) {
+                    mainWindow.destroy();
+                }
+                app.quit();
+            }
+        }
+    ]);
+
+    tray.setContextMenu(contextMenu);
+}
+
+function createTray() {
+    if (tray) return;
+    try {
+        const iconPath = getAppIconPath();
+        tray = new Tray(iconPath);
+        tray.setToolTip('SteaMRogue — Yeni Nesil Steam Kiti');
+
+        updateTrayContextMenu();
+        fetchSystemModeAndUpdateTray();
+
+        tray.on('click', () => {
+            if (mainWindow) {
+                if (!mainWindow.isVisible()) {
+                    mainWindow.show();
+                }
+                if (mainWindow.isMinimized()) mainWindow.restore();
+                mainWindow.focus();
+            }
+        });
+
+        tray.on('double-click', () => {
+            if (mainWindow) {
+                if (!mainWindow.isVisible()) {
+                    mainWindow.show();
+                }
+                if (mainWindow.isMinimized()) mainWindow.restore();
+                mainWindow.focus();
+            }
+        });
+
+        tray.on('right-click', () => {
+            fetchSystemModeAndUpdateTray();
+        });
+    } catch (err) {
+        console.error('[Tray] Failed to initialize tray:', err);
+    }
+}
+
+ipcMain.on('mode-changed-in-ui', (event, mode) => {
+    currentSystemMode = mode;
+    updateTrayContextMenu();
+});
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -113,6 +328,7 @@ function createWindow() {
         transparent: false,
         backgroundColor: '#090a10',
         show: false,
+        icon: getAppIconPath(),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -131,6 +347,15 @@ function createWindow() {
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
         return { action: 'deny' };
+    });
+
+    // Intercept close event: hide to system tray instead of destroying
+    mainWindow.on('close', (event) => {
+        if (!isQuitting) {
+            event.preventDefault();
+            mainWindow.hide();
+            return false;
+        }
     });
 
     mainWindow.on('closed', () => {
@@ -179,14 +404,9 @@ ipcMain.on('window-maximize', () => {
 });
 
 ipcMain.on('window-close', () => {
-    if (backendProcess) {
-        if (process.platform === 'win32') {
-            spawn('taskkill', ['/F', '/T', '/PID', backendProcess.pid]);
-        } else {
-            backendProcess.kill();
-        }
+    if (mainWindow) {
+        mainWindow.hide();
     }
-    app.quit();
 });
 
 // Open external URLs in default system browser
@@ -509,13 +729,7 @@ ipcMain.on('repair-and-reinstall', () => {
 });
 
 ipcMain.on('restart-and-update', () => {
-    if (backendProcess) {
-        if (process.platform === 'win32') {
-            spawn('taskkill', ['/F', '/T', '/PID', backendProcess.pid]);
-        } else {
-            backendProcess.kill();
-        }
-    }
+    terminateSteaMRogueAndHelpers();
     if (downloadedInstallerPath && fs.existsSync(downloadedInstallerPath)) {
         spawn(downloadedInstallerPath, [], { detached: true, stdio: 'ignore' }).unref();
         app.quit();
@@ -573,13 +787,16 @@ app.whenReady().then(() => {
     // 1. Create native window immediately (0ms user click feedback)
     createWindow();
 
-    // 2. Start Python backend
+    // 2. Initialize system tray
+    createTray();
+
+    // 3. Start Python backend
     startBackend();
     
-    // 3. Ultra-fast backend polling (80ms) and load UI instantly
+    // 4. Ultra-fast backend polling (80ms) and load UI instantly
     waitForBackendAndLoad();
 
-    // 4. Initialize auto-updater in background
+    // 5. Initialize auto-updater in background
     setupAutoUpdater();
 
     app.on('activate', () => {
@@ -590,22 +807,18 @@ app.whenReady().then(() => {
     });
 });
 
+app.on('before-quit', () => {
+    isQuitting = true;
+});
+
 app.on('window-all-closed', () => {
-    console.log("Electron windows closed. Terminating backend...");
-    // Terminate python process
-    if (backendProcess) {
-        // On Windows, child process from shell might need taskkill to kill the entire process tree
-        if (process.platform === 'win32') {
-            spawn('taskkill', ['/F', '/T', '/PID', backendProcess.pid]);
-        } else {
-            backendProcess.kill();
-        }
+    if (isQuitting) {
+        console.log("Electron windows closed and isQuitting set. Terminating backend...");
+        terminateSteaMRogueAndHelpers();
+        if (process.platform !== 'darwin') app.quit();
     }
-    if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('will-quit', () => {
-    try {
-        require('child_process').execSync('taskkill /F /T /IM SteamTools_Auto_Backend.exe', { stdio: 'ignore' });
-    } catch (_) {}
+    terminateSteaMRogueAndHelpers();
 });

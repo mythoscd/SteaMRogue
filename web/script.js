@@ -18,8 +18,106 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         setTimeout(() => {
             splashScreen.classList.add("hidden");
+            setTimeout(() => {
+                initDisclaimerModal();
+            }, 250);
         }, 300);
     }
+
+    // === 0.1 FIRST LAUNCH DISCLAIMER & EULA CONTROLLER (10s COUNTDOWN) ===
+    function initDisclaimerModal(force = false) {
+        const STORAGE_KEY = "steamrogue_eula_accepted_v1_1_8";
+        try {
+            if (!force && localStorage.getItem(STORAGE_KEY) === "true") {
+                return;
+            }
+        } catch (e) {
+            console.warn("localStorage check failed:", e);
+        }
+
+        const modal = document.getElementById("disclaimer-modal");
+        const acceptBtn = document.getElementById("btn-accept-disclaimer");
+        const countdownSpan = document.getElementById("disclaimer-countdown-text");
+        const btnIcon = document.getElementById("disclaimer-btn-icon");
+        const closeBtn = document.getElementById("disclaimer-modal-close");
+
+        if (!modal || !acceptBtn || !countdownSpan) return;
+
+        modal.style.display = "flex";
+        modal.classList.add("active");
+
+        const closeModal = () => {
+            if (window._disclaimerTimer) clearInterval(window._disclaimerTimer);
+            modal.classList.remove("active");
+            modal.style.display = "none";
+        };
+
+        if (force) {
+            // Manual review from settings: show instantly with close button, no countdown
+            if (window._disclaimerTimer) clearInterval(window._disclaimerTimer);
+            if (closeBtn) {
+                closeBtn.style.display = "block";
+                closeBtn.onclick = closeModal;
+            }
+            acceptBtn.disabled = false;
+            acceptBtn.classList.add("active-ready");
+            if (btnIcon) btnIcon.className = "fa-solid fa-check";
+            countdownSpan.textContent = "Kapat";
+            acceptBtn.onclick = closeModal;
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+            return;
+        }
+
+        // First launch: enforce 10s countdown
+        if (closeBtn) closeBtn.style.display = "none";
+        modal.onclick = null;
+        let secondsLeft = 10;
+        acceptBtn.disabled = true;
+        acceptBtn.classList.remove("active-ready");
+        if (btnIcon) btnIcon.className = "fa-solid fa-hourglass-half";
+        countdownSpan.textContent = `Şartları Okudum ve Kabul Ediyorum (${secondsLeft})`;
+
+        if (window._disclaimerTimer) clearInterval(window._disclaimerTimer);
+        window._disclaimerTimer = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft > 0) {
+                countdownSpan.textContent = `Şartları Okudum ve Kabul Ediyorum (${secondsLeft})`;
+            } else {
+                clearInterval(window._disclaimerTimer);
+                acceptBtn.disabled = false;
+                acceptBtn.classList.add("active-ready");
+                if (btnIcon) {
+                    btnIcon.className = "fa-solid fa-check";
+                }
+                countdownSpan.textContent = "Şartları Kabul Ediyorum ve Devam Et";
+            }
+        }, 1000);
+
+        acceptBtn.onclick = () => {
+            if (secondsLeft > 0) return;
+            try {
+                localStorage.setItem(STORAGE_KEY, "true");
+            } catch (e) {
+                console.warn("localStorage save failed:", e);
+            }
+            closeModal();
+        };
+
+        // Block ESC key from dismissing unaccepted disclaimer
+        window.addEventListener("keydown", (e) => {
+            if (modal.classList.contains("active") && e.key === "Escape") {
+                if (force) {
+                    closeModal();
+                } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        }, true);
+    }
+    window.showDisclaimerModal = () => initDisclaimerModal(true);
 
     if (splashScreen) {
         setTimeout(() => {
@@ -872,6 +970,8 @@ function initAppLogic() {
             if (data.success) {
                 btnRestartSteam.classList.add("success");
                 btnRestartSteam.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Başarıyla Başlatıldı!</span>`;
+                const restartBadge = document.getElementById("mode-restart-badge");
+                if (restartBadge) restartBadge.style.display = "none";
             } else {
                 btnRestartSteam.classList.add("error");
                 btnRestartSteam.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>Başarısız Oldu</span>`;
@@ -888,6 +988,152 @@ function initAppLogic() {
             btnRestartSteam.disabled = false;
         }, 2600);
     });
+
+    // %% Steam Operating Mode Switcher (Güvenli Mod vs SteaMRogue Modu)
+    function initSystemMode() {
+        const toggleContainer = document.getElementById("mode-toggle-pill");
+        const btnSafe = document.getElementById("mode-btn-safe");
+        const btnUnlocked = document.getElementById("mode-btn-unlocked");
+        const restartBadge = document.getElementById("mode-restart-badge");
+        const btnModeInfo = document.getElementById("btn-mode-info");
+        const modeInfoModal = document.getElementById("mode-info-modal");
+        const modeInfoClose = document.getElementById("mode-info-modal-close");
+        const modeInfoConfirm = document.getElementById("mode-info-modal-confirm");
+
+        if (!toggleContainer || !btnSafe || !btnUnlocked) return;
+
+        let currentMode = "unlocked";
+        let isSwitching = false;
+
+        function updateUI(mode) {
+            currentMode = mode;
+            toggleContainer.setAttribute("data-active", mode);
+            if (mode === "safe") {
+                btnSafe.classList.add("active");
+                btnUnlocked.classList.remove("active");
+            } else {
+                btnUnlocked.classList.add("active");
+                btnSafe.classList.remove("active");
+            }
+            if (window.electronAPI && typeof window.electronAPI.notifyModeChanged === 'function') {
+                window.electronAPI.notifyModeChanged(mode);
+            }
+        }
+
+        // Listen for external mode switches from System Tray
+        if (window.electronAPI && typeof window.electronAPI.onModeChanged === 'function') {
+            window.electronAPI.onModeChanged((newMode) => {
+                if (newMode && newMode !== currentMode) {
+                    updateUI(newMode);
+                }
+            });
+        }
+
+        // Connect manual disclaimer review button in Settings
+        const btnManualDisclaimer = document.getElementById("btn-show-disclaimer-manual");
+        if (btnManualDisclaimer) {
+            btnManualDisclaimer.addEventListener("click", () => {
+                initDisclaimerModal(true);
+            });
+        }
+
+        // Fetch initial physical disk mode from backend
+        async function fetchMode() {
+            try {
+                const res = await fetch("/api/system/mode");
+                const data = await res.json();
+                if (data && data.success && data.mode) {
+                    updateUI(data.mode);
+                }
+            } catch (err) {
+                console.debug("[System Mode] Failed to fetch mode:", err);
+            }
+        }
+
+        // Switch mode handler
+        async function switchMode(targetMode) {
+            if (isSwitching || targetMode === currentMode) return;
+            isSwitching = true;
+
+            try {
+                const res = await fetch("/api/system/mode", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mode: targetMode })
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    showCustomAlert(data.error || "Mod değiştirilemedi.", "Hata");
+                    return;
+                }
+
+                updateUI(targetMode);
+
+                // Sync with Electron system tray
+                try {
+                    if (window.require) {
+                        const { ipcRenderer } = window.require('electron');
+                        ipcRenderer.send('mode-changed-in-ui', targetMode);
+                    }
+                } catch (e) {}
+
+                if (targetMode === "safe") {
+                    showCustomAlert(
+                        "🛡️ Güvenli Mod Devreye Alındı\n\nSteamTools ve arka plan ekleme servisleri kapatıldı.\nEklediğiniz tüm oyunlar Steam kütüphanenizde eksiksiz ve oynanabilir olarak korunmaya devam ediyor.",
+                        "Güvenli Mod Aktif"
+                    );
+                } else {
+                    showCustomAlert(
+                        "⚡ SteaMRogue Modu Devreye Alındı\n\nSteamTools ve kilit açıcı servisler arka planda başlatıldı.\nArtık dilediğiniz gibi yeni oyunlar ekleyebilirsiniz.",
+                        "SteaMRogue Modu Aktif"
+                    );
+                }
+            } catch (err) {
+                console.error("[System Mode] Switch error:", err);
+                showCustomAlert("Bağlantı hatası: Mod güncellenemedi.", "Hata");
+            } finally {
+                isSwitching = false;
+            }
+        }
+
+        btnSafe.addEventListener("click", () => switchMode("safe"));
+        btnUnlocked.addEventListener("click", () => switchMode("unlocked"));
+
+        if (restartBadge) {
+            restartBadge.addEventListener("click", () => {
+                btnRestartSteam.click();
+            });
+        }
+
+        // Listen for mode changes coming from Windows Tray menu
+        try {
+            if (window.require) {
+                const { ipcRenderer } = window.require('electron');
+                ipcRenderer.on('system-mode-changed', (event, newMode) => {
+                    updateUI(newMode);
+                });
+            }
+        } catch (e) {}
+
+        // Mode Info Modal Handlers
+        if (btnModeInfo && modeInfoModal) {
+            btnModeInfo.addEventListener("click", () => {
+                modeInfoModal.classList.add("active");
+            });
+
+            const closeInfoModal = () => modeInfoModal.classList.remove("active");
+            if (modeInfoClose) modeInfoClose.addEventListener("click", closeInfoModal);
+            if (modeInfoConfirm) modeInfoConfirm.addEventListener("click", closeInfoModal);
+            modeInfoModal.addEventListener("click", (e) => {
+                if (e.target === modeInfoModal) closeInfoModal();
+            });
+        }
+
+        // Initial fetch
+        fetchMode();
+    }
+    initSystemMode();
 
     // How to Use Guide Modal handlers
     const btnGuideHelp = document.getElementById("btn-guide-help");
@@ -2788,7 +3034,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "var(--text-secondary)";
             }
         } else if (data.status === "not-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.6';
+            const ver = data.version ? `v${data.version}` : 'v1.1.8';
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`;
                 updateStatusText.style.color = "#10b981";
@@ -2798,7 +3044,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.6';
+            const ver = data.version ? `v${data.version}` : 'v1.1.8';
             isHotfixAction = true;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #a78bfa;"></i> GitHub'da güncellenmiş yeni bir paket (${ver}) yayınlandı!`;
@@ -2877,7 +3123,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
             }
         } else if (data.status === "downloaded") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.6';
+            const ver = data.version ? `v${data.version}` : 'v1.1.8';
             isHotfixAction = false;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (${ver})! Yeniden başlatabilirsiniz.`;
