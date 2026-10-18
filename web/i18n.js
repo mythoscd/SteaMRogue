@@ -338,7 +338,73 @@
             "btn_ok": "Tamam",
             "btn_cancel": "İptal",
             "modal_confirm_title": "Onay Gerekli",
-            "modal_alert_title": "SteaMRogue"
+            "modal_alert_title": "SteaMRogue",
+
+            // --- ONLINEFIX DYNAMIC TEXTS ---
+            "of_badge_multiplayer": "Multiplayer Fix",
+            "of_card_desc_gofile": "Gofile sunucusu üzerinden doğrudan indirme ve Steam otomatik entegrasyonu.",
+            "of_btn_download_fix": "Fix İndir",
+            "of_btn_visit_site": "Siteye Git",
+            "of_btn_visit_title": "Varsayılan tarayıcınızda resmi sayfayı açın",
+            "of_no_games": "Kütüphanenizde oyun bulunamadı.",
+
+            // --- BYPASS DYNAMIC TEXTS ---
+            "bp_note_default": "Bu oyun için özel bir not bulunmuyor. İyi oyunlar!",
+            "bp_meta_yes": "Evet",
+            "bp_meta_no": "Hayır",
+            "bp_btn_apply_fix": "Fix Uygula",
+            "bp_software_download_title": "{name} indirmek için tıkla",
+            "bp_games_count": "{current} / {total} Oyun",
+
+            // --- SAM ACHIEVEMENTS DYNAMIC TEXTS ---
+            "ach_manage_btn": "Başarımları Yönet",
+            "ach_manage_title": "Bu oyun için Steam Achievement Manager'ı başlat",
+            "ach_loading_status": "Steam başarımları yükleniyor, lütfen bekleyin...",
+            "ach_no_match_query": "Aramanızla Eşleşen Başarım Bulunamadı",
+            "ach_no_achievements_for_game": "Bu Oyun İçin Başarım Bulunamadı",
+            "ach_try_different_keyword": "Farklı bir anahtar kelime aramayı deneyin.",
+            "ach_none_configured_for_game": "Bu oyunda Steam başarımı tanımlanmamış olabilir.",
+            "ach_displayed_count": "Görüntülenen: {current} / {total}",
+            "ach_load_failed_title": "Başarımlar Yüklenemedi",
+            "ach_load_failed_desc": "Steam bağlantısı kurulamadı veya oyun kütüphanede doğrulanmadı.",
+            "ach_retry_btn": "Yeniden Dene",
+            "ach_connection_error": "Bağlantı Hatası",
+            "ach_scanning_library": "Kütüphaneniz taranıyor...",
+            "ach_scanning_library_sub": "Steam oyunlarınız ve başarımlar listeleniyor",
+            "ach_empty_library": "Kütüphanenizde Henüz Oyun Bulunamadı",
+            "ach_empty_library_sub": "Steam hesabınıza giriş yapıldığından ve kütüphanenizde oyun bulunduğundan emin olun.",
+            "of_searching": "Aranıyor...",
+            "of_searching_desc": "Online-fix.me üzerinde multiplayer yamalar aranıyor...",
+
+            // --- SETTINGS DYNAMIC BADGES & TEXTS ---
+            "set_btn_check_update": "Güncellemeleri Denetle",
+            "set_btn_repair_install": "Son Sürümü Yeniden İndir / Onar",
+            "set_update_latest": "Harika! Zaten en güncel sürümü ({ver}) kullanıyorsunuz.",
+            "set_update_checking": "Güncellemeler denetleniyor...",
+            "set_update_checking_desc": "GitHub üzerinden yeni sürüm kontrolü yapılıyor...",
+            "set_sync_badge_running": "EŞİTLENİYOR...",
+            "set_sync_badge_ready": "GÜNCEL",
+            "set_sync_last_time": "Son Senkronizasyon: {time} (Tüm bileşenler ve kaynaklar aktif)",
+            "set_sync_all_active": "Tüm depolar, kancalar ve manifest kaynakları aktif.",
+            "set_st_dll_synced": "Eşitlendi (Aktif)",
+            "set_st_dll_just_updated": "Yeni Güncellendi",
+            "set_toml_sig_compat": "Dinamik Uyumlu",
+            "set_repo_count_active": "{count} Aktif",
+            "set_bypass_synced": "Çevrimiçi Eşit",
+            "set_st_active_good": "AKTİF (HER ŞEY YOLUNDA)",
+            "set_st_ready_closed": "HAZIR (STEAM KAPALI)",
+            "set_st_passive_not_installed": "PASİF (KURULU DEĞİL)",
+            "set_st_none": "Yok",
+            "set_vc_installed_good": "KURULU (HER ŞEY YOLUNDA)",
+            "set_vc_installed_good_text": "Microsoft Visual C++ (x86 & x64) paketleri sisteminizde eksiksiz kurulu, her şey yolunda.",
+            "set_vc_missing": "EKSİK (YÜKLEME GEREKLİ)",
+            "set_av_safe": "GÜVENLİ (SORUN YOK)",
+            "set_av_safe_text": "Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.",
+            "set_av_detected_title": "{av} Kullandığınız Tespit Edildi:",
+            "set_av_third_party_default": "Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:",
+            "footer_steam_conn": "Steam Bağlantısı: {path}",
+            "footer_steam_not_found": "Steam Bulunamadı (Settings sekmesinden yolu belirleyin)",
+            "lib_no_match": "Arama kriterlerinize uygun oyun bulunamadı."
         },
 
         en: {
@@ -673,7 +739,73 @@
             "btn_ok": "OK",
             "btn_cancel": "Cancel",
             "modal_confirm_title": "Confirmation Required",
-            "modal_alert_title": "SteaMRogue"
+            "modal_alert_title": "SteaMRogue",
+
+            // --- ONLINEFIX DYNAMIC TEXTS ---
+            "of_badge_multiplayer": "Multiplayer Fix",
+            "of_card_desc_gofile": "Direct download via Gofile and automated Steam integration.",
+            "of_btn_download_fix": "Download Fix",
+            "of_btn_visit_site": "Visit Site",
+            "of_btn_visit_title": "Open official page in your default browser",
+            "of_no_games": "No games found in your library.",
+
+            // --- BYPASS DYNAMIC TEXTS ---
+            "bp_note_default": "No special notes for this game. Have fun!",
+            "bp_meta_yes": "Yes",
+            "bp_meta_no": "No",
+            "bp_btn_apply_fix": "Apply Fix",
+            "bp_software_download_title": "Click to download {name}",
+            "bp_games_count": "{current} / {total} Games",
+
+            // --- SAM ACHIEVEMENTS DYNAMIC TEXTS ---
+            "ach_manage_btn": "Manage Achievements",
+            "ach_manage_title": "Launch Steam Achievement Manager for this title",
+            "ach_loading_status": "Loading Steam achievements, please wait...",
+            "ach_no_match_query": "No Achievements Found Matching Your Query",
+            "ach_no_achievements_for_game": "No Achievements Found for This Game",
+            "ach_try_different_keyword": "Try searching with a different keyword.",
+            "ach_none_configured_for_game": "Steam achievements may not be configured for this title.",
+            "ach_displayed_count": "Displayed: {current} / {total}",
+            "ach_load_failed_title": "Achievements Could Not Be Loaded",
+            "ach_load_failed_desc": "Could not connect to Steam or title is not verified in library.",
+            "ach_retry_btn": "Try Again",
+            "ach_connection_error": "Connection Error",
+            "ach_scanning_library": "Scanning your library...",
+            "ach_scanning_library_sub": "Listing your Steam titles and achievements",
+            "ach_empty_library": "No Titles Found in Your Library Yet",
+            "ach_empty_library_sub": "Make sure you are logged into your Steam client and have titles in your library.",
+            "of_searching": "Searching...",
+            "of_searching_desc": "Searching multiplayer fixes on Online-fix.me...",
+
+            // --- SETTINGS DYNAMIC BADGES & TEXTS ---
+            "set_btn_check_update": "Check for Updates",
+            "set_btn_repair_install": "Redownload Latest Version / Repair",
+            "set_update_latest": "Great! You are already using the latest version ({ver}).",
+            "set_update_checking": "Checking for updates...",
+            "set_update_checking_desc": "Checking GitHub for new releases...",
+            "set_sync_badge_running": "SYNCING...",
+            "set_sync_badge_ready": "UP TO DATE",
+            "set_sync_last_time": "Last Sync: {time} (All components and sources active)",
+            "set_sync_all_active": "All repositories, hooks, and manifest sources active.",
+            "set_st_dll_synced": "Synced (Active)",
+            "set_st_dll_just_updated": "Recently Updated",
+            "set_toml_sig_compat": "Dynamically Compatible",
+            "set_repo_count_active": "{count} Active",
+            "set_bypass_synced": "Online Synced",
+            "set_st_active_good": "ACTIVE (ALL GOOD)",
+            "set_st_ready_closed": "READY (STEAM CLOSED)",
+            "set_st_passive_not_installed": "INACTIVE (NOT INSTALLED)",
+            "set_st_none": "None",
+            "set_vc_installed_good": "INSTALLED (ALL GOOD)",
+            "set_vc_installed_good_text": "Microsoft Visual C++ (x86 & x64) runtimes are fully installed on your system, all good.",
+            "set_vc_missing": "MISSING (INSTALLATION REQUIRED)",
+            "set_av_safe": "SAFE (NO ISSUES)",
+            "set_av_safe_text": "Unlocker libraries are not quarantined and present in place. All good.",
+            "set_av_detected_title": "{av} Detected on Your System:",
+            "set_av_third_party_default": "For Users with Third-Party Antivirus (Avast/Kaspersky etc.):",
+            "footer_steam_conn": "Steam Connection: {path}",
+            "footer_steam_not_found": "Steam Not Found (Specify path in Settings tab)",
+            "lib_no_match": "No games found matching your search criteria."
         }
     };
 
@@ -689,6 +821,26 @@
             text = text.replace(new RegExp(`\\{${k}\\}`, "g"), v);
         }
         return text;
+    }
+
+    // Circular High-Fidelity SVG Flags (Rendering 100% reliably on all Windows versions)
+    const FLAG_TR_SVG = `<svg viewBox="0 0 32 32" width="100%" height="100%" style="border-radius:50%;overflow:hidden;display:block;">
+        <circle cx="16" cy="16" r="16" fill="#E30A17"/>
+        <circle cx="14" cy="16" r="7.5" fill="#FFFFFF"/>
+        <circle cx="16.5" cy="16" r="6" fill="#E30A17"/>
+        <polygon points="19.5,13.2 20.4,15.2 22.5,15.2 20.8,16.5 21.4,18.5 19.5,17.2 17.6,18.5 18.2,16.5 16.5,15.2 18.6,15.2" fill="#FFFFFF" transform="rotate(-18 19.5 16)"/>
+    </svg>`;
+
+    const FLAG_EN_SVG = `<svg viewBox="0 0 32 32" width="100%" height="100%" style="border-radius:50%;overflow:hidden;display:block;">
+        <rect width="32" height="32" fill="#012169"/>
+        <path d="M0,0 L32,32 M32,0 L0,32" stroke="#FFFFFF" stroke-width="6.5"/>
+        <path d="M0,0 L32,32 M32,0 L0,32" stroke="#C8102E" stroke-width="3.5"/>
+        <path d="M16,0 V32 M0,16 H32" stroke="#FFFFFF" stroke-width="9.5"/>
+        <path d="M16,0 V32 M0,16 H32" stroke="#C8102E" stroke-width="5.5"/>
+    </svg>`;
+
+    function getFlagSvg(lang) {
+        return lang === "en" ? FLAG_EN_SVG : FLAG_TR_SVG;
     }
 
     // Apply translations across all DOM elements
@@ -730,9 +882,18 @@
 
         // 4. Update Flag Icon and Active states
         const flagEl = document.getElementById("lang-current-flag");
+        const codeEl = document.getElementById("lang-current-code");
         if (flagEl) {
-            flagEl.textContent = currentLang === "en" ? "🇬🇧" : "🇹🇷";
+            flagEl.innerHTML = getFlagSvg(currentLang);
         }
+        if (codeEl) {
+            codeEl.textContent = currentLang === "en" ? "EN" : "TR";
+        }
+
+        const iconTr = document.getElementById("lang-icon-tr");
+        const iconEn = document.getElementById("lang-icon-en");
+        if (iconTr) iconTr.innerHTML = FLAG_TR_SVG;
+        if (iconEn) iconEn.innerHTML = FLAG_EN_SVG;
 
         const optTr = document.getElementById("lang-opt-tr");
         const optEn = document.getElementById("lang-opt-en");
@@ -777,6 +938,13 @@
             }).catch(() => {});
         } catch (e) {}
 
+        // Notify Electron System Tray menu
+        try {
+            if (window.electronAPI && typeof window.electronAPI.setLanguageForTray === 'function') {
+                window.electronAPI.setLanguageForTray(lang);
+            }
+        } catch (e) {}
+
         if (showTransition) {
             const overlay = document.getElementById("lang-transition-overlay");
             const progressBar = document.getElementById("lang-progress-bar");
@@ -787,8 +955,8 @@
 
             if (overlay && progressBar) {
                 if (flagFrom && flagTo) {
-                    flagFrom.textContent = prevLang === "en" ? "🇬🇧" : "🇹🇷";
-                    flagTo.textContent = lang === "en" ? "🇬🇧" : "🇹🇷";
+                    flagFrom.innerHTML = getFlagSvg(prevLang);
+                    flagTo.innerHTML = getFlagSvg(lang);
                 }
                 if (titleEl) titleEl.textContent = t("lang_switching_title");
                 if (subEl) subEl.textContent = t("lang_switching_sub");
@@ -823,11 +991,23 @@
     function initI18n() {
         let saved = "tr"; // Strict default: Turkish for initial launch
         try {
-            saved = localStorage.getItem("steamrogue_language") || "tr";
-        } catch (e) {}
+            saved = localStorage.getItem("steamrogue_language");
+            if (!saved || (saved !== "tr" && saved !== "en")) {
+                saved = "tr";
+                localStorage.setItem("steamrogue_language", "tr");
+            }
+        } catch (e) {
+            saved = "tr";
+        }
 
-        if (!translations[saved]) saved = "tr";
         currentLang = saved;
+
+        // Sync with Electron System Tray immediately
+        try {
+            if (window.electronAPI && typeof window.electronAPI.setLanguageForTray === 'function') {
+                window.electronAPI.setLanguageForTray(currentLang);
+            }
+        } catch (e) {}
 
         // Bind language toggle button & dropdown
         const toggleBtn = document.getElementById("lang-toggle-btn");
@@ -845,7 +1025,7 @@
                 optTr.onclick = (e) => {
                     e.stopPropagation();
                     menu.classList.remove("active");
-                    if (currentLang !== "tr") setLanguage("tr", true);
+                    setLanguage("tr", true);
                 };
             }
 
@@ -853,7 +1033,7 @@
                 optEn.onclick = (e) => {
                     e.stopPropagation();
                     menu.classList.remove("active");
-                    if (currentLang !== "en") setLanguage("en", true);
+                    setLanguage("en", true);
                 };
             }
 

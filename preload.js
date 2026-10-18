@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     repairAndReinstall: () => ipcRenderer.send('repair-and-reinstall'),
     restartAndUpdate: () => ipcRenderer.send('restart-and-update'),
     onModeChanged: (callback) => ipcRenderer.on('system-mode-changed', (event, mode) => callback(mode)),
-    notifyModeChanged: (mode) => ipcRenderer.send('mode-changed-in-ui', mode)
+    notifyModeChanged: (mode) => ipcRenderer.send('mode-changed-in-ui', mode),
+    setLanguageForTray: (lang) => ipcRenderer.send('language-changed-in-ui', lang)
 });

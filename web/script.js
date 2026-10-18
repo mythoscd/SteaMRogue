@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
             acceptBtn.disabled = false;
             acceptBtn.classList.add("active-ready");
             if (btnIcon) btnIcon.className = "fa-solid fa-check";
-            countdownSpan.textContent = "Kapat";
+            countdownSpan.textContent = "Kapat / Close";
             acceptBtn.onclick = closeModal;
             modal.onclick = (e) => {
                 if (e.target === modal) closeModal();
@@ -78,13 +78,13 @@ document.addEventListener("DOMContentLoaded", () => {
         acceptBtn.disabled = true;
         acceptBtn.classList.remove("active-ready");
         if (btnIcon) btnIcon.className = "fa-solid fa-hourglass-half";
-        countdownSpan.textContent = `Şartları Okudum ve Kabul Ediyorum (${secondsLeft})`;
+        countdownSpan.textContent = `Şartları Okudum ve Kabul Ediyorum / I Read & Agree to Terms (${secondsLeft})`;
 
         if (window._disclaimerTimer) clearInterval(window._disclaimerTimer);
         window._disclaimerTimer = setInterval(() => {
             secondsLeft--;
             if (secondsLeft > 0) {
-                countdownSpan.textContent = `Şartları Okudum ve Kabul Ediyorum (${secondsLeft})`;
+                countdownSpan.textContent = `Şartları Okudum ve Kabul Ediyorum / I Read & Agree to Terms (${secondsLeft})`;
             } else {
                 clearInterval(window._disclaimerTimer);
                 acceptBtn.disabled = false;
@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (btnIcon) {
                     btnIcon.className = "fa-solid fa-check";
                 }
-                countdownSpan.textContent = "Şartları Kabul Ediyorum ve Devam Et";
+                countdownSpan.textContent = "✓ Şartları Kabul Ediyorum / I Accept & Agree";
             }
         }, 1000);
 
@@ -388,10 +388,16 @@ function initClock() {
     const dateEl = document.getElementById("clock-date");
     if (!timeEl || !secEl || !dateEl) return;
 
-    const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-    const months = [
+    const daysTr = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+    const monthsTr = [
         "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", 
         "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+    ];
+
+    const daysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const monthsEn = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
     ];
 
     function updateClock() {
@@ -405,15 +411,24 @@ function initClock() {
         // Seconds
         secEl.textContent = String(now.getSeconds()).padStart(2, '0');
         
-        // Date
-        const dayName = days[now.getDay()];
+        // Date (Bilingual)
+        const isEn = (window.i18n && window.i18n.getCurrentLanguage() === 'en');
         const dayNum = now.getDate();
-        const monthName = months[now.getMonth()];
-        dateEl.textContent = `${dayNum} ${monthName}, ${dayName}`;
+        if (isEn) {
+            const dayName = daysEn[now.getDay()];
+            const monthName = monthsEn[now.getMonth()];
+            dateEl.textContent = `${dayName}, ${monthName} ${dayNum}`;
+        } else {
+            const dayName = daysTr[now.getDay()];
+            const monthName = monthsTr[now.getMonth()];
+            dateEl.textContent = `${dayNum} ${monthName}, ${dayName}`;
+        }
     }
 
     updateClock();
-    setInterval(updateClock, 1000);
+    if (window._clockInterval) clearInterval(window._clockInterval);
+    window._clockInterval = setInterval(updateClock, 1000);
+    window.updateClock = updateClock;
 }
 
 // %% Tabs Switching
@@ -1298,14 +1313,15 @@ function initAppLogic() {
         fetch("/api/bypass_status")
             .then(res => res.json())
             .then(data => {
+                const noneText = window.t ? window.t("set_st_none") : "Yok";
                 if (data.installed) {
                     if (data.steam_running) {
-                        badge.textContent = "AKTİF (HER ŞEY YOLUNDA)";
+                        badge.textContent = window.t ? window.t("set_st_active_good") : "AKTİF (HER ŞEY YOLUNDA)";
                         badge.className = "status-badge status-active";
                         badge.style.backgroundColor = "#10b981";
                         badge.style.color = "#ffffff";
                     } else {
-                        badge.textContent = "HAZIR (STEAM KAPALI)";
+                        badge.textContent = window.t ? window.t("set_st_ready_closed") : "HAZIR (STEAM KAPALI)";
                         badge.className = "status-badge status-active";
                         badge.style.backgroundColor = "#2563eb";
                         badge.style.color = "#ffffff";
@@ -1315,15 +1331,15 @@ function initAppLogic() {
                         dllsList.textContent = data.dlls.join(", ");
                         dllsList.style.color = "#10b981";
                     } else {
-                        dllsList.textContent = "Yok";
+                        dllsList.textContent = noneText;
                         dllsList.style.color = "var(--text-secondary)";
                     }
                 } else {
-                    badge.textContent = "PASİF (KURULU DEĞİL)";
+                    badge.textContent = window.t ? window.t("set_st_passive_not_installed") : "PASİF (KURULU DEĞİL)";
                     badge.className = "status-badge status-inactive";
                     badge.style.backgroundColor = "#8c2020";
                     badge.style.color = "#ffffff";
-                    dllsList.textContent = "Yok";
+                    dllsList.textContent = noneText;
                     dllsList.style.color = "var(--text-secondary)";
                 }
             })
@@ -1331,6 +1347,7 @@ function initAppLogic() {
                 console.error("Error fetching bypass status:", err);
             });
     }
+    window.updateSteamToolsStatus = updateSteamToolsStatus;
 
     function updateVCRedistStatus() {
         const badge = document.getElementById("vcredist-status-badge");
@@ -1341,14 +1358,14 @@ function initAppLogic() {
             .then(res => res.json())
             .then(data => {
                 if (data.all_installed) {
-                    badge.textContent = "KURULU (HER ŞEY YOLUNDA)";
+                    badge.textContent = window.t ? window.t("set_vc_installed_good") : "KURULU (HER ŞEY YOLUNDA)";
                     badge.className = "status-badge status-active";
                     badge.style.backgroundColor = "#10b981";
                     badge.style.color = "#ffffff";
-                    statusText.textContent = "Microsoft Visual C++ (x86 & x64) paketleri sisteminizde eksiksiz kurulu, her şey yolunda.";
+                    statusText.textContent = window.t ? window.t("set_vc_installed_good_text") : "Microsoft Visual C++ (x86 & x64) paketleri sisteminizde eksiksiz kurulu, her şey yolunda.";
                     statusText.style.color = "#10b981";
                 } else {
-                    badge.textContent = "EKSİK (YÜKLEME GEREKLİ)";
+                    badge.textContent = window.t ? window.t("set_vc_missing") : "EKSİK (YÜKLEME GEREKLİ)";
                     badge.className = "status-badge status-warning";
                     badge.style.backgroundColor = "#ef4444";
                     badge.style.color = "#ffffff";
@@ -1360,6 +1377,7 @@ function initAppLogic() {
                 console.error("VC++ status fetch error:", err);
             });
     }
+    window.updateVCRedistStatus = updateVCRedistStatus;
 
     let cachedExclusionPaths = [];
 
@@ -1386,21 +1404,21 @@ function initAppLogic() {
                     statusText.textContent = `DİKKAT: ${quarantine.details || "Bazı dosyalar karantinaya alınmış olabilir."}`;
                     statusText.style.color = "#ef4444";
                 } else {
-                    avBadge.textContent = "GÜVENLİ (SORUN YOK)";
+                    avBadge.textContent = window.t ? window.t("set_av_safe") : "GÜVENLİ (SORUN YOK)";
                     avBadge.className = "status-badge status-active";
                     avBadge.style.backgroundColor = "#10b981";
                     avBadge.style.color = "#ffffff";
-                    statusText.textContent = "Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.";
+                    statusText.textContent = window.t ? window.t("set_av_safe_text") : "Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.";
                     statusText.style.color = "#10b981";
                 }
 
                 if (avInfo.has_third_party) {
                     if (thirdPartyTitle) {
-                        thirdPartyTitle.textContent = `${primaryAv} Kullandığınız Tespit Edildi:`;
+                        thirdPartyTitle.textContent = window.t ? window.t("set_av_detected_title", { av: primaryAv }) : `${primaryAv} Kullandığınız Tespit Edildi:`;
                     }
                 } else {
                     if (thirdPartyTitle) {
-                        thirdPartyTitle.textContent = "Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:";
+                        thirdPartyTitle.textContent = window.t ? window.t("set_av_third_party_default") : "Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:";
                     }
                 }
             })
@@ -1408,6 +1426,7 @@ function initAppLogic() {
                 console.error("Security status fetch error:", err);
             });
     }
+    window.updateSecurityStatus = updateSecurityStatus;
 
     // Load Settings
     function loadSettings() {
@@ -1416,7 +1435,7 @@ function initAppLogic() {
             .then(data => {
                 if (data.steam_path) {
                     steamPathInput.value = data.steam_path;
-                    document.getElementById("status-connection").textContent = `Steam Bağlantısı: ${data.steam_path}`;
+                    document.getElementById("status-connection").textContent = window.t ? window.t("footer_steam_conn", { path: data.steam_path }) : `Steam Bağlantısı: ${data.steam_path}`;
                 }
                 updateSteamToolsStatus();
                 updateVCRedistStatus();
@@ -1625,7 +1644,7 @@ function initAppLogic() {
         }
 
         // Update games count label
-        gamesCount.textContent = `${filteredLibrary.length} oyun`;
+        gamesCount.textContent = window.t ? window.t("lib_games_count", { count: filteredLibrary.length }) : `${filteredLibrary.length} oyun`;
 
         // Reset page if needed
         const totalPages = Math.max(1, Math.ceil(filteredLibrary.length / itemsPerPage));
@@ -1635,6 +1654,7 @@ function initAppLogic() {
 
         renderPage();
     }
+    window.refreshLibrary = applyFiltersAndRender;
 
     // Render current Page
     function renderPage() {
@@ -1644,9 +1664,9 @@ function initAppLogic() {
             libraryGrid.innerHTML = `
                 <div class="no-games-placeholder">
                     <i class="fa-solid fa-gamepad"></i>
-                    <p>Arama kriterlerinize uygun oyun bulunamadı.</p>
+                    <p>${window.t ? window.t("lib_no_match") : "Arama kriterlerinize uygun oyun bulunamadı."}</p>
                 </div>`;
-            pageIndicator.textContent = "Sayfa 1/1";
+            pageIndicator.textContent = window.t ? window.t("lib_page_info", { current: 1, total: 1 }) : "Sayfa 1/1";
             pagePrev.disabled = true;
             pageNext.disabled = true;
             return;
@@ -1655,6 +1675,10 @@ function initAppLogic() {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = Math.min(startIndex + itemsPerPage, filteredLibrary.length);
         const pageItems = filteredLibrary.slice(startIndex, endIndex);
+
+        const badgeInstalledText = window.t ? window.t("badge_installed") : "YÜKLÜ";
+        const badgeDownloadableText = window.t ? window.t("badge_downloadable") : "İNDİRİLEBİLİR";
+        const removeTitle = window.t ? window.t("ctx_remove_game") : "Kütüphaneden Kaldır";
 
         pageItems.forEach(game => {
             const card = document.createElement("div");
@@ -1667,15 +1691,15 @@ function initAppLogic() {
             
             const isInst = Boolean(game.installed);
             const statusBadgeHtml = isInst 
-                ? `<span style="position: absolute; top: 8px; left: 8px; background: rgba(16, 185, 129, 0.92); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; z-index: 4; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fa-solid fa-circle-check"></i> YÜKLÜ</span>`
-                : `<span style="position: absolute; top: 8px; left: 8px; background: rgba(37, 99, 235, 0.92); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; z-index: 4; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fa-solid fa-download"></i> İNDİRİLEBİLİR</span>`;
+                ? `<span style="position: absolute; top: 8px; left: 8px; background: rgba(16, 185, 129, 0.92); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; z-index: 4; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fa-solid fa-circle-check"></i> ${badgeInstalledText}</span>`
+                : `<span style="position: absolute; top: 8px; left: 8px; background: rgba(37, 99, 235, 0.92); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; z-index: 4; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><i class="fa-solid fa-download"></i> ${badgeDownloadableText}</span>`;
 
             card.innerHTML = `
                 <div class="card-image-wrapper">
                     ${statusBadgeHtml}
                     <img class="card-image" src="${primaryCoverUrl}" alt="${game.name}" loading="lazy" decoding="async">
                     <div class="card-overlay-actions">
-                        <button class="btn-delete-card" data-appid="${game.appid}" title="Kütüphaneden Kaldır">
+                        <button class="btn-delete-card" data-appid="${game.appid}" title="${removeTitle}">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -1702,7 +1726,7 @@ function initAppLogic() {
                                 <i class="fa-solid fa-gamepad premium-placeholder-icon"></i>
                                 <div class="premium-placeholder-title">${game.name}</div>
                                 <div class="card-overlay-actions" style="opacity: 1;">
-                                    <button class="btn-delete-card" data-appid="${game.appid}" title="Kütüphaneden Kaldır">
+                                    <button class="btn-delete-card" data-appid="${game.appid}" title="${removeTitle}">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </div>
@@ -1732,7 +1756,7 @@ function initAppLogic() {
 
         // Update Pagination Indicators
         const totalPages = Math.ceil(filteredLibrary.length / itemsPerPage);
-        pageIndicator.textContent = `Sayfa ${currentPage}/${totalPages}`;
+        pageIndicator.textContent = window.t ? window.t("lib_page_info", { current: currentPage, total: totalPages }) : `Sayfa ${currentPage}/${totalPages}`;
         pagePrev.disabled = currentPage === 1;
         pageNext.disabled = currentPage === totalPages;
     }
@@ -1746,7 +1770,7 @@ function initAppLogic() {
             grid.innerHTML = `
                 <div class="no-games-placeholder" style="width: 100%; text-align: center; padding: 40px 0;">
                     <i class="fa-solid fa-gamepad" style="font-size: 2.2rem; color: var(--text-muted); opacity: 0.4; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Kütüphanenizde oyun bulunamadı.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">${window.t ? window.t("of_no_games") : "Kütüphanenizde oyun bulunamadı."}</p>
                 </div>
             `;
             return;
@@ -2224,7 +2248,7 @@ function initAppLogic() {
                         <span class="price-sale">$${deal.price_usd}</span>
                     </div>
                     <button class="btn-add-deal" data-appid="${deal.appid}" data-title="${deal.title}">
-                        <i class="fa-solid fa-plus"></i> Kütüphaneye Ekle
+                        <i class="fa-solid fa-plus"></i> ${window.t ? window.t("btn_add_to_library") : "Kütüphaneye Ekle"}
                     </button>
                 </div>
             `;
@@ -2266,6 +2290,7 @@ function initAppLogic() {
             dealsGrid.appendChild(card);
         });
     }
+    window.refreshDeals = renderDeals;
 
     function installDeal(appid, title, btnEl) {
         // Show loading overlay
@@ -2560,6 +2585,7 @@ function initAppLogic() {
     }
 
     function renderOnlinefixResults(results) {
+        window._lastOnlinefixResults = results;
         onlinefixResultsGrid.innerHTML = "";
 
         if (!results || results.length === 0) {
@@ -2572,6 +2598,11 @@ function initAppLogic() {
             `;
             return;
         }
+
+        const descText = window.t ? window.t("of_card_desc_gofile") : "Gofile sunucusu üzerinden doğrudan indirme ve Steam otomatik entegrasyonu.";
+        const dlBtnText = window.t ? window.t("of_btn_download_fix") : "Fix İndir";
+        const visitBtnText = window.t ? window.t("of_btn_visit_site") : "Siteye Git";
+        const visitTitleText = window.t ? window.t("of_btn_visit_title") : "Varsayılan tarayıcınızda resmi sayfayı açın";
 
         results.forEach(item => {
             const card = document.createElement("div");
@@ -2594,16 +2625,16 @@ function initAppLogic() {
                 </div>
                 <div class="onlinefix-card-body">
                     <h3 class="onlinefix-card-title" title="${item.title}">${item.title}</h3>
-                    <p class="onlinefix-card-desc">Gofile sunucusu üzerinden doğrudan indirme ve Steam otomatik entegrasyonu.</p>
+                    <p class="onlinefix-card-desc">${descText}</p>
                 </div>
                 <div class="onlinefix-card-actions">
                     <button class="btn-onlinefix-download" data-url="${item.url}" data-appid="${appid}">
                         <i class="fa-solid fa-download"></i>
-                        <span>Fix İndir</span>
+                        <span>${dlBtnText}</span>
                     </button>
-                    <button class="btn-onlinefix-browser" title="Varsayılan tarayıcınızda resmi sayfayı açın">
+                    <button class="btn-onlinefix-browser" title="${visitTitleText}">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        <span>Siteye Git</span>
+                        <span>${visitBtnText}</span>
                     </button>
                 </div>
             `;
@@ -2623,6 +2654,11 @@ function initAppLogic() {
             onlinefixResultsGrid.appendChild(card);
         });
     }
+    window.refreshOnlinefix = () => {
+        if (window._lastOnlinefixResults) {
+            renderOnlinefixResults(window._lastOnlinefixResults);
+        }
+    };
 
     function startOnlinefixDownload(detailUrl, appid) {
         if (currentDlTaskId) {
@@ -2838,9 +2874,9 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         btnCheckUpdate.addEventListener("click", () => {
             isManualCheck = true;
             btnCheckUpdate.disabled = true;
-            btnCheckUpdate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Denetleniyor...';
+            btnCheckUpdate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + (window.t ? window.t("set_update_checking") : "Denetleniyor...");
             if (updateStatusText) {
-                updateStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: var(--accent-purple);"></i> GitHub üzerinden yeni sürüm kontrolü yapılıyor...';
+                updateStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: var(--accent-purple);"></i> ' + (window.t ? window.t("set_update_checking_desc") : "GitHub üzerinden yeni sürüm kontrolü yapılıyor...");
                 updateStatusText.style.color = "var(--text-secondary)";
             }
             if (window.electronAPI.checkForUpdates) {
@@ -2849,7 +2885,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
             setTimeout(() => {
                 if (btnCheckUpdate.disabled) {
                     btnCheckUpdate.disabled = false;
-                    btnCheckUpdate.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle';
+                    btnCheckUpdate.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> ' + (window.t ? window.t("set_btn_check_update") : "Güncellemeleri Denetle");
                 }
             }, 6000);
         });
@@ -2902,7 +2938,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
             const data = await res.json();
             if (data) {
                 if (compBadge) {
-                    compBadge.textContent = data.running ? "EŞİTLENİYOR..." : "GÜNCEL";
+                    compBadge.textContent = data.running ? (window.t ? window.t("set_sync_badge_running") : "EŞİTLENİYOR...") : (window.t ? window.t("set_sync_badge_ready") : "GÜNCEL");
                     compBadge.style.backgroundColor = data.running ? "#eab308" : "#10b981";
                 }
                 if (compStatusText) {
@@ -2910,28 +2946,28 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                         compStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: #38bdf8;"></i> Harici depolar, imzalar ve oyun manifestoları arka planda senkronize ediliyor...';
                         compStatusText.style.color = "#facc15";
                     } else if (data.last_run_formatted) {
-                        compStatusText.textContent = `Son Senkronizasyon: ${data.last_run_formatted} (Tüm bileşenler ve kaynaklar aktif)`;
+                        compStatusText.textContent = window.t ? window.t("set_sync_last_time", { time: data.last_run_formatted }) : `Son Senkronizasyon: ${data.last_run_formatted} (Tüm bileşenler ve kaynaklar aktif)`;
                         compStatusText.style.color = "#10b981";
                     } else {
-                        compStatusText.textContent = "Tüm depolar, kancalar ve manifest kaynakları aktif.";
+                        compStatusText.textContent = window.t ? window.t("set_sync_all_active") : "Tüm depolar, kancalar ve manifest kaynakları aktif.";
                         compStatusText.style.color = "#10b981";
                     }
                 }
                 if (compStStatus) {
-                    compStStatus.textContent = (data.steamtools && data.steamtools.updated) ? "Yeni Güncellendi" : "Eşitlendi (Aktif)";
+                    compStStatus.textContent = (data.steamtools && data.steamtools.updated) ? (window.t ? window.t("set_st_dll_just_updated") : "Yeni Güncellendi") : (window.t ? window.t("set_st_dll_synced") : "Eşitlendi (Aktif)");
                     compStStatus.style.color = "#4ade80";
                 }
                 if (compSigStatus) {
-                    compSigStatus.textContent = "Dinamik Uyumlu";
+                    compSigStatus.textContent = window.t ? window.t("set_toml_sig_compat") : "Dinamik Uyumlu";
                     compSigStatus.style.color = "#4ade80";
                 }
                 if (compRepoStatus) {
                     const repoCount = (data.repos && Object.keys(data.repos).length) || 4;
-                    compRepoStatus.textContent = `${repoCount}/${repoCount} Aktif`;
+                    compRepoStatus.textContent = `${repoCount}/${repoCount} ` + (window.t ? window.t("set_repo_count_active", { count: "" }).trim() : "Aktif");
                     compRepoStatus.style.color = "#4ade80";
                 }
                 if (compBypassStatus) {
-                    compBypassStatus.textContent = "Çevrimiçi Eşit";
+                    compBypassStatus.textContent = window.t ? window.t("set_bypass_synced") : "Çevrimiçi Eşit";
                     compBypassStatus.style.color = "#4ade80";
                 }
 
@@ -3031,27 +3067,27 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
 
         if (btnCheckUpdate) {
             btnCheckUpdate.disabled = false;
-            btnCheckUpdate.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle';
+            btnCheckUpdate.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> ' + (window.t ? window.t("set_btn_check_update") : "Güncellemeleri Denetle");
         }
 
         if (btnRepairUpdate && data.status !== "downloading") {
             btnRepairUpdate.disabled = false;
-            btnRepairUpdate.innerHTML = '<i class="fa-solid fa-wrench"></i> Son Sürümü Yeniden İndir / Onar';
+            btnRepairUpdate.innerHTML = '<i class="fa-solid fa-wrench"></i> ' + (window.t ? window.t("set_btn_repair_install") : "Son Sürümü Yeniden İndir / Onar");
         }
 
         if (data.status === "checking") {
             if (updateStatusText) {
-                updateStatusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color: #7c3aed;"></i> Güncellemeler denetleniyor...';
+                updateStatusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="color: #7c3aed;"></i> ' + (window.t ? window.t("set_update_checking") : "Güncellemeler denetleniyor...");
                 updateStatusText.style.color = "var(--text-secondary)";
             }
         } else if (data.status === "not-available") {
             const ver = data.version ? `v${data.version}` : 'v1.2.0';
             if (updateStatusText) {
-                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`;
+                updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${window.t ? window.t("set_update_latest", { ver: ver }) : `Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`}`;
                 updateStatusText.style.color = "#10b981";
             }
             if (isManualCheck) {
-                showCustomAlert(`Şu anda en son sürümü (${ver}) kullanıyorsunuz. Yeni bir güncelleme bulunmuyor.`, "SteaMRogue Güncel");
+                showCustomAlert(window.t ? window.t("set_update_latest", { ver: ver }) : `Şu anda en son sürümü (${ver}) kullanıyorsunuz. Yeni bir güncelleme bulunmuyor.`, "SteaMRogue");
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
@@ -3212,12 +3248,236 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         '.NET': 'https://dotnet.microsoft.com/en-us/download',
     };
 
-    // Dinamik ve Kapsamlı Türkçe Çeviri Motoru
+    // Dinamik ve Kapsamlı Türkçe / İngilizce Çeviri Motoru
     function translateText(text) {
         if (!text) return '';
         let t = String(text).trim();
+        const isEn = (window.i18n && window.i18n.getCurrentLanguage() === 'en');
 
-        // 1. Denuvo adımları
+        if (isEn) {
+            let m = t.match(/^1\.\s*Install the game using files from ['"](.*?)['"]\.\s*If already installed, update via SteamTools\.?/i);
+            if (m) return `1. Install the game using files from '${m[1]}'. If already installed, update via SteamTools.`;
+
+            m = t.match(/^2\.\s*Open Project Lightning,\s*select (.*?),\s*and apply the fix to the game folder\.?/i);
+            if (m) return `2. Select ${m[1]} from SteaMRogue Bypass tab and click 'Apply Fix' to install to game folder.`;
+
+            m = t.match(/^3\.\s*Run (.*?)\.exe to generate the Denuvo ticket\.?/i);
+            if (m) return `3. Run ${m[1]}.exe to generate the Denuvo ticket.`;
+
+            if (/^4\.\s*Send ['"]DenuvoTicket['"] file via request zone in my server/i.test(t)) {
+                return "4. Send the generated 'DenuvoTicket' file via request zone.";
+            }
+            if (/^5\.\s*Replace ['"]DenuvoToken['"] in anadius\.cfg with the token I send you/i.test(t)) {
+                return "5. Paste the provided token into 'DenuvoToken' in anadius.cfg preserving quotes.";
+            }
+
+            m = t.match(/^6\.\s*Save the config and launch (.*?)\.exe\.?/i);
+            if (m) return `6. Save the config and launch ${m[1]}.exe.`;
+
+            if (/^If updated, send a new DenuvoTicket and repeat steps/i.test(t)) {
+                return 'If the game updates, generate a new DenuvoTicket and repeat the steps.';
+            }
+
+            const installMatch = t.match(/^if the game shows errors when opening,\s*you need to install\s+(.+?)\.?$/i);
+            if (installMatch) {
+                let progs = installMatch[1];
+                progs = progs.replace(/\bve\b/gi, 'and');
+                progs = progs.replace(/DoNet|\.NET 4\.0|\.NET 4\.6\.2|\.NET/gi, '.NET Framework');
+                progs = progs.replace(/VC Redist|Visual C\+\+|VC C\+\+|Microsoft Visual C\+\+ Redistributable|Microsoft VC redistributable/gi, 'Visual C++');
+                progs = progs.replace(/Ubisoft Play|Ubisoft Connect/gi, 'Ubisoft Connect');
+                progs = progs.replace(/EA Play|EA App/gi, 'EA App');
+                progs = progs.replace(/Rockstar Games Launcher/gi, 'Rockstar Games Launcher');
+                return `If the game shows errors when launching, you need to install ${progs}.`;
+            }
+
+            if (/Play without Easy Anti-Cheat/i.test(t)) {
+                return 'When launching the game via Steam, you must select "Play without Easy Anti-Cheat".';
+            }
+
+            m = t.match(/if you'?re still having issues,\s*simply go to the game folder and launch it using the\s+(.+?)\s+executable\.?/i);
+            if (m) return `If you are still having issues, go to the game folder and launch it using ${m[1]}.`;
+
+            m = t.match(/to launch the game,\s*you need to use the\s+(.+?)\s+executable\s+included in the game's root folder\.?/i);
+            if (m) return `To launch the game, use the ${m[1]} executable in the game's root folder.`;
+
+            if (/the game is not compatible with steam/i.test(t)) {
+                return 'The game is not compatible with Steam; launch it directly via the executable in the game folder.';
+            }
+
+            m = t.match(/it is very important to launch the game using the\s+(.+?)\s+executable\.?/i);
+            if (m) return `It is very important to launch the game using ${m[1]}.`;
+
+            if (/it is very important to launch the game using the first \.exe you see in the folder/i.test(t)) {
+                return 'It is very important to launch the game using the first .exe file in the folder.';
+            }
+
+            m = t.match(/remember to launch the game with exe\s+(.+?)\s+inside the\s+(.+?)\s+folder\.?/i);
+            if (m) return `Remember to launch the game with ${m[1]} inside the ${m[2]} folder.`;
+
+            m = t.match(/it's important to launch the game using the executable named ['"](.*?)['"]\.?/i);
+            if (m) return `It's important to launch the game using '${m[1]}'.`;
+
+            m = t.match(/the game must be launched from the executable in the (?:game )?folder named ['"](.*?)['"]\.?/i);
+            if (m) return `The game does not work via Steam; launch it via '${m[1]}' in the folder.`;
+
+            m = t.match(/the game does not work if you open it with steam,\s*you must open it with the exe called\s+(.+?)\s+that is inside the main folder of the game/i);
+            if (m) return `The game does not work via Steam; launch it using ${m[1]} in the main game folder.`;
+
+            m = t.match(/if the game doesn'?t launch with steam,\s*go to the main (?:game )?(?:folder|path) (?:of the game, )?and (?:launch|open) (?:the exe )?(.*?)\.?$/i);
+            if (m) return `If the game doesn't launch with Steam, go to the game folder and run ${m[1]}.`;
+
+            m = t.match(/if the game dont launch,\s*open the game with the exe in the folder called\s+(.*?)\.?$/i);
+            if (m) return `If the game doesn't launch, run ${m[1]} in the game folder.`;
+
+            m = t.match(/if you cant open the game with steam,\s*try to open it with the exe in the folder called\s+(.*?)\.?$/i);
+            if (m) return `If you can't open the game with Steam, try opening ${m[1]} in the game folder.`;
+
+            m = t.match(/you need to launch the game using the \*\*(.*?)\*\* executable\.?/i);
+            if (m) return `You need to launch the game using ${m[1]}.`;
+
+            m = t.match(/you need to launch the game with the exe called\s+(.+?),\s*not with steam/i);
+            if (m) return `You need to launch the game with ${m[1]}, not via Steam.`;
+
+            m = t.match(/you need to launch the game with the exe called\s+(.*?)\.?$/i);
+            if (m) return `You need to launch the game using ${m[1]}.`;
+
+            m = t.match(/^open the game with\s+(.*?)\.?$/i);
+            if (m) return `Open the game with ${m[1]}.`;
+
+            m = t.match(/^the game opens with the exe \*(.*?)\*\.?$/i);
+            if (m) return `The game opens with ${m[1]}.`;
+
+            m = t.match(/to open the game,\s*you need to open the\s+(.+?)\s+file located inside the\s+(.+?)\s+folder\.?/i);
+            if (m) return `To launch the game, run ${m[1]} inside the ${m[2]} folder.`;
+
+            if (/for open the game,\s*use the bat called\s+(.*?)\.?$/i.test(t)) {
+                const batM = t.match(/for open the game,\s*use the bat called\s+(.*?)\.?$/i);
+                return `To open the game, execute ${batM ? batM[1] : '!start_cod.bat'}.`;
+            }
+
+            if (/for play online,\s*execute the exe\s+(.*?)\.?$/i.test(t)) {
+                const exeM = t.match(/for play online,\s*execute the exe\s+(.*?)\.?$/i);
+                return `To play online, run ${exeM ? exeM[1] : 'iw5mp.exe'}.`;
+            }
+
+            if (/marking the game folder as an exception|mark the game folder as an exception|mark the game's folder as an exception/i.test(t)) {
+                return 'You must add the game folder to Windows Defender / Antivirus exclusions to prevent file deletion.';
+            }
+            if (/antivirus will delete the\s+(.+?)\s+file/i.test(t)) {
+                const antM = t.match(/antivirus will delete the\s+(.+?)\s+file/i);
+                return `Your antivirus may delete ${antM ? antM[1] : 'required'} file; this file is safe and required for the fix.`;
+            }
+            if (/your antivirus may block the\s+(.+?)\s+file/i.test(t)) {
+                const blkM = t.match(/your antivirus may block the\s+(.+?)\s+file/i);
+                return `Your antivirus may block ${blkM ? blkM[1] : 'required'} file; this file is safe and required.`;
+            }
+            if (/it’s very likely that your antivirus will delete some files/i.test(t) || /possibly the antivirus deletes files/i.test(t)) {
+                return 'Your antivirus may delete some fix files. Add the game folder to exclusions and re-apply fix if needed.';
+            }
+            if (/remember to mark the game folder as an exception before applying the fix/i.test(t)) {
+                return 'Remember to add the game folder to antivirus exclusions before applying fix.';
+            }
+
+            if (/Parsec application/i.test(t)) {
+                return 'You can use the Parsec application to play with your friends as if a second controller is connected to your PC.';
+            }
+            if (/to play zombie mode,\s*you must enter multiplayer/i.test(t)) {
+                return 'To play zombie mode, go to the Multiplayer menu and press Right Ctrl + Z in Local Multiplayer.';
+            }
+            if (/the game already includes the online fix/i.test(t)) {
+                return 'The game already includes online fix, but everyone must have the exact same latest version to play together.';
+            }
+            if (/this game only includes the campaign/i.test(t)) {
+                return 'This fix only includes the Campaign mode. For zombies and multiplayer, Plutonium is recommended.';
+            }
+
+            m = t.match(/the fix is made in the Spanish language.*?access:\s*(.*?)\s*and open the \.ini file.*?Language=English/is);
+            if (m) {
+                return `The fix is in Spanish by default. To change to English, open the .ini file in '${m[1]}' and set Language=English.`;
+            }
+            if (/open the localization\.txt file,\s*and change it to the language/i.test(t)) {
+                return "If the game doesn't launch, open localization.txt in the game folder and adjust the language.";
+            }
+            if (/delete the steam\.txt file/i.test(t)) {
+                return 'Before launching for the first time, delete steam.txt from the game folder, otherwise the game will not start.';
+            }
+            if (/STEAM MUST BE CLOSED before launching the game/i.test(t)) {
+                return 'VERY IMPORTANT: STEAM MUST BE FULLY CLOSED before launching the game, otherwise you will encounter errors.';
+            }
+            if (/game requires my manifest version|the game only works with my version of manifest|it will only work if you use my game manifests/i.test(t)) {
+                return 'The game requires the specific manifest version to run (downloadable from Library).';
+            }
+            if (/the game its a DLC,\s*and the fix is applied to the Call of Duty HQ folder/i.test(t)) {
+                return 'The game is a DLC pack, and the fix is applied to the Call of Duty HQ folder.';
+            }
+            if (/only necessary to select Call of duty black ops 6 campaign DLC/i.test(t)) {
+                return 'In Call of Duty, you only need to select Call of Duty Black Ops 6 Campaign DLC.';
+            }
+            if (/MirrorsEdge\.exe.*?Windows XP \(Service Pack 3\)/i.test(t)) {
+                return 'If the game crashes on launch, right-click MirrorsEdge.exe -> Properties -> Compatibility tab and select Windows XP (SP3).';
+            }
+            if (/when you start the game,\s*a runtime error appears\.\s*Just click Ignore All/i.test(t)) {
+                return 'When you start the game, if a runtime error appears, simply click "Ignore All".';
+            }
+            if (/if the screen gets stuck on the Launching screen,\s*you just need to press ESC/i.test(t)) {
+                return 'If the game gets stuck on the Launching screen, press the ESC key.';
+            }
+            if (/when I launched it for the first time through Steam,\s*it closed/i.test(t)) {
+                return 'If it closes on first Steam launch, try again or launch via LIS2/Binaries/Win64/LIS2-Win64-Shipping.exe.';
+            }
+            if (/when the game starts for the first time,\s*it usually takes a long time/i.test(t)) {
+                return 'The game may take a long time on first launch; wait 5 minutes, restart if stuck.';
+            }
+            if (/disable Windows\/driver updates to avoid issues/i.test(t)) {
+                return 'Pause Windows and driver updates to prevent compatibility issues.';
+            }
+            if (/make sure you have the last CPU drivers/i.test(t)) {
+                return 'Make sure you have the latest CPU and chipset drivers installed.';
+            }
+            if (/the bypass does not have saved game for now/i.test(t)) {
+                return 'Bypass does not support save files at the moment, work in progress.';
+            }
+            if (/the game is so heavy,\s*I'm warning you/i.test(t)) {
+                return 'The game file size is very large, just a heads up :)';
+            }
+            if (/support only via AnyDesk/i.test(t)) {
+                return 'Support is only provided via AnyDesk.';
+            }
+            if (/I know,\s*I know the fix is too large/i.test(t)) {
+                return 'The fix size is rather large, but all files are required for it to work properly.';
+            }
+            if (/enjoy the game|disfruta el juego/i.test(t)) {
+                return 'Enjoy the game! ♥';
+            }
+            if (/only ZEN Mode is available/i.test(t)) {
+                return 'Only ZEN Mode is available (the only offline game mode).';
+            }
+            if (/game only works when launched through Steam/i.test(t)) {
+                return 'Game only works when launched directly through Steam.';
+            }
+            if (/graphics card is compatible with DirectX 12/i.test(t)) {
+                return 'Your graphics card must support DirectX 12, otherwise the game will not start.';
+            }
+            if (/game takes a long time to load/i.test(t)) {
+                return 'The game may take 10-15 minutes to load, please wait patiently.';
+            }
+            if (/to remove fps monitoring/i.test(t)) {
+                return 'Press "P" several times on your keyboard to toggle FPS monitoring.';
+            }
+            if (/you need to have the EA app installed|requires EA App running/i.test(t)) {
+                return 'EA App must be installed and running on your computer, otherwise the game will not start.';
+            }
+            if (/requires Ubisoft Connect in offline mode/i.test(t)) {
+                return 'Ubisoft Connect must be open in offline mode.';
+            }
+            if (/no notes/i.test(t)) {
+                return 'No special installation notes.';
+            }
+
+            return t;
+        }
+
+        // 1. Denuvo adımları (Türkçe)
         let m = t.match(/^1\.\s*Install the game using files from ['"](.*?)['"]\.\s*If already installed, update via SteamTools\.?/i);
         if (m) return `1. Oyunu '${m[1]}' dosyalarıyla kurun. Zaten yüklüyse SteamTools ile güncelleyin.`;
 
@@ -3763,7 +4023,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
 
         if (isFirstOpen) {
             companyLabel.textContent = newLabel;
-            gameCount.textContent = `${newEntries.length} Oyun`;
+            gameCount.textContent = window.t ? window.t("lib_games_count", { count: newEntries.length }) : `${newEntries.length} Oyun`;
             gamesSection.style.display = 'flex';
             void gamesSection.offsetHeight;
             gamesSection.classList.add('is-visible');
@@ -3811,7 +4071,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
 
             // 2. Aşama: Başlık ve yeni oyunlar render edilir
             companyLabel.textContent = newLabel;
-            gameCount.textContent = `${newEntries.length} Oyun`;
+            gameCount.textContent = window.t ? window.t("lib_games_count", { count: newEntries.length }) : `${newEntries.length} Oyun`;
             renderGamesGrid(newEntries);
 
             // Yeni içeriği gelen yöne hazırla (anlık geçiş, animasyonsuz)
@@ -3848,7 +4108,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
     function renderGamesGrid(entries) {
         gamesGrid.innerHTML = '';
         if (entries.length === 0) {
-            gamesGrid.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.9rem;">Aramanızla eşleşen oyun bulunamadı.</div>';
+            gamesGrid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.9rem;">${window.t ? window.t("lib_no_match") : "Aramanızla eşleşen oyun bulunamadı."}</div>`;
             return;
         }
 
@@ -3880,7 +4140,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
             const query = e.target.value.trim().toLowerCase();
             if (!query) {
                 renderGamesGrid(currentCompanyEntries);
-                gameCount.textContent = `${currentCompanyEntries.length} Oyun`;
+                gameCount.textContent = window.t ? window.t("lib_games_count", { count: currentCompanyEntries.length }) : `${currentCompanyEntries.length} Oyun`;
                 return;
             }
 
@@ -3891,7 +4151,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
             });
 
             renderGamesGrid(filtered);
-            gameCount.textContent = `${filtered.length} / ${currentCompanyEntries.length} Oyun`;
+            gameCount.textContent = window.t ? window.t("bp_games_count", { current: filtered.length, total: currentCompanyEntries.length }) : `${filtered.length} / ${currentCompanyEntries.length} Oyun`;
         });
     }
 
@@ -3911,10 +4171,10 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         detailAppid.textContent = appid;
         metaAppid.textContent = appid;
 
-        // Notlar (Türkçe)
-        detailNote.textContent = translateText(game.comentarios || game.notes) || 'Bu oyun için özel bir not bulunmuyor. İyi oyunlar!';
+        // Notlar
+        detailNote.textContent = translateText(game.comentarios || game.notes) || (window.t ? window.t("bp_note_default") : 'Bu oyun için özel bir not bulunmuyor. İyi oyunlar!');
 
-        // Bilinen Sorunlar (Türkçe)
+        // Bilinen Sorunlar
         detailErrors.innerHTML = '';
         if (Array.isArray(game.errores) && game.errores.length > 0) {
             game.errores.forEach((err, i) => {
@@ -3928,7 +4188,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
             document.getElementById('bypass-detail-errors-wrap').style.display = 'none';
         }
 
-        // Gerekli Yazılımlar (Türkçe Etiketler)
+        // Gerekli Yazılımlar
         detailPrograms.innerHTML = '';
         if (Array.isArray(game.programas_necesarios) && game.programas_necesarios.length > 0) {
             game.programas_necesarios.forEach(p => {
@@ -3948,15 +4208,22 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
             document.getElementById('bypass-detail-software-wrap').style.display = 'none';
         }
 
-        // Meta Yapılandırma
-        metaExe.textContent = game.launch_exe ? 'Evet' : 'Hayır';
+        // Meta Yapılandırma (Yes / No localized)
+        const yesText = window.t ? window.t("bp_meta_yes") : 'Evet';
+        const noText = window.t ? window.t("bp_meta_no") : 'Hayır';
+        metaExe.textContent = game.launch_exe ? yesText : noText;
         metaExe.className = `bypass-meta-val ${game.launch_exe ? 'ok' : 'no'}`;
-        metaSteam.textContent = game.launch_steam ? 'Evet' : 'Hayır';
+        metaSteam.textContent = game.launch_steam ? yesText : noText;
         metaSteam.className = `bypass-meta-val ${game.launch_steam ? 'ok' : 'no'}`;
-        metaFix.textContent = game.nombre_fix || game.fix_name || 'Standart Bypass';
+        metaFix.textContent = game.nombre_fix || game.fix_name || (window.t ? window.t("bp_meta_fix_default") : 'Standart Bypass');
 
         resetApplyBtn();
     }
+    window.refreshBypass = () => {
+        if (selectedGame && detailView && detailView.style.display !== 'none') {
+            openBypassDetail(selectedGame.appid, selectedGame);
+        }
+    };
 
     // --- Geri Butonu ---
     if (backBtn) {
@@ -3972,7 +4239,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
         if (!applyBtn) return;
         applyBtn.disabled = false;
         applyBtn.classList.remove('done');
-        applyBtnText.textContent = 'Fix Uygula';
+        applyBtnText.textContent = window.t ? window.t("bp_btn_apply_fix") : 'Fix Uygula';
         applyStatus.textContent = '';
     }
 
@@ -4545,7 +4812,7 @@ function initSAM() {
             container.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 260px; gap: 14px; color: #c084fc;">
                     <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
-                    <span style="font-size: 0.95rem; font-weight: 600;">Steam başarımları yükleniyor, lütfen bekleyin...</span>
+                    <span style="font-size: 0.95rem; font-weight: 600;">${window.t ? window.t("ach_loading_status") : "Steam başarımları yükleniyor, lütfen bekleyin..."}</span>
                 </div>
             `;
         }
@@ -4566,10 +4833,10 @@ function initSAM() {
                     container.innerHTML = `
                         <div style="text-align: center; padding: 50px 20px; color: #f87171;">
                             <i class="fa-solid fa-circle-exclamation fa-2x" style="margin-bottom: 12px; display: block;"></i>
-                            <p style="font-size: 0.95rem; font-weight: 700; color: #fff;">Başarımlar Yüklenemedi</p>
-                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 6px 0 16px;">${escapeSAMHtml(data.error || "Steam bağlantısı kurulamadı veya oyun kütüphanede doğrulanmadı.")}</p>
+                            <p style="font-size: 0.95rem; font-weight: 700; color: #fff;">${window.t ? window.t("ach_load_failed_title") : "Başarımlar Yüklenemedi"}</p>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 6px 0 16px;">${escapeSAMHtml(data.error || (window.t ? window.t("ach_load_failed_desc") : "Steam bağlantısı kurulamadı veya oyun kütüphanede doğrulanmadı."))}</p>
                             <button class="btn btn-secondary" onclick="window.launchSAMApp('${samCurrentAppId}', '${escapeSAMHtml(samCurrentAppName)}')" style="padding: 7px 18px; font-size: 0.85rem; cursor: pointer;">
-                                <i class="fa-solid fa-rotate-right"></i> Yeniden Dene
+                                <i class="fa-solid fa-rotate-right"></i> ${window.t ? window.t("ach_retry_btn") : "Yeniden Dene"}
                             </button>
                         </div>
                     `;
@@ -4581,7 +4848,7 @@ function initSAM() {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 50px 20px; color: #f87171;">
                         <i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 12px; display: block;"></i>
-                        <p style="font-size: 0.95rem; font-weight: 700; color: #fff;">Bağlantı Hatası</p>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: #fff;">${window.t ? window.t("ach_connection_error") : "Bağlantı Hatası"}</p>
                         <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 6px 0 16px;">${escapeSAMHtml(err.message)}</p>
                     </div>
                 `;
@@ -4788,8 +5055,8 @@ function filterAndRenderSAMGames(query = "") {
                     <div class="sam-card-title" title="${name}">${name}</div>
                     <div class="sam-card-appid"><i class="fa-brands fa-steam"></i> AppID: ${appid}</div>
                 </div>
-                <button class="btn-sam-manage" data-appid="${appid}" data-name="${name.replace(/"/g, '&quot;')}" title="Bu oyun için Steam Achievement Manager'ı başlat">
-                    <i class="fa-solid fa-trophy"></i> Başarımları Yönet
+                <button class="btn-sam-manage" data-appid="${appid}" data-name="${name.replace(/"/g, '&quot;')}" title="${window.t ? window.t('ach_manage_title') : "Bu oyun için Steam Achievement Manager'ı başlat"}">
+                    <i class="fa-solid fa-trophy"></i> ${window.t ? window.t('ach_manage_btn') : "Başarımları Yönet"}
                 </button>
             </div>
         `;
@@ -4814,4 +5081,54 @@ function filterAndRenderSAMGames(query = "") {
 
     grid.appendChild(fragment);
 }
+window.renderSAMGamesGrid = function () {
+    if (typeof filterAndRenderSAMGames === "function") {
+        filterAndRenderSAMGames("");
+    }
+};
+
+// === GLOBAL DYNAMIC TRANSLATION REFRESH HOOK ===
+window.refreshDynamicTranslations = function () {
+    try {
+        if (typeof window.updateClock === "function") {
+            window.updateClock();
+        }
+        if (typeof window.refreshLibrary === "function") {
+            window.refreshLibrary();
+        }
+        if (typeof window.refreshOnlinefix === "function") {
+            window.refreshOnlinefix();
+        }
+        if (typeof window.refreshDeals === "function") {
+            window.refreshDeals();
+        }
+        if (typeof window.refreshBypass === "function") {
+            window.refreshBypass();
+        }
+        if (typeof window.renderSAMGamesGrid === "function") {
+            window.renderSAMGamesGrid();
+        }
+        if (typeof window.updateSteamToolsStatus === "function") {
+            window.updateSteamToolsStatus();
+        }
+        if (typeof window.updateVCRedistStatus === "function") {
+            window.updateVCRedistStatus();
+        }
+        if (typeof window.updateSecurityStatus === "function") {
+            window.updateSecurityStatus();
+        }
+        if (typeof window.pollComponentUpdateStatus === "function") {
+            window.pollComponentUpdateStatus();
+        }
+    } catch (e) {
+        console.debug("[i18n] Error during refreshDynamicTranslations:", e);
+    }
+};
+
+// Auto-run dynamic translations once script is fully initialized
+try {
+    if (typeof window.refreshDynamicTranslations === "function") {
+        window.refreshDynamicTranslations();
+    }
+} catch (_) {}
 

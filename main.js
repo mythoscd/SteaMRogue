@@ -146,6 +146,26 @@ function getAppIconPath() {
 }
 
 let currentSystemMode = 'unlocked';
+let currentAppLanguage = 'tr';
+
+const trayTranslations = {
+    tr: {
+        tooltip: 'SteaMRogue — Yeni Nesil Steam Kiti',
+        open: "⚡ SteaMRogue'u Aç",
+        safeMode: '🛡️ Güvenli Mod (VAC Safe)',
+        rogueMode: '⚡ SteaMRogue Modu',
+        restartSteam: "🔄 Steam'i Yeniden Başlat",
+        quit: '🎮 Tamamen Kapat (Sıfır RAM - Oyunlar Etkin Kalır)'
+    },
+    en: {
+        tooltip: 'SteaMRogue — Next-Gen Steam Suite',
+        open: '⚡ Open SteaMRogue',
+        safeMode: '🛡️ Safe Mode (VAC Safe)',
+        rogueMode: '⚡ SteaMRogue Mode',
+        restartSteam: '🔄 Restart Steam',
+        quit: '🎮 Fully Quit (Zero RAM - Games Remain Active)'
+    }
+};
 
 function fetchSystemModeAndUpdateTray() {
     try {
@@ -205,10 +225,15 @@ function switchSystemModeFromTray(targetMode) {
 function updateTrayContextMenu() {
     if (!tray) return;
     const isSafe = (currentSystemMode === 'safe');
+    const strings = trayTranslations[currentAppLanguage] || trayTranslations.tr;
+
+    try {
+        tray.setToolTip(strings.tooltip);
+    } catch (_) {}
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: "⚡ SteaMRogue'u Aç",
+            label: strings.open,
             click: () => {
                 if (mainWindow) {
                     mainWindow.show();
@@ -219,20 +244,20 @@ function updateTrayContextMenu() {
         },
         { type: 'separator' },
         {
-            label: `🛡️ Güvenli Mod (VAC Safe) ${isSafe ? '  ✓' : ''}`,
+            label: `${strings.safeMode}${isSafe ? '  ✓' : ''}`,
             type: 'radio',
             checked: isSafe,
             click: () => switchSystemModeFromTray('safe')
         },
         {
-            label: `⚡ SteaMRogue Modu ${!isSafe ? '  ✓' : ''}`,
+            label: `${strings.rogueMode}${!isSafe ? '  ✓' : ''}`,
             type: 'radio',
             checked: !isSafe,
             click: () => switchSystemModeFromTray('unlocked')
         },
         { type: 'separator' },
         {
-            label: "🔄 Steam'i Yeniden Başlat",
+            label: strings.restartSteam,
             click: () => {
                 try {
                     const postData = JSON.stringify({ force: false });
@@ -260,7 +285,7 @@ function updateTrayContextMenu() {
         },
         { type: 'separator' },
         {
-            label: '🎮 Tamamen Kapat (Sıfır RAM - Oyunlar Etkin Kalır)',
+            label: strings.quit,
             click: () => {
                 terminateSteaMRogueAndHelpers();
                 if (mainWindow) {
@@ -279,7 +304,8 @@ function createTray() {
     try {
         const iconPath = getAppIconPath();
         tray = new Tray(iconPath);
-        tray.setToolTip('SteaMRogue — Yeni Nesil Steam Kiti');
+        const strings = trayTranslations[currentAppLanguage] || trayTranslations.tr;
+        tray.setToolTip(strings.tooltip);
 
         updateTrayContextMenu();
         fetchSystemModeAndUpdateTray();
@@ -315,6 +341,13 @@ function createTray() {
 ipcMain.on('mode-changed-in-ui', (event, mode) => {
     currentSystemMode = mode;
     updateTrayContextMenu();
+});
+
+ipcMain.on('language-changed-in-ui', (event, lang) => {
+    if (lang === 'tr' || lang === 'en') {
+        currentAppLanguage = lang;
+        updateTrayContextMenu();
+    }
 });
 
 function createWindow() {

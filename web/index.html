@@ -63,30 +63,34 @@
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
                 <span class="version-badge" id="app-version-badge">v1.2.0</span>
             </div>
-            <nav class="nav-tabs">
-                <button class="tab-btn active" data-tab="lightning-tools" data-i18n="nav_library"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
-                <button class="tab-btn" data-tab="onlinefix" data-i18n="nav_onlinefix"><i class="fa-solid fa-network-wired"></i> OnlineFix</button>
-                <button class="tab-btn" data-tab="bypass" data-i18n="nav_bypass"><i class="fa-solid fa-shield-halved"></i> Bypass</button>
-                <button class="tab-btn" data-tab="discount-leak" data-i18n="nav_deals"><i class="fa-solid fa-tags"></i> İndirimler</button>
-                <button class="tab-btn" data-tab="achievements" data-i18n="nav_achievements"><i class="fa-solid fa-trophy"></i> Başarımlar</button>
-                <button class="tab-btn" data-tab="import" data-i18n="nav_import"><i class="fa-solid fa-file-arrow-up"></i> İçe Aktar</button>
-                <button class="tab-btn" data-tab="settings" data-i18n="nav_settings"><i class="fa-solid fa-gear"></i> Ayarlar</button>
-            </nav>
-            <div class="lang-selector-wrapper" id="lang-selector-wrapper">
-                <button type="button" class="lang-toggle-btn" id="lang-toggle-btn" data-i18n-title="select_language" title="Dil Seçimi / Select Language">
-                    <span class="lang-flag" id="lang-current-flag">🇹🇷</span>
-                    <i class="fa-solid fa-chevron-down lang-chevron"></i>
-                </button>
-                <div class="lang-dropdown-menu" id="lang-dropdown-menu">
-                    <div class="lang-dropdown-item active" data-lang="tr" id="lang-opt-tr">
-                        <span class="lang-item-flag">🇹🇷</span>
-                        <span class="lang-item-name">Türkçe</span>
-                        <i class="fa-solid fa-check lang-item-check"></i>
-                    </div>
-                    <div class="lang-dropdown-item" data-lang="en" id="lang-opt-en">
-                        <span class="lang-item-flag">🇬🇧</span>
-                        <span class="lang-item-name">English</span>
-                        <i class="fa-solid fa-check lang-item-check"></i>
+            <!-- CENTERED NAV & LANGUAGE SELECTOR -->
+            <div class="header-center-wrap">
+                <nav class="nav-tabs">
+                    <button class="tab-btn active" data-tab="lightning-tools" data-i18n="nav_library"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
+                    <button class="tab-btn" data-tab="onlinefix" data-i18n="nav_onlinefix"><i class="fa-solid fa-network-wired"></i> OnlineFix</button>
+                    <button class="tab-btn" data-tab="bypass" data-i18n="nav_bypass"><i class="fa-solid fa-shield-halved"></i> Bypass</button>
+                    <button class="tab-btn" data-tab="discount-leak" data-i18n="nav_deals"><i class="fa-solid fa-tags"></i> İndirimler</button>
+                    <button class="tab-btn" data-tab="achievements" data-i18n="nav_achievements"><i class="fa-solid fa-trophy"></i> Başarımlar</button>
+                    <button class="tab-btn" data-tab="import" data-i18n="nav_import"><i class="fa-solid fa-file-arrow-up"></i> İçe Aktar</button>
+                    <button class="tab-btn" data-tab="settings" data-i18n="nav_settings"><i class="fa-solid fa-gear"></i> Ayarlar</button>
+                </nav>
+                <div class="lang-selector-wrapper" id="lang-selector-wrapper">
+                    <button type="button" class="lang-toggle-btn" id="lang-toggle-btn" data-i18n-title="select_language" title="Dil Seçimi / Select Language">
+                        <span class="lang-flag-svg" id="lang-current-flag"></span>
+                        <span class="lang-code-text" id="lang-current-code">TR</span>
+                        <i class="fa-solid fa-chevron-down lang-chevron"></i>
+                    </button>
+                    <div class="lang-dropdown-menu" id="lang-dropdown-menu">
+                        <div class="lang-dropdown-item active" data-lang="tr" id="lang-opt-tr">
+                            <span class="lang-item-flag-svg" id="lang-icon-tr"></span>
+                            <span class="lang-item-name">Türkçe</span>
+                            <i class="fa-solid fa-check lang-item-check"></i>
+                        </div>
+                        <div class="lang-dropdown-item" data-lang="en" id="lang-opt-en">
+                            <span class="lang-item-flag-svg" id="lang-icon-en"></span>
+                            <span class="lang-item-name">English</span>
+                            <i class="fa-solid fa-check lang-item-check"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -839,7 +843,7 @@
                                     <i class="fa-solid fa-wrench" style="color:#a855f7;font-size:1.2rem;"></i>
                                     <h3 style="margin: 0; font-size: 1.05rem;" data-i18n="bp_modal_choice_title">Bypass Fix Yükleme Seçeneği</h3>
                                 </div>
-                                <button type="button" class="custom-modal-close" id="bypass-choice-close" style="background:none; border:none; color:#94a3b8; font-size:1.4rem; cursor:pointer; line-height: 1;" title="Kapat">&times;</button>
+                                <button type="button" class="custom-modal-close" id="bypass-choice-close" style="background:none; border:none; color:#94a3b8; font-size:1.4rem; cursor:pointer; line-height: 1;" data-i18n-title="btn_close" title="Kapat">&times;</button>
                             </div>
                             <p class="bypass-modal-body" style="margin-bottom: 16px; font-size: 0.88rem; color: #cbd5e1;" data-i18n="bp_modal_choice_desc">Lütfen fix dosyalarının nasıl uygulanmasını istediğinizi seçin:</p>
                             
@@ -925,7 +929,7 @@
     <!-- GAME DETAILS MODAL -->
     <div class="modal" id="details-modal">
         <div class="modal-content glassmorphic">
-            <span class="modal-close-btn" id="modal-close">&times;</span>
+            <span class="modal-close-btn" id="modal-close" data-i18n-title="btn_close" title="Kapat">&times;</span>
             <div class="modal-header-banner" id="modal-banner" style="background-image: url('');"></div>
             <div class="modal-body">
                 <h2 id="modal-title" data-i18n="modal_details_title">Oyun Detayları</h2>
@@ -964,7 +968,7 @@
                         </div>
                     </div>
                 </div>
-                <button id="sam-modal-close-btn" class="custom-modal-close" style="font-size: 1.4rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: transparent; cursor: pointer;" title="Kapat">&times;</button>
+                <button id="sam-modal-close-btn" class="custom-modal-close" style="font-size: 1.4rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: transparent; cursor: pointer;" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
 
             <!-- Progress Bar -->
@@ -1049,7 +1053,7 @@
         <div class="custom-modal-content">
             <div class="custom-modal-header">
                 <span id="custom-modal-title">SteaMRogue</span>
-                <button class="custom-modal-close" id="custom-alert-close">&times;</button>
+                <button class="custom-modal-close" id="custom-alert-close" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
             <div class="custom-modal-body">
                 <p id="custom-modal-message">Emin misiniz?</p>
@@ -1068,7 +1072,7 @@
                 <span style="color: #ff3355; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="nuke_title">DİKKAT: Sistemi İmha Etmek İstediğinize Emin Misiniz?</span>
                 </span>
-                <button class="custom-modal-close" id="nuke-modal-close">&times;</button>
+                <button class="custom-modal-close" id="nuke-modal-close" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
             <div class="custom-modal-body" style="padding: 22px;">
                 <p style="color: var(--text-primary); font-size: 0.92rem; font-weight: 600; margin-bottom: 14px;" data-i18n="nuke_subtitle">
@@ -1111,7 +1115,7 @@
         <div class="custom-modal-content" style="max-width: 520px;">
             <div class="custom-modal-header">
                 <span data-i18n="of_modal_choice_title">OnlineFix Yama Yükleme Seçeneği</span>
-                <button class="custom-modal-close" id="onlinefix-choice-close">&times;</button>
+                <button class="custom-modal-close" id="onlinefix-choice-close" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
             <div class="custom-modal-body" style="padding: 22px;">
                 <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 16px; font-size: 0.92rem;" data-i18n="of_modal_choice_desc">Lütfen multiplayer yamasının nereye yüklenmesini istediğinizi seçin:</p>
@@ -1157,7 +1161,7 @@
                     <i class="fa-solid fa-circle-question" style="color: #a78bfa;"></i>
                     <span data-i18n="guide_modal_title">Nasıl Oyun Eklenir?</span>
                 </span>
-                <button class="custom-modal-close" id="guide-modal-close">&times;</button>
+                <button class="custom-modal-close" id="guide-modal-close" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
             <div class="custom-modal-body" style="padding: 20px;">
                 <div class="guide-steps-list">
@@ -1198,7 +1202,7 @@
                     <i class="fa-solid fa-shield-halved" style="color: #a78bfa;"></i>
                     <span data-i18n="mode_modal_title">SteaMRogue Çalışma Modları Rehberi</span>
                 </span>
-                <button class="custom-modal-close" id="mode-info-modal-close">&times;</button>
+                <button class="custom-modal-close" id="mode-info-modal-close" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
             <div class="custom-modal-body" style="padding: 20px;">
                 <div class="mode-info-cards">
@@ -1233,45 +1237,81 @@
         </div>
     </div>
 
-    <!-- FIRST LAUNCH DISCLAIMER & EULA MODAL (10s COUNTDOWN) -->
+    <!-- FIRST LAUNCH DUAL-LANGUAGE DISCLAIMER & EULA MODAL (10s COUNTDOWN) -->
     <div id="disclaimer-modal" class="custom-modal disclaimer-backdrop">
-        <div class="custom-modal-content disclaimer-modal-content">
+        <div class="custom-modal-content disclaimer-modal-content disclaimer-bilingual-modal">
             <div class="custom-modal-header disclaimer-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="disclaimer-header-title" data-i18n="disc_header_title">
+                <span class="disclaimer-header-title">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    Yasal Uyarı ve Kullanıcı Sorumluluk Beyanı
+                    Yasal Uyarı & Kullanım Şartları / Legal Notice & Terms of Use
                 </span>
-                <button type="button" class="custom-modal-close" id="disclaimer-modal-close" style="display: none; font-size: 1.4rem; color: #94a3b8; background: transparent; border: none; cursor: pointer; line-height: 1;">&times;</button>
+                <button type="button" class="custom-modal-close" id="disclaimer-modal-close" style="display: none; font-size: 1.4rem; color: #94a3b8; background: transparent; border: none; cursor: pointer; line-height: 1;" data-i18n-title="btn_close" title="Kapat">&times;</button>
             </div>
-            <div class="custom-modal-body disclaimer-body">
-                <div class="disclaimer-text-card">
-                    <p class="disclaimer-lead" data-i18n="disc_lead">
-                        <strong>SteaMRogue</strong>, yerel kütüphane organizasyonu ve bağımsız araç yönetimi sağlayan açık kaynaklı bir yardımcı yazılımdır.
-                    </p>
-                    <p class="disclaimer-main-text" data-i18n="disc_main_text">
-                        Bu uygulamayı, kütüphane kilit açıcılarını ve üçüncü taraf eklentileri kullanırken karşılaşabileceğiniz her türlü hesap uyarısı, oyun içi kısıtlama veya olası yaptırımlar <strong>tamamen kullanıcının kendi sorumluluğundadır</strong>. SteaMRogue geliştiricileri ve katkıda bulunanları hiçbir hukuki, idari veya maddi sorumluluk kabul etmemektedir.
-                    </p>
+            <div class="custom-modal-body disclaimer-body disclaimer-bilingual-body">
+                <!-- Sol Sütun: Türkçe -->
+                <div class="disclaimer-col disclaimer-col-tr">
+                    <div class="disclaimer-col-header">
+                        <span class="disclaimer-lang-tag">🇹🇷 Türkçe</span>
+                    </div>
+                    <div class="disclaimer-text-card">
+                        <p class="disclaimer-lead">
+                            <strong>SteaMRogue</strong>, yerel kütüphane organizasyonu ve bağımsız araç yönetimi sağlayan açık kaynaklı bir yardımcı yazılımdır.
+                        </p>
+                        <p class="disclaimer-main-text">
+                            Bu uygulamayı, kütüphane kilit açıcılarını ve üçüncü taraf eklentileri kullanırken karşılaşabileceğiniz her türlü hesap uyarısı, oyun içi kısıtlama veya yaptırımlar <strong>tamamen kullanıcının kendi sorumluluğundadır</strong>. Geliştiriciler hiçbir hukuki veya maddi sorumluluk kabul etmez.
+                        </p>
+                    </div>
+
+                    <div class="disclaimer-warning-box">
+                        <div class="warning-box-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="warning-box-content">
+                            <h5>📌 Önemli Hatırlatma (VAC & Rekabetçi Oyunlar)</h5>
+                            <p>
+                                <strong>Counter-Strike 2 (CS2), Dota 2</strong> veya <strong>Team Fortress 2</strong> gibi VAC korumalı oyunlara girmeden önce mutlaka üst kısımdan <strong>Güvenli Mod</strong>'a geçiniz.
+                            </p>
+                            <p class="warning-box-sub">
+                                Güvenli Mod Steam'i %100 orijinal ve temiz durumuna getirerek <em>"VAC oyun oturumunuzu doğrulayamadı"</em> hatalarını ve tüm riskleri tamamen ortadan kaldırır.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="disclaimer-warning-box">
-                    <div class="warning-box-icon">
-                        <i class="fa-solid fa-shield-halved"></i>
+                <!-- Sağ Sütun: English -->
+                <div class="disclaimer-col disclaimer-col-en">
+                    <div class="disclaimer-col-header">
+                        <span class="disclaimer-lang-tag">🇬🇧 English</span>
                     </div>
-                    <div class="warning-box-content">
-                        <h5 data-i18n="disc_vac_title">📌 Önemli Hatırlatma (VAC & Rekabetçi Oyunlar)</h5>
-                        <p data-i18n="disc_vac_text1">
-                            <strong>Counter-Strike 2 (CS2), Dota 2</strong> veya <strong>Team Fortress 2</strong> gibi Valve Anti-Cheat (VAC) korumalı rekabetçi oyunlara girmeden önce mutlaka üst kısımdaki anahtardan <strong>Güvenli Mod</strong>'a geçiniz.
+                    <div class="disclaimer-text-card">
+                        <p class="disclaimer-lead">
+                            <strong>SteaMRogue</strong> is an open-source companion software providing local library management and independent tool orchestration.
                         </p>
-                        <p class="warning-box-sub" data-i18n="disc_vac_text2">
-                            SteaMRogue modunda unutup oyuna girilmesi durumunda anında kalıcı ban riski çok düşük olsa da Valve sunucuları <em>"VAC oyun oturumunuzu doğrulayamadı"</em> uyarısı vererek maçlara girişi engelleyebilir. <strong>Güvenli Mod</strong>, Steam'i %100 orijinal ve temiz haline getirerek oturum hatalarını ve tüm riskleri tamamen ortadan kaldırır.
+                        <p class="disclaimer-main-text">
+                            Any account warnings, in-game restrictions, or potential sanctions encountered while using this software or third-party add-ons remain <strong>solely the user's responsibility</strong>. The creators assume no legal, administrative, or financial liability.
                         </p>
+                    </div>
+
+                    <div class="disclaimer-warning-box">
+                        <div class="warning-box-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="warning-box-content">
+                            <h5>📌 Important Reminder (VAC & Competitive Titles)</h5>
+                            <p>
+                                Always switch to <strong>Safe Mode</strong> using the top toggle before launching Valve Anti-Cheat (VAC) protected games such as <strong>Counter-Strike 2, Dota 2</strong>, or <strong>Team Fortress 2</strong>.
+                            </p>
+                            <p class="warning-box-sub">
+                                Safe Mode restores Steam to 100% clean vanilla status, completely eliminating <em>"VAC was unable to verify your session"</em> warnings and all associated risks.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="custom-modal-footer disclaimer-footer">
-                <button class="btn btn-primary btn-disclaimer-countdown" id="btn-accept-disclaimer" disabled>
+            <div class="custom-modal-footer disclaimer-footer disclaimer-bilingual-footer" style="display: flex; justify-content: center; align-items: center; width: 100%;">
+                <button class="btn btn-primary btn-disclaimer-countdown" id="btn-accept-disclaimer" disabled style="min-width: 380px;">
                     <i class="fa-solid fa-hourglass-half" id="disclaimer-btn-icon"></i>
-                    <span id="disclaimer-countdown-text" data-i18n="disc_countdown_text">Şartları Okudum ve Kabul Ediyorum (10)</span>
+                    <span id="disclaimer-countdown-text">Şartları Okudum ve Kabul Ediyorum / I Read & Agree (10)</span>
                 </button>
             </div>
         </div>
@@ -1290,7 +1330,7 @@
                 </div>
                 <p id="updater-desc" data-i18n="updater_desc">Güncelleme arka planda otomatik indiriliyor...</p>
             </div>
-            <button class="update-close-btn" id="btn-updater-close" title="Bildirimi Kapat">&times;</button>
+            <button class="update-close-btn" id="btn-updater-close" data-i18n-title="btn_close" title="Bildirimi Kapat">&times;</button>
         </div>
 
         <div id="updater-progress-container" class="update-progress-container">
