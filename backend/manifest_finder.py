@@ -18,7 +18,7 @@ class ManifestFinder:
     def filter_lua_content(content_str: str, repo_url: str) -> str:
         """Applies cleaning rules to LUA scripts while strictly preserving addappid and setManifestid."""
         import re
-        lines = content_str.splitlines()
+        lines = content_str.lstrip("\ufeff").splitlines()
         filtered_lines = []
         
         for line in lines:
@@ -114,11 +114,12 @@ class ManifestFinder:
                     elif lower_name.endswith(".lua"):
                         lua_raw = z.read(file_info.filename)
                         try:
-                            lua_str = lua_raw.decode("utf-8")
+                            lua_str = lua_raw.decode("utf-8-sig")
                         except UnicodeDecodeError:
                             lua_str = lua_raw.decode("latin-1", errors="ignore")
                             
-                        filtered_lua = cls.filter_lua_content(lua_str, repo_url)
+                        lua_str = lua_str.lstrip("\ufeff")
+                        filtered_lua = cls.filter_lua_content(lua_str, repo_url).lstrip("\ufeff")
                         result["luas"].append({
                             "name": filename,
                             "content": filtered_lua.encode("utf-8")

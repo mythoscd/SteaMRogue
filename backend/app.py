@@ -155,7 +155,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.1.8"
+APP_VERSION = "1.1.9"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -2618,8 +2618,14 @@ def import_files():
             ext = os.path.splitext(name)[1].lower()
             
             if ext == ".lua":
-                shutil.copy2(path, os.path.join(plugin_folder, name))
-                shutil.copy2(path, os.path.join(lua_folder, name))
+                with open(path, "rb") as in_f:
+                    l_bytes = in_f.read()
+                if l_bytes.startswith(b"\xef\xbb\xbf"):
+                    l_bytes = l_bytes[3:]
+                with open(os.path.join(plugin_folder, name), "wb") as out_f:
+                    out_f.write(l_bytes)
+                with open(os.path.join(lua_folder, name), "wb") as out_f:
+                    out_f.write(l_bytes)
                 imported_count += 1
             elif ext == ".manifest":
                 shutil.copy2(path, os.path.join(depotcache_folder, name))
@@ -2635,10 +2641,13 @@ def import_files():
                         z_ext = os.path.splitext(z_name)[1].lower()
                         
                         if z_ext == ".lua":
+                            l_bytes = z.read(z_info.filename)
+                            if l_bytes.startswith(b"\xef\xbb\xbf"):
+                                l_bytes = l_bytes[3:]
                             with open(os.path.join(plugin_folder, z_name), "wb") as out_f:
-                                out_f.write(z.read(z_info.filename))
+                                out_f.write(l_bytes)
                             with open(os.path.join(lua_folder, z_name), "wb") as out_f:
-                                out_f.write(z.read(z_info.filename))
+                                out_f.write(l_bytes)
                             imported_count += 1
                         elif z_ext == ".manifest":
                             content = z.read(z_info.filename)
@@ -4296,8 +4305,8 @@ def auto_register_fix_appids(dest_dir: str, default_appid: str, steam_path: str)
                     logger.info(f"[auto_register_fix_appids] Created {lua_path}")
                 else:
                     try:
-                        with open(lua_path, "r", encoding="utf-8", errors="ignore") as lf:
-                            text = lf.read()
+                        with open(lua_path, "r", encoding="utf-8-sig", errors="ignore") as lf:
+                            text = lf.read().lstrip("\ufeff")
                         if f"addappid({aid}" not in text:
                             with open(lua_path, "a", encoding="utf-8") as lf:
                                 lf.write(f"\naddappid({aid}, 1)\n")

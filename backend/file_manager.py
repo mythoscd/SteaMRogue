@@ -297,8 +297,8 @@ class FileManager:
                     continue
                 lua_path = os.path.join(plugin_folder, fname)
                 try:
-                    with open(lua_path, "r", encoding="utf-8", errors="ignore") as f:
-                        content = f.read()
+                    with open(lua_path, "r", encoding="utf-8-sig", errors="ignore") as f:
+                        content = f.read().lstrip("\ufeff")
 
                     depots = re.findall(r"addappid\((\d+)", content)
                     modified = False
@@ -335,7 +335,7 @@ class FileManager:
                                 logger.info(f"Auto-pinned manifest in {fname}: {line_to_add}")
 
                     if modified:
-                        new_content = "\n".join(lines)
+                        new_content = "\n".join(lines).lstrip("\ufeff")
                         with open(lua_path, "w", encoding="utf-8") as f:
                             f.write(new_content)
                         if os.path.isdir(lua_folder):

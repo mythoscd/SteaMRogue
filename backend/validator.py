@@ -423,6 +423,30 @@ def cleanup_steam_crashes(steam_path: str) -> bool:
                         cleaned = True
             except Exception:
                 pass
+
+    # 7. Scan and strip UTF-8 BOM from all .lua files in config/stplug-in and config/lua
+    # Lua 5.1 / LuaJIT crashes with 'unexpected symbol near <\239>' if UTF-8 BOM is present
+    if steam_path and os.path.isdir(steam_path):
+        for sub_folder in ["stplug-in", "lua"]:
+            l_dir = os.path.join(steam_path, "config", sub_folder)
+            if os.path.isdir(l_dir):
+                try:
+                    for f_name in os.listdir(l_dir):
+                        if f_name.lower().endswith(".lua"):
+                            f_path = os.path.join(l_dir, f_name)
+                            try:
+                                with open(f_path, "rb") as lf:
+                                    b_data = lf.read()
+                                if b_data.startswith(b"\xef\xbb\xbf"):
+                                    with open(f_path, "wb") as lf:
+                                        lf.write(b_data[3:])
+                                    logger.info(f"[cleanup_steam_crashes] Stripped UTF-8 BOM from {f_path}")
+                                    cleaned = True
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+
     return cleaned
 
 # %%
