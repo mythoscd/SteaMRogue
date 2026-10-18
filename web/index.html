@@ -14,7 +14,7 @@
             overflow: hidden;
         }
     </style>
-    <link rel="stylesheet" href="style.css?v=1.1.9">
+    <link rel="stylesheet" href="style.css?v=1.2.0">
     <!-- Google Fonts for clean, modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
                 <i class="fa-solid fa-bolt splash-bolt"></i>
                 <span class="splash-title">SteaM<span class="splash-purple">Rogue</span></span>
             </div>
-            <div class="splash-version-pill">v1.1.9 • Yeni Nesil Steam Kiti</div>
+            <div class="splash-version-pill">v1.2.0 • Yeni Nesil Steam Kiti</div>
             <div class="splash-progress-track">
                 <div class="splash-progress-bar" id="splash-progress-bar"></div>
             </div>
@@ -40,26 +40,60 @@
         </div>
     </div>
 
+    <!-- DİL DEĞİŞTİRME GEÇİŞ EKRANI / LANGUAGE TRANSITION OVERLAY -->
+    <div id="lang-transition-overlay" class="lang-transition-overlay">
+        <div class="lang-transition-content">
+            <div class="lang-transition-flags">
+                <span id="trans-flag-from" class="trans-flag">🇹🇷</span>
+                <i class="fa-solid fa-arrow-right-long trans-arrow"></i>
+                <span id="trans-flag-to" class="trans-flag">🇬🇧</span>
+            </div>
+            <div class="lang-transition-title" id="trans-title" data-i18n="lang_switching_title">Dil Değiştiriliyor...</div>
+            <div class="lang-progress-track">
+                <div class="lang-progress-bar" id="lang-progress-bar"></div>
+            </div>
+            <div class="lang-transition-sub" id="trans-sub" data-i18n="lang_switching_sub">Arayüz ve kütüphane bileşenleri güncelleniyor...</div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- TOP NAVIGATION BAR -->
         <header class="app-header">
             <div class="logo-group">
                 <div class="logo-brand"><i class="fa-brands fa-steam logo-icon"></i><span class="logo-text">SteaM<span class="logo-highlight">Rogue</span></span></div>
-                <span class="version-badge" id="app-version-badge">v1.1.9</span>
+                <span class="version-badge" id="app-version-badge">v1.2.0</span>
             </div>
             <nav class="nav-tabs">
-                <button class="tab-btn active" data-tab="lightning-tools"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
-                <button class="tab-btn" data-tab="onlinefix"><i class="fa-solid fa-network-wired"></i> OnlineFix</button>
-                <button class="tab-btn" data-tab="bypass"><i class="fa-solid fa-shield-halved"></i> Bypass</button>
-                <button class="tab-btn" data-tab="discount-leak"><i class="fa-solid fa-tags"></i> İndirimler</button>
-                <button class="tab-btn" data-tab="achievements"><i class="fa-solid fa-trophy"></i> Başarımlar</button>
-                <button class="tab-btn" data-tab="import"><i class="fa-solid fa-file-arrow-up"></i> İçe Aktar</button>
-                <button class="tab-btn" data-tab="settings"><i class="fa-solid fa-gear"></i> Ayarlar</button>
+                <button class="tab-btn active" data-tab="lightning-tools" data-i18n="nav_library"><i class="fa-solid fa-gamepad"></i> Kütüphane</button>
+                <button class="tab-btn" data-tab="onlinefix" data-i18n="nav_onlinefix"><i class="fa-solid fa-network-wired"></i> OnlineFix</button>
+                <button class="tab-btn" data-tab="bypass" data-i18n="nav_bypass"><i class="fa-solid fa-shield-halved"></i> Bypass</button>
+                <button class="tab-btn" data-tab="discount-leak" data-i18n="nav_deals"><i class="fa-solid fa-tags"></i> İndirimler</button>
+                <button class="tab-btn" data-tab="achievements" data-i18n="nav_achievements"><i class="fa-solid fa-trophy"></i> Başarımlar</button>
+                <button class="tab-btn" data-tab="import" data-i18n="nav_import"><i class="fa-solid fa-file-arrow-up"></i> İçe Aktar</button>
+                <button class="tab-btn" data-tab="settings" data-i18n="nav_settings"><i class="fa-solid fa-gear"></i> Ayarlar</button>
             </nav>
+            <div class="lang-selector-wrapper" id="lang-selector-wrapper">
+                <button type="button" class="lang-toggle-btn" id="lang-toggle-btn" data-i18n-title="select_language" title="Dil Seçimi / Select Language">
+                    <span class="lang-flag" id="lang-current-flag">🇹🇷</span>
+                    <i class="fa-solid fa-chevron-down lang-chevron"></i>
+                </button>
+                <div class="lang-dropdown-menu" id="lang-dropdown-menu">
+                    <div class="lang-dropdown-item active" data-lang="tr" id="lang-opt-tr">
+                        <span class="lang-item-flag">🇹🇷</span>
+                        <span class="lang-item-name">Türkçe</span>
+                        <i class="fa-solid fa-check lang-item-check"></i>
+                    </div>
+                    <div class="lang-dropdown-item" data-lang="en" id="lang-opt-en">
+                        <span class="lang-item-flag">🇬🇧</span>
+                        <span class="lang-item-name">English</span>
+                        <i class="fa-solid fa-check lang-item-check"></i>
+                    </div>
+                </div>
+            </div>
             <div class="header-controls">
-                <button id="minimize-btn" title="Simge Durumuna Küçült"><i class="fa-solid fa-minus"></i></button>
-                <button id="maximize-btn" title="Büyüt / Geri Yükle"><i class="fa-regular fa-square"></i></button>
-                <button id="close-btn" title="Kapat"><i class="fa-solid fa-xmark"></i></button>
+                <button id="minimize-btn" data-i18n-title="btn_minimize" title="Simge Durumuna Küçült"><i class="fa-solid fa-minus"></i></button>
+                <button id="maximize-btn" data-i18n-title="btn_maximize" title="Büyüt / Geri Yükle"><i class="fa-regular fa-square"></i></button>
+                <button id="close-btn" data-i18n-title="btn_close" title="Kapat"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </header>
 
@@ -73,14 +107,14 @@
                     <div class="clock-panel">
                         <div class="clock-badge">
                             <span class="live-dot"></span>
-                            <span>SİSTEM SAATİ</span>
+                            <span data-i18n="system_time">SİSTEM SAATİ</span>
                         </div>
                         <div class="clock-display">
                             <div class="clock-digits-wrap">
                                 <span class="clock-time" id="clock-time">00:00</span>
                                 <span class="clock-seconds" id="clock-seconds">00</span>
                             </div>
-                            <span class="clock-date" id="clock-date">Yükleniyor...</span>
+                            <span class="clock-date" id="clock-date" data-i18n="loading_clock">Yükleniyor...</span>
                         </div>
                     </div>
 
@@ -88,42 +122,42 @@
                     <div class="adder-panel">
                         <div class="adder-header">
                             <div class="adder-header-left">
-                                <button id="btn-guide-help" class="btn-guide-pill" title="Nasıl Oyun Eklenir?">
-                                    <i class="fa-solid fa-circle-question"></i> Nasıl Yapılır?
+                                <button id="btn-guide-help" class="btn-guide-pill" data-i18n-title="btn_how_to" title="Nasıl Oyun Eklenir?">
+                                    <i class="fa-solid fa-circle-question"></i> <span data-i18n="btn_how_to">Nasıl Yapılır?</span>
                                 </button>
                             </div>
 
                             <!-- Mode Switcher Pill Container -->
                             <div class="mode-switch-wrapper">
                                 <div class="mode-toggle-segmented" id="mode-toggle-pill" role="group" aria-label="Steam Çalışma Modu">
-                                    <button type="button" class="mode-segment" id="mode-btn-safe" data-mode="safe" title="Kilit açıcı kancaları kaldırır. CS2 ve VAC korumalı oyunlar için %100 temiz ve güvenlidir.">
-                                        <i class="fa-solid fa-shield-halved"></i> <span>Güvenli Mod</span>
+                                    <button type="button" class="mode-segment" id="mode-btn-safe" data-mode="safe" data-i18n-title="mode_safe_title" title="Kilit açıcı kancaları kaldırır. CS2 ve VAC korumalı oyunlar için %100 temiz ve güvenlidir.">
+                                        <i class="fa-solid fa-shield-halved"></i> <span data-i18n="mode_safe">Güvenli Mod</span>
                                     </button>
-                                    <button type="button" class="mode-segment active" id="mode-btn-unlocked" data-mode="unlocked" title="SteaMRogue kütüphane kilitlerini açar ve oyunları aktifleştirir.">
-                                        <i class="fa-solid fa-bolt"></i> <span>SteaMRogue Modu</span>
+                                    <button type="button" class="mode-segment active" id="mode-btn-unlocked" data-mode="unlocked" data-i18n-title="mode_steamrogue_title" title="SteaMRogue kütüphane kilitlerini açar ve oyunları aktifleştirir.">
+                                        <i class="fa-solid fa-bolt"></i> <span data-i18n="mode_steamrogue">SteaMRogue Modu</span>
                                     </button>
                                     <div class="mode-segment-thumb" id="mode-segment-thumb"></div>
                                 </div>
-                                <button type="button" class="mode-info-btn" id="btn-mode-info" title="Çalışma Modları ve VAC Güvenliği Hakkında Bilgi">
+                                <button type="button" class="mode-info-btn" id="btn-mode-info" data-i18n-title="mode_help_tooltip" title="Çalışma Modları ve VAC Güvenliği Hakkında Bilgi">
                                     <i class="fa-solid fa-circle-question"></i>
                                 </button>
-                                <div class="mode-restart-badge" id="mode-restart-badge" style="display: none;" title="Değişikliklerin geçerli olması için Steam'i yeniden başlatmalısınız!">
+                                <div class="mode-restart-badge" id="mode-restart-badge" style="display: none;" data-i18n-title="mode_restart_needed" title="Değişikliklerin geçerli olması için Steam'i yeniden başlatmalısınız!">
                                     <i class="fa-solid fa-triangle-exclamation"></i>
-                                    <span>Yeniden Başlatma Gerekli</span>
+                                    <span data-i18n="mode_restart_needed">Yeniden Başlatma Gerekli</span>
                                 </div>
                             </div>
                         </div>
                         <div class="adder-body">
                             <div class="command-search-wrapper" style="flex: 1;">
                                 <i class="fa-solid fa-magnifying-glass search-lead-icon"></i>
-                                <input type="text" id="appid-input" placeholder="Steam mağaza linki, AppID veya oyun adı girin (Örn: store.steampowered.com/app/...)..." autocomplete="off">
+                                <input type="text" id="appid-input" data-i18n-placeholder="search_placeholder" placeholder="Steam mağaza linki, AppID veya oyun adı girin (Örn: store.steampowered.com/app/...)..." autocomplete="off">
                                 <div class="search-autocomplete-dropdown" id="search-autocomplete"></div>
                             </div>
                             <button class="btn btn-primary" id="btn-add-appid">
-                                <i class="fa-solid fa-plus"></i> Kütüphaneye Ekle
+                                <i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_to_library">Kütüphaneye Ekle</span>
                             </button>
-                            <button class="btn btn-steam-restart" id="btn-restart-steam" title="Steam istemcisini güvenle yeniden başlatır">
-                                <i class="fa-brands fa-steam"></i> <span>Steam'i Yeniden Başlat</span>
+                            <button class="btn btn-steam-restart" id="btn-restart-steam" data-i18n-title="btn_restart_steam_title" title="Steam istemcisini güvenle yeniden başlatır">
+                                <i class="fa-brands fa-steam"></i> <span data-i18n="btn_restart_steam">Steam'i Yeniden Başlat</span>
                             </button>
                         </div>
                     </div>
@@ -133,20 +167,20 @@
                 <div class="games-library-section">
                     <div class="library-header">
                         <div class="library-left">
-                            <h2 class="library-main-title">Oyun Kütüphaneniz</h2>
+                            <h2 class="library-main-title" data-i18n="lib_title">Oyun Kütüphaneniz</h2>
                             <span class="games-count" id="games-count">0 oyun</span>
                             <div class="sort-toggle">
-                                <button class="sort-btn active" data-sort="recent">En Yeni</button>
-                                <button class="sort-btn" data-sort="az">A-Z</button>
+                                <button class="sort-btn active" data-sort="recent" data-i18n="lib_sort_newest">En Yeni</button>
+                                <button class="sort-btn" data-sort="az" data-i18n="lib_sort_az">A-Z</button>
                             </div>
                         </div>
                         <div class="library-right">
-                            <button class="btn btn-secondary btn-icon-only-sm" id="btn-reload-covers" title="Kütüphaneyi Yenile">
-                                <i class="fa-solid fa-rotate"></i> Yenile
+                            <button class="btn btn-secondary btn-icon-only-sm" id="btn-reload-covers" data-i18n-title="lib_refresh_title" title="Kütüphaneyi Yenile">
+                                <i class="fa-solid fa-rotate"></i> <span data-i18n="lib_refresh">Yenile</span>
                             </button>
                             <div class="search-box">
                                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                <input type="text" id="search-input" placeholder="Kütüphanede ara...">
+                                <input type="text" id="search-input" data-i18n-placeholder="lib_search_placeholder" placeholder="Kütüphanede ara...">
                             </div>
                         </div>
                     </div>
@@ -156,17 +190,17 @@
                         <!-- Dynamic content filled via JS -->
                         <div class="no-games-placeholder">
                             <i class="fa-solid fa-gamepad"></i>
-                            <p>Henüz kütüphanenize oyun eklenmedi.</p>
-                            <span class="placeholder-subtext">Yukarıdaki arama çubuğundan bir oyun linki, AppID veya isim yazıp ekleyebilirsiniz.</span>
+                            <p data-i18n="lib_empty_title">Henüz kütüphanenize oyun eklenmedi.</p>
+                            <span class="placeholder-subtext" data-i18n="lib_empty_desc">Yukarıdaki arama çubuğundan bir oyun linki, AppID veya isim yazıp ekleyebilirsiniz.</span>
                         </div>
                     </div>
 
                     <!-- PAGINATION -->
                     <div class="pagination-wrapper">
                         <div class="pagination-container">
-                            <button class="page-nav" id="page-prev"><i class="fa-solid fa-chevron-left" style="margin-right: 6px;"></i> Önceki</button>
+                            <button class="page-nav" id="page-prev" data-i18n="lib_prev"><i class="fa-solid fa-chevron-left" style="margin-right: 6px;"></i> Önceki</button>
                             <span class="page-indicator" id="page-indicator">Sayfa 1/1</span>
-                            <button class="page-nav" id="page-next">Sonraki <i class="fa-solid fa-chevron-right" style="margin-left: 6px;"></i></button>
+                            <button class="page-nav" id="page-next" data-i18n="lib_next">Sonraki <i class="fa-solid fa-chevron-right" style="margin-left: 6px;"></i></button>
                         </div>
                     </div>
                 </div>
@@ -176,11 +210,11 @@
             <section class="tab-content" id="tab-discount-leak">
                 <div class="discount-container">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                        <h2 class="section-title" style="margin-bottom: 0;">İndirim Fırsatları <span class="badge" style="font-size: 0.75rem; background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.4); padding: 4px 8px; border-radius: 4px; vertical-align: middle; margin-left: 10px; color: #c4b5fd;">Steam Özel İndirimleri</span></h2>
+                        <h2 class="section-title" style="margin-bottom: 0;"><span data-i18n="deals_title">İndirim Fırsatları</span> <span class="badge" data-i18n="deals_badge" style="font-size: 0.75rem; background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.4); padding: 4px 8px; border-radius: 4px; vertical-align: middle; margin-left: 10px; color: #c4b5fd;">Steam Özel İndirimleri</span></h2>
                         <div style="display: flex; gap: 10px;">
                             <button id="btn-refresh-deals" class="btn-steamdb-link" style="background: rgba(124, 58, 237, 0.1); border-color: rgba(124, 58, 237, 0.3);">
                                 <i class="fa-solid fa-arrows-rotate"></i>
-                                <span>Yenile</span>
+                                <span data-i18n="deals_refresh">Yenile</span>
                             </button>
                             <button id="btn-steamdb-leak" class="btn-steamdb-link">
                                 <i class="fa-solid fa-database"></i>
@@ -195,36 +229,36 @@
                         <!-- Search Bar -->
                         <div class="deals-search-wrapper" style="display: flex; align-items: center; gap: 10px; width: 100%; grid-column: 1 / -1; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 12px; box-sizing: border-box;">
                             <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); font-size: 0.85rem;"></i>
-                            <input type="text" id="deals-search-input" placeholder="İndirimlerde oyun ara (örn. Witcher, Cyberpunk)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 0.85rem; padding: 2px 0;">
-                            <i class="fa-solid fa-xmark" id="btn-clear-deals-search" style="cursor: pointer; color: var(--text-muted); display: none; font-size: 0.9rem;" title="Aramayı Temizle"></i>
+                            <input type="text" id="deals-search-input" data-i18n-placeholder="deals_search_placeholder" placeholder="İndirimlerde oyun ara (örn. Witcher, Cyberpunk)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 0.85rem; padding: 2px 0;">
+                            <i class="fa-solid fa-xmark" id="btn-clear-deals-search" data-i18n-title="deals_clear_search" style="cursor: pointer; color: var(--text-muted); display: none; font-size: 0.9rem;" title="Aramayı Temizle"></i>
                         </div>
 
                         <!-- Category Notice (Compact Pill) -->
                         <div style="width: 100%; display: flex; align-items: center; margin-bottom: 6px;">
                             <div class="category-notice" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.74rem; color: #cfc6f7; background: rgba(124, 58, 237, 0.12); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 20px; padding: 4px 12px; box-sizing: border-box;">
                                 <i class="fa-solid fa-circle-info" style="color: #f59e0b; font-size: 0.82rem; flex-shrink: 0;"></i>
-                                <span><strong style="color: #fff;">Not:</strong> Oyun kategorileri Steam verilerine göre filtrelenmektedir; bazı kategorilerde küçük hatalar olabilir.</span>
+                                <span><strong style="color: #fff;" data-i18n="deals_notice_note">Not:</strong> <span data-i18n="deals_notice_text">Oyun kategorileri Steam verilerine göre filtrelenmektedir; bazı kategorilerde küçük hatalar olabilir.</span></span>
                             </div>
                         </div>
 
                         <div class="genre-filters">
-                            <span class="filter-label">Tür:</span>
+                            <span class="filter-label" data-i18n="deals_genre_label">Tür:</span>
                             <div class="genre-buttons">
-                                <button class="btn-genre active" data-genre="all">Tümü</button>
-                                <button class="btn-genre" data-genre="Action">Aksiyon</button>
-                                <button class="btn-genre" data-genre="Adventure">Macera</button>
-                                <button class="btn-genre" data-genre="RPG">RPG</button>
-                                <button class="btn-genre" data-genre="Strategy">Strateji</button>
-                                <button class="btn-genre" data-genre="Simulation">Simülasyon</button>
-                                <button class="btn-genre" data-genre="Sports">Spor</button>
-                                <button class="btn-genre" data-genre="Indie">Bağımsız (Indie)</button>
+                                <button class="btn-genre active" data-genre="all" data-i18n="deals_genre_all">Tümü</button>
+                                <button class="btn-genre" data-genre="Action" data-i18n="deals_genre_action">Aksiyon</button>
+                                <button class="btn-genre" data-genre="Adventure" data-i18n="deals_genre_adventure">Macera</button>
+                                <button class="btn-genre" data-genre="RPG" data-i18n="deals_genre_rpg">RPG</button>
+                                <button class="btn-genre" data-genre="Strategy" data-i18n="deals_genre_strategy">Strateji</button>
+                                <button class="btn-genre" data-genre="Simulation" data-i18n="deals_genre_simulation">Simülasyon</button>
+                                <button class="btn-genre" data-genre="Sports" data-i18n="deals_genre_sports">Spor</button>
+                                <button class="btn-genre" data-genre="Indie" data-i18n="deals_genre_indie">Bağımsız (Indie)</button>
                             </div>
                         </div>
                         
                         <div class="discount-percent-filter" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                            <span class="filter-label">İndirim:</span>
+                            <span class="filter-label" data-i18n="deals_discount_label">İndirim:</span>
                             <div class="discount-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn-discount active" data-min-discount="all">Tümü</button>
+                                <button class="btn-discount active" data-min-discount="all" data-i18n="deals_genre_all">Tümü</button>
                                 <button class="btn-discount" data-min-discount="70">%70+</button>
                                 <button class="btn-discount" data-min-discount="80">%80+</button>
                                 <button class="btn-discount" data-min-discount="90">%90+</button>
@@ -233,7 +267,7 @@
                         
                         <div class="price-filter">
                             <div class="price-slider-header">
-                                <span class="filter-label">Maks. Fiyat:</span>
+                                <span class="filter-label" data-i18n="deals_max_price_label">Maks. Fiyat:</span>
                                 <span class="price-value" id="price-limit-display">$60.00</span>
                             </div>
                             <input type="range" id="price-range-slider" min="0" max="60" step="1" value="60">
@@ -245,7 +279,7 @@
                         <!-- Dynamic content filled via JS -->
                         <div class="loading-deals-spinner" style="text-align: center; padding: 50px 0; color: var(--text-secondary); width: 100%;">
                             <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--accent-purple); margin-bottom: 15px;"></i>
-                            <p style="font-size: 0.95rem; font-weight: 600;">Aktif Steam indirimleri yükleniyor...</p>
+                            <p style="font-size: 0.95rem; font-weight: 600;" data-i18n="deals_loading">Aktif Steam indirimleri yükleniyor...</p>
                         </div>
                     </div>
                 </div>
@@ -264,10 +298,10 @@
                                 </div>
                                 <div>
                                     <h2 class="section-title" style="margin: 0; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                        Başarımlar (SAM)
-                                        <span style="font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-subtle);">Steam Achievement Manager</span>
+                                        <span data-i18n="ach_title">Başarımlar (SAM)</span>
+                                        <span style="font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-subtle);" data-i18n="ach_subtitle_tag">Steam Achievement Manager</span>
                                     </h2>
-                                    <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Steam hesabınızdaki oyunların başarımlarını görüntüleyin ve yönetin.</p>
+                                    <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;" data-i18n="ach_desc">Steam hesabınızdaki oyunların başarımlarını görüntüleyin ve yönetin.</p>
                                 </div>
                             </div>
                         </div>
@@ -276,10 +310,10 @@
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary); background: rgba(255, 255, 255, 0.03); padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 8px;">
                                 <i class="fa-solid fa-gamepad" style="color: var(--accent-purple);"></i>
-                                <span>Kütüphanenizdeki Oyunlar: <strong id="sam-game-count" style="color: #c084fc;">0</strong></span>
+                                <span><span data-i18n="ach_library_games_label">Kütüphanenizdeki Oyunlar:</span> <strong id="sam-game-count" style="color: #c084fc;">0</strong></span>
                             </div>
-                            <button id="btn-sam-refresh-library" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.85rem;" title="Kütüphaneyi Yeniden Tara">
-                                <i class="fa-solid fa-rotate"></i> Yenile
+                            <button id="btn-sam-refresh-library" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.85rem;" data-i18n-title="ach_btn_refresh_title" title="Kütüphaneyi Yeniden Tara">
+                                <i class="fa-solid fa-rotate"></i> <span data-i18n="ach_btn_refresh">Yenile</span>
                             </button>
                         </div>
                     </div>
@@ -288,7 +322,7 @@
                     <div class="panel-card" style="padding: 14px 18px; margin-bottom: 22px; background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: 12px;">
                         <div style="position: relative; width: 100%;">
                             <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
-                            <input type="text" id="sam-search-input" placeholder="Kütüphanenizdeki oyunlar arasında arama yapın veya AppID yazın (Örn: Counter-Strike, Cyberpunk, 730)..." autocomplete="off" style="width: 100%; padding: 12px 18px 12px 46px; border-radius: 8px; border: 1px solid var(--border-medium); background: rgba(0, 0, 0, 0.25); color: var(--text-primary); font-size: 0.92rem; transition: border 0.2s;">
+                            <input type="text" id="sam-search-input" data-i18n-placeholder="ach_search_placeholder" placeholder="Kütüphanenizdeki oyunlar arasında arama yapın veya AppID yazın (Örn: Counter-Strike, Cyberpunk, 730)..." autocomplete="off" style="width: 100%; padding: 12px 18px 12px 46px; border-radius: 8px; border: 1px solid var(--border-medium); background: rgba(0, 0, 0, 0.25); color: var(--text-primary); font-size: 0.92rem; transition: border 0.2s;">
                         </div>
                     </div>
 
@@ -296,8 +330,8 @@
                     <div id="sam-games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-bottom: 30px;">
                         <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-muted);">
                             <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.2rem; color: var(--accent-purple); margin-bottom: 14px;"></i>
-                            <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">Kütüphaneniz taranıyor...</p>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Steam oyunlarınız ve başarımlar listeleniyor</p>
+                            <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);" data-i18n="ach_scanning_title">Kütüphaneniz taranıyor...</p>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;" data-i18n="ach_scanning_desc">Steam oyunlarınız ve başarımlar listeleniyor</p>
                         </div>
                     </div>
 
@@ -307,27 +341,27 @@
             <!-- TAB: IMPORT FILES -->
             <section class="tab-content" id="tab-import">
                 <div class="import-container">
-                    <h2 class="section-title">Dosya İçe Aktar</h2>
+                    <h2 class="section-title" data-i18n="imp_title">Dosya İçe Aktar</h2>
                     <div class="panel-card" style="padding: 24px; text-align: center;">
-                        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.92rem;">
+                        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.92rem;" data-i18n="imp_desc">
                             İndirdiğiniz Steam manifest (.manifest), kilit açma konfigürasyonu (.lua) veya arşiv dosyalarını (.zip) sürükleyip bırakarak kolayca Steam'e aktarın.
                         </p>
                         <div class="drag-drop-zone" id="drop-zone" style="min-height: 220px; border: 2px dashed rgba(124, 58, 237, 0.4); background: rgba(124, 58, 237, 0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;">
                             <i class="fa-solid fa-cloud-arrow-up drag-icon" style="font-size: 3rem; color: var(--accent-purple); margin-bottom: 14px;"></i>
-                            <p class="drag-text" style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Dosyaları Buraya Sürükleyin ve Bırakın</p>
-                            <span class="drag-subtext" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">Desteklenen formatlar: .lua, .zip, .manifest</span>
-                            <button class="btn btn-primary btn-browse" onclick="document.getElementById('file-input').click()" style="padding: 9px 22px;">Dosya Seç</button>
+                            <p class="drag-text" style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;" data-i18n="imp_drop_title">Dosyaları Buraya Sürükleyin ve Bırakın</p>
+                            <span class="drag-subtext" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;" data-i18n="imp_drop_sub">Desteklenen formatlar: .lua, .zip, .manifest</span>
+                            <button class="btn btn-primary btn-browse" onclick="document.getElementById('file-input').click()" style="padding: 9px 22px;" data-i18n="imp_btn_browse">Dosya Seç</button>
                             <input type="file" id="file-input" multiple accept=".lua,.zip,.manifest" style="display: none;">
                         </div>
                         
                         <div class="import-instructions" style="margin-top: 20px; text-align: left; background-color: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px;">
                             <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> Nasıl Kullanılır:
+                                <i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> <span data-i18n="imp_how_to_use">Nasıl Kullanılır:</span>
                             </h4>
                             <ul style="color: var(--text-secondary); font-size: 0.85rem; padding-left: 20px; line-height: 1.6;">
-                                <li style="margin-bottom: 6px;"><strong>.manifest dosyaları</strong>: İlgili depot manifest dosyasını doğru dizine yerleştirir.</li>
-                                <li style="margin-bottom: 6px;"><strong>.lua dosyaları</strong>: Kilit açma betiklerini Steam yapılandırma klasörüne kopyalar.</li>
-                                <li style="margin-bottom: 6px;"><strong>.zip paketleri</strong>: Arşiv içeriğini otomatik olarak ilgili Steam dizinlerine çıkartır.</li>
+                                <li style="margin-bottom: 6px;" data-i18n="imp_rule_manifest"><strong>.manifest dosyaları</strong>: İlgili depot manifest dosyasını doğru dizine yerleştirir.</li>
+                                <li style="margin-bottom: 6px;" data-i18n="imp_rule_lua"><strong>.lua dosyaları</strong>: Kilit açma betiklerini Steam yapılandırma klasörüne kopyalar.</li>
+                                <li style="margin-bottom: 6px;" data-i18n="imp_rule_zip"><strong>.zip paketleri</strong>: Arşiv içeriğini otomatik olarak ilgili Steam dizinlerine çıkartır.</li>
                             </ul>
                         </div>
                     </div>
@@ -338,8 +372,8 @@
             <section class="tab-content" id="tab-settings">
                 <div class="settings-container">
                     <div style="margin-bottom: 18px;">
-                        <h2 class="section-title" style="margin-bottom: 4px;">Uygulama Ayarları & Sistem Yönetimi</h2>
-                        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Steam kilit açıcılarını, otomatik güncellemeleri, kütüphane onarımlarını ve güvenlik entegrasyonlarını yönetin.</p>
+                        <h2 class="section-title" style="margin-bottom: 4px;" data-i18n="set_main_title">Uygulama Ayarları & Sistem Yönetimi</h2>
+                        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;" data-i18n="set_main_desc">Steam kilit açıcılarını, otomatik güncellemeleri, kütüphane onarımlarını ve güvenlik entegrasyonlarını yönetin.</p>
                     </div>
 
                     <div class="settings-list">
@@ -353,21 +387,21 @@
                                     </div>
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">SteaMRogue Uygulama Güncellemesi</h3>
-                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.1.9</span>
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_app_update_title">SteaMRogue Uygulama Güncellemesi</h3>
+                                            <span class="status-badge" id="settings-app-version-badge" style="background: #7c3aed; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">v1.2.0</span>
                                         </div>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_app_update_desc">
                                             Uygulama GitHub Releases üzerinden otomatik güncellenir. Dilediğiniz zaman yeni sürüm kontrolü yapabilir veya mevcut kurulumu onarabilirsiniz.
                                         </p>
-                                        <p id="app-update-status-text" style="font-size: 0.78rem; color: #38bdf8; margin: 4px 0 0 0;">Otomatik güncelleme motoru aktif.</p>
+                                        <p id="app-update-status-text" style="font-size: 0.78rem; color: #38bdf8; margin: 4px 0 0 0;" data-i18n="set_app_update_status">Otomatik güncelleme motoru aktif.</p>
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                     <button class="btn btn-primary" id="btn-check-app-update" style="padding: 9px 18px; font-size: 0.84rem;">
-                                        <i class="fa-solid fa-cloud-arrow-down"></i> Güncellemeleri Denetle
+                                        <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="set_btn_check_update">Güncellemeleri Denetle</span>
                                     </button>
-                                    <button class="btn btn-secondary" id="btn-repair-app-update" style="padding: 9px 18px; font-size: 0.84rem;" title="En güncel kurulum dosyasını sıfırdan indirir ve kurar">
-                                        <i class="fa-solid fa-wrench"></i> Son Sürümü Yeniden İndir / Onar
+                                    <button class="btn btn-secondary" id="btn-repair-app-update" style="padding: 9px 18px; font-size: 0.84rem;" data-i18n-title="set_btn_repair_install" title="En güncel kurulum dosyasını sıfırdan indirir ve kurar">
+                                        <i class="fa-solid fa-wrench"></i> <span data-i18n="set_btn_repair_install">Son Sürümü Yeniden İndir / Onar</span>
                                     </button>
                                 </div>
                             </div>
@@ -382,26 +416,26 @@
                                     </div>
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Bileşen, Manifest & İmza Senkronizasyonu (Canlı Motor)</h3>
-                                            <span class="status-badge" id="components-status-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">GÜNCEL</span>
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_sync_title">Bileşen, Manifest & İmza Senkronizasyonu (Canlı Motor)</h3>
+                                            <span class="status-badge" id="components-status-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;" data-i18n="set_sync_badge">GÜNCEL</span>
                                         </div>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_sync_desc">
                                             SteamTools kilit açıcıları, OpenSteamTool TOML imzaları, topluluk manifest veritabanları, OnlineFix bypass listesi ve kütüphanenizdeki oyunların Lua betikleri her açılışta arka planda tam hızla eşitlenir.
                                         </p>
-                                        <p id="components-update-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Tüm depolar, kancalar ve manifest kaynakları aktif.</p>
+                                        <p id="components-update-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;" data-i18n="set_sync_status">Tüm depolar, kancalar ve manifest kaynakları aktif.</p>
                                     </div>
                                 </div>
                                 <div>
                                     <button class="btn btn-primary" id="btn-check-components" style="padding: 9px 18px; font-size: 0.84rem; background: linear-gradient(135deg, #0284c7, #2563eb);">
-                                        <i class="fa-solid fa-arrows-rotate"></i> Bileşenleri & İmzaları Şimdi Güncelle
+                                        <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="set_btn_sync_now">Bileşenleri & İmzaları Şimdi Güncelle</span>
                                     </button>
                                 </div>
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08); font-size: 0.78rem;">
-                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-plug" style="color: #38bdf8; margin-right: 6px;"></i> SteamTools DLL: <span id="comp-st-status" style="color: #4ade80; font-weight: 600;">Eşitlendi</span></div>
-                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-fingerprint" style="color: #c084fc; margin-right: 6px;"></i> TOML İmzaları: <span id="comp-sig-status" style="color: #4ade80; font-weight: 600;">Dinamik Uyumlu</span></div>
-                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-database" style="color: #fbbf24; margin-right: 6px;"></i> Manifest Depoları: <span id="comp-repo-status" style="color: #4ade80; font-weight: 600;">4/4 Aktif</span></div>
-                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-gamepad" style="color: #f43f5e; margin-right: 6px;"></i> OnlineFix Bypass: <span id="comp-bypass-status" style="color: #4ade80; font-weight: 600;">Çevrimiçi Eşit</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-plug" style="color: #38bdf8; margin-right: 6px;"></i> <span data-i18n="set_st_dll_label">SteamTools DLL:</span> <span id="comp-st-status" style="color: #4ade80; font-weight: 600;" data-i18n="set_st_dll_status">Eşitlendi</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-fingerprint" style="color: #c084fc; margin-right: 6px;"></i> <span data-i18n="set_toml_sig_label">TOML İmzaları:</span> <span id="comp-sig-status" style="color: #4ade80; font-weight: 600;" data-i18n="set_toml_sig_status">Dinamik Uyumlu</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-database" style="color: #fbbf24; margin-right: 6px;"></i> <span data-i18n="set_manifest_repo_label">Manifest Depoları:</span> <span id="comp-repo-status" style="color: #4ade80; font-weight: 600;" data-i18n="set_manifest_repo_status">4/4 Aktif</span></div>
+                                <div style="color: var(--text-secondary);"><i class="fa-solid fa-gamepad" style="color: #f43f5e; margin-right: 6px;"></i> <span data-i18n="set_of_bypass_label">OnlineFix Bypass:</span> <span id="comp-bypass-status" style="color: #4ade80; font-weight: 600;" data-i18n="set_of_bypass_status">Çevrimiçi Eşit</span></div>
                             </div>
                         </div>
 
@@ -413,15 +447,15 @@
                                         <i class="fa-brands fa-steam"></i>
                                     </div>
                                     <div>
-                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Steam Kurulum Dizini</h3>
-                                        <span class="settings-helper" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: block;">
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_steam_dir_title">Steam Kurulum Dizini</h3>
+                                        <span class="settings-helper" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: block;" data-i18n="set_steam_dir_helper">
                                             Boş bırakılırsa Windows kayıt defterinden (Registry) otomatik tespit edilir.
                                         </span>
                                     </div>
                                 </div>
                                 <div class="path-input-wrapper" style="flex: 1; max-width: 580px; display: flex; gap: 8px;">
                                     <input type="text" id="steam-path-input" placeholder="C:\Program Files (x86)\Steam" style="flex: 1; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border-medium); background: rgba(0,0,0,0.25); color: var(--text-primary); font-size: 0.88rem;">
-                                    <button class="btn btn-primary" id="btn-save-path" style="padding: 9px 20px; font-size: 0.84rem; white-space: nowrap;">Dizini Kaydet</button>
+                                    <button class="btn btn-primary" id="btn-save-path" style="padding: 9px 20px; font-size: 0.84rem; white-space: nowrap;" data-i18n="set_btn_save_dir">Dizini Kaydet</button>
                                 </div>
                             </div>
                         </div>
@@ -435,18 +469,18 @@
                                     </div>
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Kendi Kendini Onaran Sistem (Self-Healing)</h3>
-                                            <span class="status-badge" id="self-heal-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">SAĞLIKLI</span>
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_self_heal_title">Kendi Kendini Onaran Sistem (Self-Healing)</h3>
+                                            <span class="status-badge" id="self-heal-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;" data-i18n="set_self_heal_badge">SAĞLIKLI</span>
                                         </div>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_self_heal_desc">
                                             SteaMRogue her açılışta Steam kilit açıcılarını, LUA yapılandırmalarını, Spacewar (480) çevrimiçi kaydını, 7-Zip araçlarını ve bozuk önbellekleri otomatik tarayıp onarır.
                                         </p>
-                                        <p id="self-heal-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Tüm bileşenler, kancalar ve servisler aktif ve doğrulanmış durumda.</p>
+                                        <p id="self-heal-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;" data-i18n="set_self_heal_status">Tüm bileşenler, kancalar ve servisler aktif ve doğrulanmış durumda.</p>
                                     </div>
                                 </div>
                                 <div>
                                     <button class="btn btn-primary" id="btn-self-heal" style="padding: 9px 18px; font-size: 0.84rem; background: linear-gradient(135deg, #10b981, #059669);">
-                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Sistemi Otomatik Tara ve Onar
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="set_btn_self_heal">Sistemi Otomatik Tara ve Onar</span>
                                     </button>
                                 </div>
                             </div>
@@ -460,28 +494,28 @@
                                         <i class="fa-solid fa-screwdriver-wrench"></i>
                                     </div>
                                     <div>
-                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">SteamTools Kancası (OpenSteamTool)</h3>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_st_hook_title">SteamTools Kancası (OpenSteamTool)</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_st_hook_desc">
                                             Gerekli kilit açıcı DLL dosyalarını (dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll) Steam ana klasörüne yerleştirir.
                                         </p>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Kanca Durumu:</span>
-                                        <span class="status-badge status-active" id="st-badge" style="padding: 3px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700; background-color: #10b981; color: #ffffff;">AKTİF (HER ŞEY YOLUNDA)</span>
+                                        <span style="font-size: 0.85rem; color: var(--text-secondary);" data-i18n="set_hook_status_label">Kanca Durumu:</span>
+                                        <span class="status-badge status-active" id="st-badge" style="padding: 3px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700; background-color: #10b981; color: #ffffff;" data-i18n="set_hook_status_active">AKTİF (HER ŞEY YOLUNDA)</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Tespit Edilen Dosyalar:</span>
-                                        <span class="diag-value" id="st-active-dlls" style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">Yok</span>
+                                        <span style="font-size: 0.85rem; color: var(--text-secondary);" data-i18n="set_detected_files_label">Tespit Edilen Dosyalar:</span>
+                                        <span class="diag-value" id="st-active-dlls" style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;" data-i18n="set_none">Yok</span>
                                     </div>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08);">
-                                <button class="btn btn-primary" id="btn-install-st" style="padding: 8px 16px; font-size: 0.82rem;"><i class="fa-solid fa-download"></i> SteamTools Kur / Onar</button>
-                                <button class="btn btn-secondary" id="btn-restart-st" style="padding: 8px 16px; font-size: 0.82rem;"><i class="fa-solid fa-arrows-rotate"></i> Steam'i Yeniden Başlat</button>
-                                <button class="btn btn-secondary" id="btn-clear-cache-st" style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(124,58,237,0.4);"><i class="fa-solid fa-broom"></i> İndirme Önbelleğini Temizle ("İnternet Yok" Çözümü)</button>
-                                <button class="btn btn-danger" id="btn-uninstall-st" style="padding: 8px 16px; font-size: 0.82rem; background-color: #8c2020;"><i class="fa-solid fa-trash-can"></i> SteamTools Kaldır</button>
+                                <button class="btn btn-primary" id="btn-install-st" style="padding: 8px 16px; font-size: 0.82rem;"><i class="fa-solid fa-download"></i> <span data-i18n="set_btn_install_st">SteamTools Kur / Onar</span></button>
+                                <button class="btn btn-secondary" id="btn-restart-st" style="padding: 8px 16px; font-size: 0.82rem;"><i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="set_btn_restart_steam_st">Steam'i Yeniden Başlat</span></button>
+                                <button class="btn btn-secondary" id="btn-clear-cache-st" style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(124,58,237,0.4);"><i class="fa-solid fa-broom"></i> <span data-i18n="set_btn_clear_cache_st">İndirme Önbelleğini Temizle ("İnternet Yok" Çözümü)</span></button>
+                                <button class="btn btn-danger" id="btn-uninstall-st" style="padding: 8px 16px; font-size: 0.82rem; background-color: #8c2020;"><i class="fa-solid fa-trash-can"></i> <span data-i18n="set_btn_uninstall_st">SteamTools Kaldır</span></button>
                             </div>
                         </div>
 
@@ -494,18 +528,18 @@
                                     </div>
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Sistem Bağımlılıkları (Microsoft Visual C++ 2015-2022)</h3>
-                                            <span class="status-badge" id="vcredist-status-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">KURULU (HER ŞEY YOLUNDA)</span>
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_vcredist_title">Sistem Bağımlılıkları (Microsoft Visual C++ 2015-2022)</h3>
+                                            <span class="status-badge" id="vcredist-status-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;" data-i18n="set_vcredist_badge">KURULU (HER ŞEY YOLUNDA)</span>
                                         </div>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_vcredist_desc">
                                             Oyunların çökmeden açılması, SteamTools kilit açıcılarının ve OnlineFix çok oyunculu modüllerinin çalışması için 32-bit (x86) ve 64-bit (x64) Visual C++ kütüphaneleri zorunludur.
                                         </p>
-                                        <p id="vcredist-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Microsoft Visual C++ (x86 & x64) sisteminizde eksiksiz kurulu, her şey yolunda.</p>
+                                        <p id="vcredist-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;" data-i18n="set_vcredist_status">Microsoft Visual C++ (x86 & x64) sisteminizde eksiksiz kurulu, her şey yolunda.</p>
                                     </div>
                                 </div>
                                 <div>
                                     <button class="btn btn-primary" id="btn-install-vcredist" style="padding: 9px 18px; font-size: 0.84rem; background: linear-gradient(135deg, #0284c7, #0369a1);">
-                                        <i class="fa-solid fa-download"></i> Eksik Paketleri Otomatik İndir & Kur
+                                        <i class="fa-solid fa-download"></i> <span data-i18n="set_btn_install_vcredist">Eksik Paketleri Otomatik İndir & Kur</span>
                                     </button>
                                 </div>
                             </div>
@@ -520,31 +554,31 @@
                                     </div>
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Antivirüs & Güvenlik Ayarları (Karantina Önleme)</h3>
-                                            <span class="status-badge" id="av-detected-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;">GÜVENLİ (SORUN YOK)</span>
+                                            <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_av_title">Antivirüs & Güvenlik Ayarları (Karantina Önleme)</h3>
+                                            <span class="status-badge" id="av-detected-badge" style="background: #10b981; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.76rem;" data-i18n="set_av_badge">GÜVENLİ (SORUN YOK)</span>
                                         </div>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_av_desc">
                                             SteaMRogue ve SteamTools dosyalarının Windows Defender veya harici antivirüsler tarafından yanlışlıkla silinmesini veya karantinaya alınmasını önleyin.
                                         </p>
-                                        <p id="av-quarantine-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;">Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.</p>
+                                        <p id="av-quarantine-status-text" style="font-size: 0.78rem; color: #10b981; margin: 4px 0 0 0;" data-i18n="set_av_status">Kilit açıcı kütüphaneler karantinaya alınmamış, yerinde duruyor. Her şey yolunda.</p>
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                     <button class="btn btn-secondary" id="btn-restore-quarantine" style="padding: 8px 16px; font-size: 0.82rem;">
-                                        <i class="fa-solid fa-life-ring"></i> Karantinadan Kurtar ve Onar
+                                        <i class="fa-solid fa-life-ring"></i> <span data-i18n="set_btn_restore_quarantine">Karantinadan Kurtar ve Onar</span>
                                     </button>
                                     <button class="btn btn-primary" id="btn-add-defender-exclusion" style="padding: 8px 16px; font-size: 0.82rem;">
-                                        <i class="fa-solid fa-shield-virus"></i> Windows Defender Dışlaması Ekle
+                                        <i class="fa-solid fa-shield-virus"></i> <span data-i18n="set_btn_add_defender_exclusion">Windows Defender Dışlaması Ekle</span>
                                     </button>
                                 </div>
                             </div>
                             <div id="third-party-av-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08);">
                                 <div>
-                                    <strong id="third-party-av-title" style="font-size: 0.84rem; color: var(--text-primary);"><i class="fa-solid fa-circle-info" style="color: #c084fc; margin-right: 6px;"></i> Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:</strong>
-                                    <p style="margin: 3px 0 0 0; font-size: 0.78rem; color: var(--text-muted);">İstisnalar (Exceptions / Exclusions) listesine Steam ve SteaMRogue klasörlerini eklemeniz yeterlidir.</p>
+                                    <strong id="third-party-av-title" style="font-size: 0.84rem; color: var(--text-primary);"><i class="fa-solid fa-circle-info" style="color: #c084fc; margin-right: 6px;"></i> <span data-i18n="set_external_av_title">Harici Antivirüs (Avast/Kaspersky vb.) Kullananlar İçin:</span></strong>
+                                    <p style="margin: 3px 0 0 0; font-size: 0.78rem; color: var(--text-muted);" data-i18n="set_external_av_desc">İstisnalar (Exceptions / Exclusions) listesine Steam ve SteaMRogue klasörlerini eklemeniz yeterlidir.</p>
                                 </div>
                                 <button class="btn btn-secondary" id="btn-copy-exclusion-paths" style="padding: 6px 14px; font-size: 0.78rem; color: #c4b5fd; border-color: rgba(124,58,237,0.4);">
-                                    <i class="fa-solid fa-copy"></i> İstisna Yollarını Kopyala
+                                    <i class="fa-solid fa-copy"></i> <span data-i18n="set_btn_copy_exclusion_paths">İstisna Yollarını Kopyala</span>
                                 </button>
                             </div>
                         </div>
@@ -557,15 +591,15 @@
                                         <i class="fa-solid fa-scale-balanced"></i>
                                     </div>
                                     <div>
-                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;">Yasal Uyarı & Kullanıcı Sorumluluk Beyanı</h3>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-primary); margin: 0;" data-i18n="set_disclaimer_title">Yasal Uyarı & Kullanıcı Sorumluluk Beyanı</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_disclaimer_desc">
                                             İlk açılışta sunulan yasal sorumluluk bildirimini, VAC koruma hatırlatmasını ve kullanım koşullarını dilediğiniz zaman tekrar inceleyebilirsiniz.
                                         </p>
                                     </div>
                                 </div>
                                 <div>
                                     <button type="button" class="btn btn-secondary" id="btn-show-disclaimer-manual" onclick="window.showDisclaimerModal && window.showDisclaimerModal()" style="padding: 9px 18px; font-size: 0.84rem; color: #c4b5fd; border-color: rgba(167, 139, 250, 0.4); cursor: pointer;">
-                                        <i class="fa-solid fa-file-contract"></i> Bildirimi Görüntüle
+                                        <i class="fa-solid fa-file-contract"></i> <span data-i18n="set_btn_view_disclaimer">Bildirimi Görüntüle</span>
                                     </button>
                                 </div>
                             </div>
@@ -579,15 +613,15 @@
                                         <i class="fa-solid fa-triangle-exclamation"></i>
                                     </div>
                                     <div>
-                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: #ef4444; margin: 0;">Tehlike Bölgesi: Sistemi İmha Et & Kaldır</h3>
-                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                        <h3 style="font-size: 1.02rem; font-weight: 700; color: #ef4444; margin: 0;" data-i18n="set_danger_title">Tehlike Bölgesi: Sistemi İmha Et & Kaldır</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;" data-i18n="set_danger_desc">
                                             SteamTools kancasını kaldırır, kütüphanedeki oyun manifestolarını ve LUA yapılandırmalarını siler, Bypass ile oyunlara uygulanan fix dosyalarını temizler ve SteaMRogue'u sistemden tamamen siler.
                                         </p>
                                     </div>
                                 </div>
                                 <div>
                                     <button class="btn btn-danger" id="btn-self-destruct" style="padding: 10px 20px; font-size: 0.84rem; font-weight: 700; background: linear-gradient(135deg, #dc2626, #991b1b); white-space: nowrap;">
-                                        <i class="fa-solid fa-bomb"></i> Sistemi Tamamen İmha Et & Kaldır
+                                        <i class="fa-solid fa-bomb"></i> <span data-i18n="set_btn_nuke">Sistemi Tamamen İmha Et & Kaldır</span>
                                     </button>
                                 </div>
                             </div>
@@ -614,39 +648,39 @@
                 <div class="onlinefix-container">
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 25px;">
                         <div>
-                            <h2 class="section-title" style="margin-bottom: 6px;">OnlineFix Çok Oyunculu Yamalar</h2>
+                            <h2 class="section-title" style="margin-bottom: 6px;" data-i18n="of_title">OnlineFix Çok Oyunculu Yamalar</h2>
                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-key" style="color: var(--accent-purple);"></i> İndirilen arşivlerin şifresi: <strong id="onlinefix-rar-pw" style="color: var(--text-primary); background: rgba(124, 58, 237, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid rgba(124, 58, 237, 0.3); cursor: pointer; user-select: all;" title="Tıklayınca kopyalar">online-fix.me</strong> <i class="fa-regular fa-copy" id="btn-copy-rar-pw" style="cursor: pointer; color: var(--text-muted); font-size: 0.85rem;" title="Panoya Kopyala"></i>
+                                <i class="fa-solid fa-key" style="color: var(--accent-purple);"></i> <span data-i18n="of_rar_pw_label">İndirilen arşivlerin şifresi:</span> <strong id="onlinefix-rar-pw" style="color: var(--text-primary); background: rgba(124, 58, 237, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid rgba(124, 58, 237, 0.3); cursor: pointer; user-select: all;" title="Tıklayınca kopyalar">online-fix.me</strong> <i class="fa-regular fa-copy" id="btn-copy-rar-pw" style="cursor: pointer; color: var(--text-muted); font-size: 0.85rem;" title="Panoya Kopyala"></i>
                             </p>
                         </div>
                         <div class="onlinefix-search-wrapper" style="display: flex; gap: 10px; width: 400px; margin-top: 5px;">
-                            <input type="text" id="onlinefix-search-input" placeholder="Yama ara (Örn: Palworld, Ready or Not)..." autocomplete="off" style="flex: 1; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-primary); font-size: 0.9rem;">
-                            <button id="btn-onlinefix-search" class="btn btn-primary" style="padding: 10px 20px;"><i class="fa-solid fa-magnifying-glass"></i> Ara</button>
+                            <input type="text" id="onlinefix-search-input" data-i18n-placeholder="of_search_placeholder" placeholder="Yama ara (Örn: Palworld, Ready or Not)..." autocomplete="off" style="flex: 1; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: var(--text-primary); font-size: 0.9rem;">
+                            <button id="btn-onlinefix-search" class="btn btn-primary" style="padding: 10px 20px;"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="of_btn_search">Ara</span></button>
                         </div>
                     </div>
                     
                     <!-- ONLINEFIX INFORMATION BOARD -->
                     <div class="panel-card" style="padding: 15px; margin-bottom: 25px; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); border-radius: 10px; display: flex; flex-direction: column; gap: 12px;">
                         <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> Önemli Bilgilendirme ve Notlar
+                            <i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> <span data-i18n="of_info_title">Önemli Bilgilendirme ve Notlar</span>
                         </h4>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
                             <!-- Note 1: Antivirus -->
                             <div style="background: rgba(239, 68, 68, 0.04); border-left: 3px solid #ef4444; padding: 10px 12px; border-radius: 0 6px 6px 0;">
                                 <div style="font-size: 0.82rem; font-weight: 700; color: #ef4444; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-shield-halved"></i> Antivirüs & Koruma Ayarları
+                                    <i class="fa-solid fa-shield-halved"></i> <span data-i18n="of_note1_title">Antivirüs & Koruma Ayarları</span>
                                 </div>
-                                <div style="font-size: 0.76rem; color: var(--text-secondary); line-height: 1.45;">
-                                    Yamaların sorunsuz entegre edilebilmesi ve oyunun açılması için <strong>Windows Güvenliği > Gerçek zamanlı korumayı</strong> ve varsa harici antivirüsünüzü geçici olarak kapatmalısınız. Aksi halde Windows, yama dosyalarını silebilir. <span style="color: var(--text-muted); display: block; margin-top: 4px; font-style: italic;">(Korumayı sadece oyunu açarken ve oynarken kapalı tutmanız yeterlidir; oyundan çıktıktan sonra tekrar açabilirsiniz.)</span>
+                                <div style="font-size: 0.76rem; color: var(--text-secondary); line-height: 1.45;" data-i18n="of_note1_text">
+                                    Yamaların sorunsuz entegre edilebilmesi ve oyunun açılması için <strong>Windows Güvenliği > Gerçek zamanlı korumayı</strong> ve varsa harici antivirüsünüzü geçici olarak kapatmalısınız. Aksi halde Windows, yama dosyalarını silebilir. (Korumayı sadece oyunu açarken ve oynarken kapalı tutmanız yeterlidir; oyundan çıktıktan sonra tekrar açabilirsiniz.)
                                 </div>
                             </div>
                             
                             <!-- Note 2: Matchmaking -->
                             <div style="background: rgba(124, 58, 237, 0.04); border-left: 3px solid var(--accent-purple); padding: 10px 12px; border-radius: 0 6px 6px 0;">
                                 <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-purple); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-network-wired"></i> Multiplayer / Eşleşme Notu
+                                    <i class="fa-solid fa-network-wired"></i> <span data-i18n="of_note2_title">Multiplayer / Eşleşme Notu</span>
                                 </div>
-                                <div style="font-size: 0.76rem; color: var(--text-secondary); line-height: 1.45;">
+                                <div style="font-size: 0.76rem; color: var(--text-secondary); line-height: 1.45;" data-i18n="of_note2_text">
                                     Online-Fix yamalı oyunlar sadece <strong>aynı yamayı kullanan diğer oyuncularla</strong> online oynanabilir. Oyunu orijinal alan kişilerle eşleşemezsiniz. Birlikte oynayacağınız arkadaşlarınızın da yamayı kurması gerekir.
                                 </div>
                             </div>
@@ -658,12 +692,12 @@
                         <div class="onlinefix-dl-topbar">
                             <div class="onlinefix-dl-heading">
                                 <span class="onlinefix-dl-pulse-dot"></span>
-                                <h4>Multiplayer Yama İndiriliyor</h4>
+                                <h4><span data-i18n="of_dl_heading">Multiplayer Yama İndiriliyor</span></h4>
                             </div>
                             <span id="onlinefix-dl-speed" class="onlinefix-dl-speed-badge">0.00 KB/s</span>
                         </div>
                         <div class="onlinefix-dl-meta">
-                            <span id="onlinefix-dl-filename" class="onlinefix-dl-filename-text">Dosya: Bağlantılar çözümleniyor...</span>
+                            <span id="onlinefix-dl-filename" class="onlinefix-dl-filename-text" data-i18n="of_dl_file_loading">Dosya: Bağlantılar çözümleniyor...</span>
                             <span id="onlinefix-dl-percent" class="onlinefix-dl-percent-badge">0%</span>
                         </div>
                         <div class="onlinefix-progress-track">
@@ -672,10 +706,10 @@
                             </div>
                         </div>
                         <div class="onlinefix-dl-bottombar">
-                            <span id="onlinefix-dl-status" class="onlinefix-dl-status-text">İndirme başlatılıyor...</span>
+                            <span id="onlinefix-dl-status" class="onlinefix-dl-status-text" data-i18n="of_dl_starting">İndirme başlatılıyor...</span>
                             <div class="onlinefix-dl-btn-group">
-                                <button id="onlinefix-dl-open" class="btn btn-dl-success" style="display: none;"><i class="fa-solid fa-file-zipper"></i> İndirilen Dosyayı Aç</button>
-                                <button id="onlinefix-dl-cancel" class="btn btn-dl-danger"><i class="fa-solid fa-xmark"></i> İptal Et</button>
+                                <button id="onlinefix-dl-open" class="btn btn-dl-success" style="display: none;"><i class="fa-solid fa-file-zipper"></i> <span data-i18n="of_btn_open_download">İndirilen Dosyayı Aç</span></button>
+                                <button id="onlinefix-dl-cancel" class="btn btn-dl-danger"><i class="fa-solid fa-xmark"></i> <span data-i18n="of_btn_cancel_download">İptal Et</span></button>
                             </div>
                         </div>
                     </div>
@@ -684,14 +718,14 @@
                     <div class="onlinefix-grid-layout" id="onlinefix-results-grid" style="margin-bottom: 30px;">
                         <div class="no-games-placeholder" style="width: 100%; text-align: center; padding: 50px 0;">
                             <i class="fa-solid fa-globe" style="font-size: 3rem; margin-bottom: 20px; color: var(--accent-purple); opacity: 0.6;"></i>
-                            <p style="font-size: 0.95rem; color: var(--text-secondary);">OnlineFix üzerinden çok oyunculu (multiplayer) yama aramak için yukarıdaki arama kutusunu kullanın.</p>
+                            <p style="font-size: 0.95rem; color: var(--text-secondary);" data-i18n="of_search_prompt">OnlineFix üzerinden çok oyunculu (multiplayer) yama aramak için yukarıdaki arama kutusunu kullanın.</p>
                         </div>
                     </div>
 
                     <!-- KÜTÜPHANE OYUNLARI -->
                     <div class="onlinefix-library-section" style="margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px;">
                         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-gamepad" style="color: var(--accent-purple);"></i> Kütüphane Oyunları
+                            <i class="fa-solid fa-gamepad" style="color: var(--accent-purple);"></i> <span data-i18n="of_library_games_title">Kütüphane Oyunları</span>
                         </h3>
                         <div class="games-grid" id="onlinefix-library-grid">
                             <!-- filled dynamically -->
@@ -734,7 +768,7 @@
                             </div>
                             <div class="bypass-search-wrap">
                                 <i class="fa-solid fa-magnifying-glass bypass-search-icon"></i>
-                                <input type="text" id="bypass-search-input" class="bypass-search-input" placeholder="Bu kategoride oyun ara..." autocomplete="off">
+                                <input type="text" id="bypass-search-input" class="bypass-search-input" data-i18n-placeholder="bp_search_placeholder" placeholder="Bu kategoride oyun ara..." autocomplete="off">
                             </div>
                         </div>
                         <div class="bypass-games-grid" id="bypass-games-grid"></div>
@@ -743,7 +777,7 @@
                     <!-- Loading spinner -->
                     <div id="bypass-loading" class="bypass-loading" style="display:none;">
                         <div class="bypass-spinner"></div>
-                        <span>Oyun listesi ve kapakları yükleniyor...</span>
+                        <span data-i18n="bp_loading_games">Oyun listesi ve kapakları yükleniyor...</span>
                     </div>
                 </div>
 
@@ -751,7 +785,7 @@
                 <div id="bypass-detail-view" class="bypass-detail-view" style="display:none;">
                     <div class="bypass-detail-top-nav">
                         <button class="bypass-back-btn" id="bypass-back-btn">
-                            <i class="fa-solid fa-arrow-left"></i> Oyun Listesine Dön
+                            <i class="fa-solid fa-arrow-left"></i> <span data-i18n="bp_btn_back">Oyun Listesine Dön</span>
                         </button>
                     </div>
 
@@ -767,24 +801,24 @@
 
                     <div class="bypass-detail-body">
                         <div class="bypass-detail-left">
-                            <p class="bypass-section-label"><i class="fa-regular fa-note-sticky"></i> Kurulum & Kullanım Notları</p>
+                            <p class="bypass-section-label"><i class="fa-regular fa-note-sticky"></i> <span data-i18n="bp_label_notes">Kurulum & Kullanım Notları</span></p>
                             <blockquote class="bypass-dev-note" id="bypass-detail-note">-</blockquote>
                             <div id="bypass-detail-errors-wrap">
-                                <p class="bypass-section-label"><i class="fa-solid fa-triangle-exclamation"></i> Bilinen Sorunlar ve Çözümleri</p>
+                                <p class="bypass-section-label"><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="bp_label_known_issues">Bilinen Sorunlar ve Çözümleri</span></p>
                                 <ul class="bypass-error-list" id="bypass-detail-errors"></ul>
                             </div>
                         </div>
                         <div class="bypass-detail-right">
                             <div id="bypass-detail-software-wrap">
-                                <p class="bypass-section-label"><i class="fa-solid fa-puzzle-piece"></i> Gerekli Ek Yazılımlar</p>
+                                <p class="bypass-section-label"><i class="fa-solid fa-puzzle-piece"></i> <span data-i18n="bp_label_software">Gerekli Ek Yazılımlar</span></p>
                                 <ul class="bypass-program-list" id="bypass-detail-programs"></ul>
                             </div>
                             <div class="bypass-meta-box">
-                                <p class="bypass-section-label"><i class="fa-solid fa-circle-info"></i> Oyun Yapılandırması</p>
-                                <div class="bypass-meta-row"><span class="bypass-meta-key">App ID</span><span class="bypass-meta-val" id="bypass-meta-appid"></span></div>
-                                <div class="bypass-meta-row"><span class="bypass-meta-key">Doğrudan EXE ile Başlat</span><span class="bypass-meta-val" id="bypass-meta-exe"></span></div>
-                                <div class="bypass-meta-row"><span class="bypass-meta-key">Steam Üzerinden Başlat</span><span class="bypass-meta-val" id="bypass-meta-steam"></span></div>
-                                <div class="bypass-meta-row"><span class="bypass-meta-key">Fix Türü</span><span class="bypass-meta-val" id="bypass-meta-fix"></span></div>
+                                <p class="bypass-section-label"><i class="fa-solid fa-circle-info"></i> <span data-i18n="bp_label_config">Oyun Yapılandırması</span></p>
+                                <div class="bypass-meta-row"><span class="bypass-meta-key" data-i18n="bp_key_appid">App ID</span><span class="bypass-meta-val" id="bypass-meta-appid"></span></div>
+                                <div class="bypass-meta-row"><span class="bypass-meta-key" data-i18n="bp_key_direct_exe">Doğrudan EXE ile Başlat</span><span class="bypass-meta-val" id="bypass-meta-exe"></span></div>
+                                <div class="bypass-meta-row"><span class="bypass-meta-key" data-i18n="bp_key_steam_launch">Steam Üzerinden Başlat</span><span class="bypass-meta-val" id="bypass-meta-steam"></span></div>
+                                <div class="bypass-meta-row"><span class="bypass-meta-key" data-i18n="bp_key_fix_type">Fix Türü</span><span class="bypass-meta-val" id="bypass-meta-fix"></span></div>
                             </div>
                         </div>
                     </div>
@@ -792,7 +826,7 @@
                     <div class="bypass-apply-row">
                         <button class="bypass-apply-btn" id="bypass-apply-btn" type="button">
                             <i class="fa-solid fa-wrench"></i>
-                            <span id="bypass-apply-btn-text">Fix Uygula</span>
+                            <span id="bypass-apply-btn-text" data-i18n="bp_btn_apply_fix">Fix Uygula</span>
                         </button>
                         <span class="bypass-apply-status" id="bypass-apply-status"></span>
                     </div>
@@ -803,40 +837,40 @@
                             <div class="bypass-modal-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <i class="fa-solid fa-wrench" style="color:#a855f7;font-size:1.2rem;"></i>
-                                    <h3 style="margin: 0; font-size: 1.05rem;">Bypass Fix Yükleme Seçeneği</h3>
+                                    <h3 style="margin: 0; font-size: 1.05rem;" data-i18n="bp_modal_choice_title">Bypass Fix Yükleme Seçeneği</h3>
                                 </div>
                                 <button type="button" class="custom-modal-close" id="bypass-choice-close" style="background:none; border:none; color:#94a3b8; font-size:1.4rem; cursor:pointer; line-height: 1;" title="Kapat">&times;</button>
                             </div>
-                            <p class="bypass-modal-body" style="margin-bottom: 16px; font-size: 0.88rem; color: #cbd5e1;">Lütfen fix dosyalarının nasıl uygulanmasını istediğinizi seçin:</p>
+                            <p class="bypass-modal-body" style="margin-bottom: 16px; font-size: 0.88rem; color: #cbd5e1;" data-i18n="bp_modal_choice_desc">Lütfen fix dosyalarının nasıl uygulanmasını istediğinizi seçin:</p>
                             
                             <div class="choice-cards-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
                                 <!-- Option A: Automatic Detection & Install -->
                                 <button type="button" class="choice-card-option choice-card-primary" id="btn-bypass-choice-auto">
                                     <div class="choice-card-title-row">
                                         <i class="fa-solid fa-wand-magic-sparkles" style="color: #a78bfa; font-size: 1.1rem;"></i>
-                                        <span class="choice-title-text" style="color: #c4b5fd;">Otomatik Tespit Et & Kur</span>
-                                        <span class="choice-badge-recommended">Önerilen</span>
+                                        <span class="choice-title-text" style="color: #c4b5fd;" data-i18n="bp_opt_auto_title">Otomatik Tespit Et & Kur</span>
+                                        <span class="choice-badge-recommended" data-i18n="bp_opt_auto_badge">Önerilen</span>
                                     </div>
-                                    <span class="choice-desc-text">Tüm disklerdeki (C:, D:, E: vb.) Steam kütüphanelerini tarar, oyun klasörünü otomatik bularak fix dosyalarını güvenle kurar.</span>
+                                    <span class="choice-desc-text" data-i18n="bp_opt_auto_desc">Tüm disklerdeki (C:, D:, E: vb.) Steam kütüphanelerini tarar, oyun klasörünü otomatik bularak fix dosyalarını güvenle kurar.</span>
                                 </button>
                                 
                                 <!-- Option B: Manual Folder Selection -->
                                 <button type="button" class="choice-card-option" id="btn-bypass-choice-manual">
                                     <div class="choice-card-title-row">
                                         <i class="fa-solid fa-folder-open" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
-                                        <span class="choice-title-text">Manuel Klasör Seç</span>
+                                        <span class="choice-title-text" data-i18n="bp_opt_manual_title">Manuel Klasör Seç</span>
                                     </div>
-                                    <span class="choice-desc-text">Steam kütüphanesini (steamapps\common) otomatik açar, oyun klasörünü kendiniz seçersiniz.</span>
+                                    <span class="choice-desc-text" data-i18n="bp_opt_manual_desc">Steam kütüphanesini (steamapps\common) otomatik açar, oyun klasörünü kendiniz seçersiniz.</span>
                                 </button>
                             </div>
 
                             <div class="choice-warning-box" style="background-color: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; color: #cbd5e1; line-height: 1.45; display: flex; align-items: flex-start; gap: 10px;">
                                 <i class="fa-solid fa-circle-info" style="color: #a78bfa; margin-top: 2px; flex-shrink: 0; font-size: 0.9rem;"></i>
-                                <span>Otomatik tespit oyununuzu bulamazsa veya oyun henüz kurulu değilse hiçbir işlem yapılmaz ve güvenliğiniz için manuel seçim penceresi açılır.</span>
+                                <span data-i18n="bp_choice_warning">Otomatik tespit oyununuzu bulamazsa veya oyun henüz kurulu değilse hiçbir işlem yapılmaz ve güvenliğiniz için manuel seçim penceresi açılır.</span>
                             </div>
 
                             <div class="bypass-modal-actions" style="margin-top: 18px; justify-content: flex-end;">
-                                <button type="button" class="bypass-modal-btn danger" id="bypass-choice-cancel" style="background: rgba(255,255,255,0.08); color: #cbd5e1;">İptal</button>
+                                <button type="button" class="bypass-modal-btn danger" id="bypass-choice-cancel" style="background: rgba(255,255,255,0.08); color: #cbd5e1;" data-i18n="bp_btn_cancel">İptal</button>
                             </div>
                         </div>
                     </div>
@@ -846,13 +880,13 @@
                         <div class="bypass-modal">
                             <div class="bypass-modal-header">
                                 <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;font-size:1.3rem;"></i>
-                                <h3>Windows Defender Uyarısı</h3>
+                                <h3 data-i18n="def_modal_title">Windows Defender Uyarısı</h3>
                             </div>
-                            <p class="bypass-modal-body">Fix uygulamadan önce oyun klasörünü Windows Defender dışlama listesine eklemelisin. Aksi halde işlem doğru çalışmayabilir.</p>
-                            <p class="bypass-modal-question"><strong>Oyun klasörünü istisnaya ekledin mi?</strong></p>
+                            <p class="bypass-modal-body" data-i18n="def_modal_body">Fix uygulamadan önce oyun klasörünü Windows Defender dışlama listesine eklemelisin. Aksi halde işlem doğru çalışmayabilir.</p>
+                            <p class="bypass-modal-question"><strong><span data-i18n="def_modal_question">Oyun klasörünü istisnaya ekledin mi?</span></strong></p>
                             <div class="bypass-modal-actions">
-                                <button class="bypass-modal-btn danger" id="bypass-modal-no">Hayır</button>
-                                <button class="bypass-modal-btn primary" id="bypass-modal-yes">Evet, Devam Et</button>
+                                <button class="bypass-modal-btn danger" id="bypass-modal-no" data-i18n="def_btn_no">Hayır</button>
+                                <button class="bypass-modal-btn primary" id="bypass-modal-yes" data-i18n="def_btn_yes">Evet, Devam Et</button>
                             </div>
                         </div>
                     </div>
@@ -867,10 +901,10 @@
         <footer class="app-footer">
             <div class="status-left">
                 <span class="status-indicator online"></span>
-                <span class="status-text" id="status-connection">Steam Bağlantısı: Hazır</span>
+                <span class="status-text" id="status-connection" data-i18n="footer_steam_ready">Steam Bağlantısı: Hazır</span>
             </div>
             <div class="status-right" style="font-size: 0.72rem; color: rgba(255,255,255,0.45); font-family: var(--font-main);">
-                Geliştirici: <span class="creator-tag">mythoscd</span>
+                <span data-i18n="footer_developer">Geliştirici:</span> <span class="creator-tag">mythoscd</span>
             </div>
         </footer>
     </div>
@@ -880,7 +914,7 @@
         <div class="spinner-container" style="position: relative;">
             <button id="loading-overlay-close" style="position: absolute; top: 10px; right: 12px; background: transparent; border: none; color: rgba(255,255,255,0.4); font-size: 1.2rem; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">&times;</button>
             <div class="loader-spinner"></div>
-            <p class="loading-message" id="loading-message">İşlem yapılıyor...</p>
+            <p class="loading-message" id="loading-message" data-i18n="loading_processing">İşlem yapılıyor...</p>
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="loading-progress" style="width: 0%"></div>
             </div>
@@ -894,17 +928,17 @@
             <span class="modal-close-btn" id="modal-close">&times;</span>
             <div class="modal-header-banner" id="modal-banner" style="background-image: url('');"></div>
             <div class="modal-body">
-                <h2 id="modal-title">Oyun Detayları</h2>
+                <h2 id="modal-title" data-i18n="modal_details_title">Oyun Detayları</h2>
                 <div class="modal-badges">
-                    <span class="badge" id="modal-type">OYUN</span>
-                    <span class="badge" id="modal-age">18+</span>
-                    <span class="badge rating" id="modal-rating">Metacritic: --</span>
+                    <span class="badge" id="modal-type" data-i18n="modal_badge_game">OYUN</span>
+                    <span class="badge" id="modal-age" data-i18n="modal_badge_age">18+</span>
+                    <span class="badge rating" id="modal-rating" data-i18n="modal_badge_meta">Metacritic: --</span>
                 </div>
-                <p id="modal-description" class="modal-description">Oyun açıklaması yükleniyor...</p>
+                <p id="modal-description" class="modal-description" data-i18n="modal_desc_loading">Oyun açıklaması yükleniyor...</p>
                 <div class="modal-footer-actions">
-                    <button class="btn btn-primary" id="modal-btn-play"><i class="fa-solid fa-play"></i> Oyunu Başlat</button>
-                    <button class="btn btn-danger" id="modal-btn-delete"><i class="fa-solid fa-trash-can"></i> Kütüphaneden Kaldır</button>
-                    <button class="btn btn-primary" id="modal-btn-add" style="display: none;"><i class="fa-solid fa-plus"></i> Kütüphaneye Ekle</button>
+                    <button class="btn btn-primary" id="modal-btn-play"><i class="fa-solid fa-play"></i> <span data-i18n="modal_btn_play">Oyunu Başlat</span></button>
+                    <button class="btn btn-danger" id="modal-btn-delete"><i class="fa-solid fa-trash-can"></i> <span data-i18n="modal_btn_delete">Kütüphaneden Kaldır</span></button>
+                    <button class="btn btn-primary" id="modal-btn-add" style="display: none;"><i class="fa-solid fa-plus"></i> <span data-i18n="modal_btn_add">Kütüphaneye Ekle</span></button>
                 </div>
             </div>
         </div>
@@ -920,13 +954,13 @@
                     <img id="sam-modal-game-icon" src="icon.ico" alt="" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-medium);" onerror="this.src='icon.ico'">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <h3 id="sam-modal-game-name" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;">Oyun Başarımları</h3>
+                            <h3 id="sam-modal-game-name" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff;" data-i18n="ach_modal_title">Oyun Başarımları</h3>
                             <span id="sam-modal-game-appid" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.75rem; padding: 2px 7px; border-radius: 4px; font-weight: 600;">AppID: --</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: 0.82rem; color: var(--text-secondary);">
-                            <span>Açılan: <strong id="sam-modal-unlocked-count" style="color: #34d399;">0</strong> / <strong id="sam-modal-total-count" style="color: #fff;">0</strong></span>
+                            <span><span data-i18n="ach_modal_unlocked">Açılan:</span> <strong id="sam-modal-unlocked-count" style="color: #34d399;">0</strong> / <strong id="sam-modal-total-count" style="color: #fff;">0</strong></span>
                             <span style="color: rgba(255,255,255,0.2);">|</span>
-                            <span>Tamamlanma Oranı: <strong id="sam-modal-percent" style="color: #c084fc;">%0</strong></span>
+                            <span><span data-i18n="ach_modal_rate">Tamamlanma Oranı:</span> <strong id="sam-modal-percent" style="color: #c084fc;">%0</strong></span>
                         </div>
                     </div>
                 </div>
@@ -942,26 +976,26 @@
             <div style="padding: 10px 22px; border-bottom: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(0, 0, 0, 0.2);">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <button id="sam-btn-unlock-all" class="btn" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-lock-open"></i> Tümünü Aç
+                        <i class="fa-solid fa-lock-open"></i> <span data-i18n="ach_btn_unlock_all">Tümünü Aç</span>
                     </button>
                     <button id="sam-btn-lock-all" class="btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-lock"></i> Tümünü Kilitle
+                        <i class="fa-solid fa-lock"></i> <span data-i18n="ach_btn_lock_all">Tümünü Kilitle</span>
                     </button>
                     <button id="sam-btn-invert" class="btn" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-arrows-rotate"></i> Tersine Çevir
+                        <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="ach_btn_invert">Tersine Çevir</span>
                     </button>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 8px; flex: 1; max-width: 280px; min-width: 180px;">
                     <div style="position: relative; width: 100%;">
                         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.78rem;"></i>
-                        <input type="text" id="sam-modal-search" placeholder="Başarım ara..." style="width: 100%; padding: 6px 10px 6px 28px; border-radius: 6px; border: 1px solid var(--border-medium); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.8rem;">
+                        <input type="text" id="sam-modal-search" data-i18n-placeholder="ach_modal_search_placeholder" placeholder="Başarım ara..." style="width: 100%; padding: 6px 10px 6px 28px; border-radius: 6px; border: 1px solid var(--border-medium); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.8rem;">
                     </div>
                 </div>
 
                 <div>
                     <button id="sam-btn-save-steam" class="btn btn-primary" style="font-size: 0.84rem; font-weight: 600; padding: 7px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 7px;">
-                        <i class="fa-solid fa-floppy-disk"></i> Steam'e Kaydet
+                        <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="ach_btn_save_steam">Steam'e Kaydet</span>
                     </button>
                 </div>
             </div>
@@ -973,7 +1007,7 @@
 
             <!-- Footer Status -->
             <div style="padding: 9px 22px; border-top: 1px solid var(--border-subtle); background: rgba(0,0,0,0.25); font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
-                <span id="sam-modal-status-text"><i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> Değişiklikleri kaydetmek için <strong>Steam'e Kaydet</strong> butonuna basın.</span>
+                <span id="sam-modal-status-text"><i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> <span data-i18n="ach_modal_status_hint">Değişiklikleri kaydetmek için <strong>Steam'e Kaydet</strong> butonuna basın.</span></span>
                 <span id="sam-modal-filter-count" style="font-weight: 600; color: var(--text-secondary);"></span>
             </div>
         </div>
@@ -987,24 +1021,24 @@
             <div class="custom-modal-header" style="background: rgba(234, 179, 8, 0.08); border-bottom: 1px solid rgba(234, 179, 8, 0.2);">
                 <span style="display: flex; align-items: center; gap: 8px; color: #facc15;">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Sistem Sağlık Uyarısı</span>
+                    <span data-i18n="health_title">Sistem Sağlık Uyarısı</span>
                 </span>
             </div>
             <div class="custom-modal-body" style="padding: 22px;">
-                <p style="margin-top: 0; margin-bottom: 12px; font-weight: 600; color: #ffffff; font-size: 0.92rem;">
+                <p style="margin-top: 0; margin-bottom: 12px; font-weight: 600; color: #ffffff; font-size: 0.92rem;" data-i18n="health_issues_lead">
                     Açılış denetiminde aşağıdaki sorunlar tespit edildi:
                 </p>
                 <ul id="health-issues-list" style="list-style: none; padding: 0; margin: 0 0 16px 0; display: flex; flex-direction: column; gap: 8px;">
                 </ul>
                 <div style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px 14px; border-left: 3px solid #facc15;">
-                    <p style="margin: 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.5;">
+                    <p style="margin: 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.5;" data-i18n="health_warning_box">
                         Steam'in çökmesini ve açılmama sorunlarını engellemek için sistemin onarılması gerekmektedir. Onarılsın mı?
                     </p>
                 </div>
             </div>
             <div class="custom-modal-footer" style="display: flex; justify-content: flex-end; padding: 14px 20px;">
                 <button class="btn btn-primary" id="btn-health-repair" style="background: linear-gradient(135deg, #eab308, #ca8a04); border-color: #ca8a04; color: #000; font-weight: 700; padding: 10px 24px; font-size: 0.88rem; width: 100%; justify-content: center;">
-                    <i class="fa-solid fa-wrench"></i> Sistemi Onar
+                    <i class="fa-solid fa-wrench"></i> <span data-i18n="health_btn_repair">Sistemi Onar</span>
                 </button>
             </div>
         </div>
@@ -1021,8 +1055,8 @@
                 <p id="custom-modal-message">Emin misiniz?</p>
             </div>
             <div class="custom-modal-footer">
-                <button class="btn btn-secondary" id="custom-alert-cancel" style="padding: 8px 16px; font-size: 0.85rem;">İptal</button>
-                <button class="btn btn-primary" id="custom-alert-confirm" style="padding: 8px 16px; font-size: 0.85rem;">Tamam</button>
+                <button class="btn btn-secondary" id="custom-alert-cancel" style="padding: 8px 16px; font-size: 0.85rem;" data-i18n="confirm_cancel">İptal</button>
+                <button class="btn btn-primary" id="custom-alert-confirm" style="padding: 8px 16px; font-size: 0.85rem;" data-i18n="confirm_ok">Tamam</button>
             </div>
         </div>
     </div>
@@ -1032,41 +1066,41 @@
         <div class="custom-modal-content nuke-modal-content" style="max-width: 540px; border: 2px solid #ff2a4b; box-shadow: 0 0 35px rgba(255, 42, 75, 0.45);">
             <div class="custom-modal-header" style="background: rgba(255, 42, 75, 0.15); border-bottom: 1px solid rgba(255, 42, 75, 0.3);">
                 <span style="color: #ff3355; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-triangle-exclamation"></i> DİKKAT: Sistemi İmha Etmek İstediğinize Emin Misiniz?
+                    <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="nuke_title">DİKKAT: Sistemi İmha Etmek İstediğinize Emin Misiniz?</span>
                 </span>
                 <button class="custom-modal-close" id="nuke-modal-close">&times;</button>
             </div>
             <div class="custom-modal-body" style="padding: 22px;">
-                <p style="color: var(--text-primary); font-size: 0.92rem; font-weight: 600; margin-bottom: 14px;">
+                <p style="color: var(--text-primary); font-size: 0.92rem; font-weight: 600; margin-bottom: 14px;" data-i18n="nuke_subtitle">
                     Bu işlem geri alınamaz ve aşağıdaki adımların tümünü gerçekleştirecektir:
                 </p>
                 <ul class="nuke-checklist" style="list-style: none; padding: 0; margin: 0 0 18px 0; display: flex; flex-direction: column; gap: 10px;">
                     <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; color: #ffb4b4;">
                         <i class="fa-solid fa-circle-xmark" style="color: #ff3355; margin-top: 3px;"></i>
-                        <span><strong>Tüm Eklenen Oyunlar:</strong> SteamTools ile Steam kütüphanenize eklenen tüm oyunların LUA dosyaları silinecektir.</span>
+                        <span><strong data-i18n="nuke_item1_label">Tüm Eklenen Oyunlar:</strong> <span data-i18n="nuke_item1_desc">SteamTools ile Steam kütüphanenize eklenen tüm oyunların LUA dosyaları silinecektir.</span></span>
                     </li>
                     <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; color: #ffb4b4;">
                         <i class="fa-solid fa-circle-xmark" style="color: #ff3355; margin-top: 3px;"></i>
-                        <span><strong>SteamTools Kancası:</strong> Steam klasörüne yerleştirilen kilit açıcı DLL dosyaları (dwmapi.dll, OpenSteamTool.dll vb.) kaldırılacaktır.</span>
+                        <span><strong data-i18n="nuke_item2_label">SteamTools Kancası:</strong> <span data-i18n="nuke_item2_desc">Steam klasörüne yerleştirilen kilit açıcı DLL dosyaları (dwmapi.dll, OpenSteamTool.dll vb.) kaldırılacaktır.</span></span>
                     </li>
                     <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; color: #ffb4b4;">
                         <i class="fa-solid fa-circle-xmark" style="color: #ff3355; margin-top: 3px;"></i>
-                        <span><strong>Bypass & Fix Dosyaları:</strong> Oyun klasörlerine atılan tüm fixler silinecek ve orijinal dosyalar geri yüklenecektir.</span>
+                        <span><strong data-i18n="nuke_item3_label">Bypass & Fix Dosyaları:</strong> <span data-i18n="nuke_item3_desc">Oyun klasörlerine atılan tüm fixler silinecek ve orijinal dosyalar geri yüklenecektir.</span></span>
                     </li>
                     <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.84rem; color: #ffb4b4;">
                         <i class="fa-solid fa-circle-xmark" style="color: #ff3355; margin-top: 3px;"></i>
-                        <span><strong>Uygulama ve Kısayollar:</strong> SteaMRogue verileri, ayarları, önbelleği, masaüstü ve başlat menüsü kısayolları silinip uygulama tamamen kaldırılacaktır.</span>
+                        <span><strong data-i18n="nuke_item4_label">Uygulama ve Kısayollar:</strong> <span data-i18n="nuke_item4_desc">SteaMRogue verileri, ayarları, önbelleği, masaüstü ve başlat menüsü kısayolları silinip uygulama tamamen kaldırılacaktır.</span></span>
                     </li>
                 </ul>
                 <div style="background: rgba(255, 42, 75, 0.1); border: 1px solid rgba(255, 42, 75, 0.3); border-radius: 8px; padding: 12px; font-size: 0.82rem; color: #ff6b81; display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-circle-info" style="font-size: 1.2rem; flex-shrink: 0;"></i>
-                    <span>İmha işlemi başlatıldıktan sonra uygulama kapanacak ve temizlik arka planda kalıcı olarak tamamlanacaktır.</span>
+                    <span data-i18n="nuke_info_box">İmha işlemi başlatıldıktan sonra uygulama kapanacak ve temizlik arka planda kalıcı olarak tamamlanacaktır.</span>
                 </div>
             </div>
             <div class="custom-modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding: 14px 20px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.06);">
-                <button class="btn btn-secondary" id="nuke-modal-cancel" style="padding: 10px 18px; font-size: 0.85rem;">İptal</button>
+                <button class="btn btn-secondary" id="nuke-modal-cancel" style="padding: 10px 18px; font-size: 0.85rem;" data-i18n="nuke_btn_cancel">İptal</button>
                 <button class="btn btn-nuke-danger" id="nuke-modal-confirm" style="padding: 10px 22px; font-size: 0.88rem;">
-                    <i class="fa-solid fa-radiation"></i> Evet, Her Şeyi İmha Et ve Kaldır
+                    <i class="fa-solid fa-radiation"></i> <span data-i18n="nuke_btn_confirm">Evet, Her Şeyi İmha Et ve Kaldır</span>
                 </button>
             </div>
         </div>
@@ -1076,41 +1110,41 @@
     <div id="onlinefix-choice-modal" class="custom-modal">
         <div class="custom-modal-content" style="max-width: 520px;">
             <div class="custom-modal-header">
-                <span>OnlineFix Yama Yükleme Seçeneği</span>
+                <span data-i18n="of_modal_choice_title">OnlineFix Yama Yükleme Seçeneği</span>
                 <button class="custom-modal-close" id="onlinefix-choice-close">&times;</button>
             </div>
             <div class="custom-modal-body" style="padding: 22px;">
-                <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 16px; font-size: 0.92rem;">Lütfen multiplayer yamasının nereye yüklenmesini istediğinizi seçin:</p>
+                <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 16px; font-size: 0.92rem;" data-i18n="of_modal_choice_desc">Lütfen multiplayer yamasının nereye yüklenmesini istediğinizi seçin:</p>
                 
                 <div class="choice-cards-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;">
                     <!-- Option A: Desktop -->
                     <button class="choice-card-option" id="btn-choice-desktop">
                         <div class="choice-card-title-row">
                             <i class="fa-solid fa-desktop" style="color: var(--accent-purple); font-size: 1.1rem;"></i>
-                            <span class="choice-title-text">Masaüstüne İndir</span>
+                            <span class="choice-title-text" data-i18n="of_opt_desktop_title">Masaüstüne İndir</span>
                         </div>
-                        <span class="choice-desc-text">Yama arşiv dosyasını sadece Masaüstünüze indirir. Kurulumu elle yapmanız gerekir.</span>
+                        <span class="choice-desc-text" data-i18n="of_opt_desktop_desc">Yama arşiv dosyasını sadece Masaüstünüze indirir. Kurulumu elle yapmanız gerekir.</span>
                     </button>
                     
                     <!-- Option B: Integrate -->
                     <button class="choice-card-option choice-card-primary" id="btn-choice-integrate">
                         <div class="choice-card-title-row">
                             <i class="fa-solid fa-wand-magic-sparkles" style="color: #a78bfa; font-size: 1.1rem;"></i>
-                            <span class="choice-title-text" style="color: #c4b5fd;">Oyuna Entegre Et</span>
-                            <span class="choice-badge-recommended">Önerilen</span>
+                            <span class="choice-title-text" style="color: #c4b5fd;" data-i18n="of_opt_integrate_title">Oyuna Entegre Et</span>
+                            <span class="choice-badge-recommended" data-i18n="of_opt_integrate_badge">Önerilen</span>
                         </div>
-                        <span class="choice-desc-text">Yamayı indirir, şifresini (online-fix.me) girerek otomatik açar, oyunun klasörüne entegre eder ve indirme çöplerini siler.</span>
+                        <span class="choice-desc-text" data-i18n="of_opt_integrate_desc">Yamayı indirir, şifresini (online-fix.me) girerek otomatik açar, oyunun klasörüne entegre eder ve indirme çöplerini siler.</span>
                     </button>
                 </div>
                 
                 <!-- Warning note -->
                 <div class="choice-warning-box" style="background-color: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 12px 14px; font-size: 0.8rem; color: #ef4444; line-height: 1.45; display: flex; align-items: flex-start; gap: 10px;">
                     <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px; flex-shrink: 0; font-size: 0.95rem;"></i>
-                    <span><strong>Önemli Not:</strong> "Oyuna Entegre Et" seçeneğinin çalışması için oyunun kütüphanenizde ve bilgisayarınızda yüklü olması gerekir. Aksi takdirde işlem başarısız olur veya oyun dosyaları bozulabilir!</span>
+                    <span><strong data-i18n="of_choice_warning_title">Önemli Not:</strong> <span data-i18n="of_choice_warning_text">"Oyuna Entegre Et" seçeneğinin çalışması için oyunun kütüphanenizde ve bilgisayarınızda yüklü olması gerekir. Aksi takdirde işlem başarısız olur veya oyun dosyaları bozulabilir!</span></span>
                 </div>
             </div>
             <div class="custom-modal-footer">
-                <button class="btn btn-secondary" id="onlinefix-choice-cancel" style="padding: 8px 18px; font-size: 0.85rem;">İptal</button>
+                <button class="btn btn-secondary" id="onlinefix-choice-cancel" style="padding: 8px 18px; font-size: 0.85rem;" data-i18n="of_btn_cancel">İptal</button>
             </div>
         </div>
     </div>
@@ -1121,7 +1155,7 @@
             <div class="custom-modal-header">
                 <span style="display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-circle-question" style="color: #a78bfa;"></i>
-                    Nasıl Oyun Eklenir?
+                    <span data-i18n="guide_modal_title">Nasıl Oyun Eklenir?</span>
                 </span>
                 <button class="custom-modal-close" id="guide-modal-close">&times;</button>
             </div>
@@ -1130,28 +1164,28 @@
                     <div class="guide-step-item">
                         <div class="guide-step-icon">1</div>
                         <div class="guide-step-info">
-                            <strong>Oyun Linki, AppID veya İsim Girin</strong>
-                            <p>Kutucuğa eklemek istediğiniz oyunun Steam mağaza linkini, AppID numarasını veya adını yazın <em>(Örn: https://store.steampowered.com/app/477160 veya 477160)</em>.</p>
+                            <strong data-i18n="guide_step1_title">Oyun Linki, AppID veya İsim Girin</strong>
+                            <p data-i18n="guide_step1_desc">Kutucuğa eklemek istediğiniz oyunun Steam mağaza linkini, AppID numarasını veya adını yazın <em>(Örn: https://store.steampowered.com/app/477160 veya 477160)</em>.</p>
                         </div>
                     </div>
                     <div class="guide-step-item">
                         <div class="guide-step-icon">2</div>
                         <div class="guide-step-info">
-                            <strong>Kütüphaneye Ekle'ye Tıklayın</strong>
-                            <p><strong>"Kütüphaneye Ekle"</strong> butonuna basın. SteaMRogue oyun lisansını kütüphanenize otomatik tanımlar.</p>
+                            <strong data-i18n="guide_step2_title">Kütüphaneye Ekle'ye Tıklayın</strong>
+                            <p data-i18n="guide_step2_desc"><strong>"Kütüphaneye Ekle"</strong> butonuna basın. SteaMRogue oyun lisansını kütüphanenize otomatik tanımlar.</p>
                         </div>
                     </div>
                     <div class="guide-step-item">
                         <div class="guide-step-icon">3</div>
                         <div class="guide-step-info">
-                            <strong>Steam'i Yeniden Başlatın</strong>
-                            <p><strong>"Steam'i Yeniden Başlat"</strong> butonuna tıklayın. Steam tekrar açıldığında oyun kütüphanenizde belirecek ve indirmeye hazır olacaktır!</p>
+                            <strong data-i18n="guide_step3_title">Steam'i Yeniden Başlatın</strong>
+                            <p data-i18n="guide_step3_desc"><strong>"Steam'i Yeniden Başlat"</strong> butonuna tıklayın. Steam tekrar açıldığında oyun kütüphanenizde belirecek ve indirmeye hazır olacaktır!</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="custom-modal-footer">
-                <button class="btn btn-primary" id="guide-modal-confirm" style="padding: 8px 24px; font-size: 0.85rem;">Anladım</button>
+                <button class="btn btn-primary" id="guide-modal-confirm" style="padding: 8px 24px; font-size: 0.85rem;" data-i18n="guide_btn_confirm">Anladım</button>
             </div>
         </div>
     </div>
@@ -1162,7 +1196,7 @@
             <div class="custom-modal-header">
                 <span style="display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-shield-halved" style="color: #a78bfa;"></i>
-                    SteaMRogue Çalışma Modları Rehberi
+                    <span data-i18n="mode_modal_title">SteaMRogue Çalışma Modları Rehberi</span>
                 </span>
                 <button class="custom-modal-close" id="mode-info-modal-close">&times;</button>
             </div>
@@ -1171,30 +1205,30 @@
                     <div class="mode-info-card mode-info-safe">
                         <div class="mode-info-icon"><i class="fa-solid fa-shield-halved"></i></div>
                         <div class="mode-info-content">
-                            <h4>🛡️ Güvenli Mod (Safe Mode)</h4>
-                            <p>Arka plandaki <strong>SteamTools</strong> ve oyun ekleme servisleri tamamen sonlandırılır. Daha önce kütüphanenize eklediğiniz oyunlar <strong>asla kilitlenmez, kaybolmaz veya 'Satın Alın' uyarısı vermez</strong>; kütüphanenizde oynanabilir kalır. Yalnızca yeni oyun ekleme araçları dinlenmeye alınır.</p>
-                            <span class="mode-info-note">🛡️ Oyunlarınız daima kütüphanenizde korunur ve SteamTools arka planda çalışmaz.</span>
+                            <h4 data-i18n="mode_safe_heading">🛡️ Güvenli Mod (Safe Mode)</h4>
+                            <p data-i18n="mode_safe_desc">Arka plandaki <strong>SteamTools</strong> ve oyun ekleme servisleri tamamen sonlandırılır. Daha önce kütüphanenize eklediğiniz oyunlar <strong>asla kilitlenmez, kaybolmaz veya 'Satın Alın' uyarısı vermez</strong>; kütüphanenizde oynanabilir kalır. Yalnızca yeni oyun ekleme araçları dinlenmeye alınır.</p>
+                            <span class="mode-info-note" data-i18n="mode_safe_foot">🛡️ Oyunlarınız daima kütüphanenizde korunur ve SteamTools arka planda çalışmaz.</span>
                         </div>
                     </div>
                     <div class="mode-info-card mode-info-unlocked">
                         <div class="mode-info-icon"><i class="fa-solid fa-bolt"></i></div>
                         <div class="mode-info-content">
-                            <h4>⚡ SteaMRogue Modu</h4>
-                            <p>SteamTools ve kütüphane ekleme motoru arka planda aktiftir. SteaMRogue üzerinden tek tıkla aradığınız tüm oyunları ve DLC'leri kütüphanenize ekleyebilir, doğrudan Steam üzerinden indirip oynayabilirsiniz.</p>
-                            <span class="mode-info-note">⚡ Oyun eklemek ve kütüphanenizi genişletmek için bu modu kullanın.</span>
+                            <h4 data-i18n="mode_rogue_heading">⚡ SteaMRogue Modu</h4>
+                            <p data-i18n="mode_rogue_desc">SteamTools ve kütüphane ekleme motoru arka planda aktiftir. SteaMRogue üzerinden tek tıkla aradığınız tüm oyunları ve DLC'leri kütüphanenize ekleyebilir, doğrudan Steam üzerinden indirip oynayabilirsiniz.</p>
+                            <span class="mode-info-note" data-i18n="mode_rogue_foot">⚡ Oyun eklemek ve kütüphanenizi genişletmek için bu modu kullanın.</span>
                         </div>
                     </div>
                     <div class="mode-info-card mode-info-switch">
                         <div class="mode-info-icon"><i class="fa-solid fa-rotate"></i></div>
                         <div class="mode-info-content">
-                            <h4>🔄 Anında Geçiş & Sıfır Bekleme</h4>
-                            <p>İster arayüzdeki anahtardan, ister Windows görev çubuğu / sistem tepsisindeki sağ tık menüsünden tek tıkla modlar arasında anında geçiş yapabilirsiniz.</p>
+                            <h4 data-i18n="mode_switch_heading">🔄 Anında Geçiş & Sıfır Bekleme</h4>
+                            <p data-i18n="mode_switch_desc">İster arayüzdeki anahtardan, ister Windows görev çubuğu / sistem tepsisindeki sağ tık menüsünden tek tıkla modlar arasında anında geçiş yapabilirsiniz.</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="custom-modal-footer">
-                <button class="btn btn-primary" id="mode-info-modal-confirm" style="padding: 8px 24px; font-size: 0.85rem;">Anladım</button>
+                <button class="btn btn-primary" id="mode-info-modal-confirm" style="padding: 8px 24px; font-size: 0.85rem;" data-i18n="mode_btn_confirm">Anladım</button>
             </div>
         </div>
     </div>
@@ -1203,7 +1237,7 @@
     <div id="disclaimer-modal" class="custom-modal disclaimer-backdrop">
         <div class="custom-modal-content disclaimer-modal-content">
             <div class="custom-modal-header disclaimer-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="disclaimer-header-title">
+                <span class="disclaimer-header-title" data-i18n="disc_header_title">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     Yasal Uyarı ve Kullanıcı Sorumluluk Beyanı
                 </span>
@@ -1211,10 +1245,10 @@
             </div>
             <div class="custom-modal-body disclaimer-body">
                 <div class="disclaimer-text-card">
-                    <p class="disclaimer-lead">
+                    <p class="disclaimer-lead" data-i18n="disc_lead">
                         <strong>SteaMRogue</strong>, yerel kütüphane organizasyonu ve bağımsız araç yönetimi sağlayan açık kaynaklı bir yardımcı yazılımdır.
                     </p>
-                    <p class="disclaimer-main-text">
+                    <p class="disclaimer-main-text" data-i18n="disc_main_text">
                         Bu uygulamayı, kütüphane kilit açıcılarını ve üçüncü taraf eklentileri kullanırken karşılaşabileceğiniz her türlü hesap uyarısı, oyun içi kısıtlama veya olası yaptırımlar <strong>tamamen kullanıcının kendi sorumluluğundadır</strong>. SteaMRogue geliştiricileri ve katkıda bulunanları hiçbir hukuki, idari veya maddi sorumluluk kabul etmemektedir.
                     </p>
                 </div>
@@ -1224,11 +1258,11 @@
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <div class="warning-box-content">
-                        <h5>📌 Önemli Hatırlatma (VAC & Rekabetçi Oyunlar)</h5>
-                        <p>
+                        <h5 data-i18n="disc_vac_title">📌 Önemli Hatırlatma (VAC & Rekabetçi Oyunlar)</h5>
+                        <p data-i18n="disc_vac_text1">
                             <strong>Counter-Strike 2 (CS2), Dota 2</strong> veya <strong>Team Fortress 2</strong> gibi Valve Anti-Cheat (VAC) korumalı rekabetçi oyunlara girmeden önce mutlaka üst kısımdaki anahtardan <strong>Güvenli Mod</strong>'a geçiniz.
                         </p>
-                        <p class="warning-box-sub">
+                        <p class="warning-box-sub" data-i18n="disc_vac_text2">
                             SteaMRogue modunda unutup oyuna girilmesi durumunda anında kalıcı ban riski çok düşük olsa da Valve sunucuları <em>"VAC oyun oturumunuzu doğrulayamadı"</em> uyarısı vererek maçlara girişi engelleyebilir. <strong>Güvenli Mod</strong>, Steam'i %100 orijinal ve temiz haline getirerek oturum hatalarını ve tüm riskleri tamamen ortadan kaldırır.
                         </p>
                     </div>
@@ -1237,7 +1271,7 @@
             <div class="custom-modal-footer disclaimer-footer">
                 <button class="btn btn-primary btn-disclaimer-countdown" id="btn-accept-disclaimer" disabled>
                     <i class="fa-solid fa-hourglass-half" id="disclaimer-btn-icon"></i>
-                    <span id="disclaimer-countdown-text">Şartları Okudum ve Kabul Ediyorum (10)</span>
+                    <span id="disclaimer-countdown-text" data-i18n="disc_countdown_text">Şartları Okudum ve Kabul Ediyorum (10)</span>
                 </button>
             </div>
         </div>
@@ -1251,17 +1285,17 @@
             </div>
             <div class="update-header-info">
                 <div class="update-title-row">
-                    <h4 id="updater-title">Yeni Güncelleme Mevcut!</h4>
-                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.1.9</span>
+                    <h4 id="updater-title" data-i18n="updater_title">Yeni Güncelleme Mevcut!</h4>
+                    <span class="update-tag" id="updater-version-badge" style="display: none;">v1.2.0</span>
                 </div>
-                <p id="updater-desc">Güncelleme arka planda otomatik indiriliyor...</p>
+                <p id="updater-desc" data-i18n="updater_desc">Güncelleme arka planda otomatik indiriliyor...</p>
             </div>
             <button class="update-close-btn" id="btn-updater-close" title="Bildirimi Kapat">&times;</button>
         </div>
 
         <div id="updater-progress-container" class="update-progress-container">
             <div class="update-progress-info">
-                <span id="updater-progress-label">İndiriliyor...</span>
+                <span id="updater-progress-label" data-i18n="updater_downloading">İndiriliyor...</span>
                 <span id="updater-progress-percent">0%</span>
             </div>
             <div class="update-progress-track">
@@ -1270,17 +1304,18 @@
         </div>
 
         <div id="updater-actions" class="update-actions">
-            <button id="btn-updater-later" class="btn-update-secondary">
+            <button id="btn-updater-later" class="btn-update-secondary" data-i18n="updater_btn_later">
                 Daha Sonra
             </button>
             <button id="btn-updater-restart" class="btn-update-primary">
-                <i class="fa-solid fa-rotate-right"></i> Şimdi Güncelle & Yeniden Başlat
+                <i class="fa-solid fa-rotate-right"></i> <span data-i18n="updater_btn_restart">Şimdi Güncelle & Yeniden Başlat</span>
             </button>
         </div>
     </div>
 
 
     <!-- JS SCRIPTS -->
-    <script src="script.js?v=1.1.9"></script>
+    <script src="i18n.js?v=1.2.0"></script>
+    <script src="script.js?v=1.2.0"></script>
 </body>
 </html>

@@ -14,7 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
         splashDismissed = true;
         if (splashProgressBar) splashProgressBar.style.width = "100%";
         if (splashStatusText) {
-            splashStatusText.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i> Sistem hazır, kütüphaneye bağlanıldı.';
+            const readyMsg = window.t ? window.t("splash_status_done") : "Sistem hazır, kütüphaneye bağlanıldı.";
+            splashStatusText.innerHTML = `<i class="fa-solid fa-check" style="color: #10b981;"></i> ${readyMsg}`;
         }
         setTimeout(() => {
             splashScreen.classList.add("hidden");
@@ -123,14 +124,16 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             if (splashProgressBar && !splashDismissed) splashProgressBar.style.width = "45%";
             if (splashStatusText && !splashDismissed) {
-                splashStatusText.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin" style="color: #38bdf8;"></i> Kilit açıcılar ve manifest depoları eşitleniyor...';
+                const syncMsg = window.t ? window.t("splash_status_sync") : "Kilit açıcılar ve manifest depoları eşitleniyor...";
+                splashStatusText.innerHTML = `<i class="fa-solid fa-arrows-rotate fa-spin" style="color: #38bdf8;"></i> ${syncMsg}`;
             }
         }, 450);
 
         setTimeout(() => {
             if (splashProgressBar && !splashDismissed) splashProgressBar.style.width = "80%";
             if (splashStatusText && !splashDismissed) {
-                splashStatusText.innerHTML = '<i class="fa-solid fa-fingerprint" style="color: #c084fc;"></i> İmzalar ve bypass listesi doğrulanıyor...';
+                const verifyMsg = window.t ? window.t("splash_status_verify") : "İmzalar ve bypass listesi doğrulanıyor...";
+                splashStatusText.innerHTML = `<i class="fa-solid fa-fingerprint" style="color: #c084fc;"></i> ${verifyMsg}`;
             }
         }, 950);
 
@@ -141,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // CUSTOM ALERT / CONFIRM GLOBAL OVERRIDES
-    function showCustomAlert(message, title = "SteaMRogue") {
+    function showCustomAlert(message, title = null) {
         return new Promise((resolve) => {
             const modal = document.getElementById("custom-alert-modal");
             const msgEl = document.getElementById("custom-modal-message");
@@ -150,10 +153,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const btnClose = document.getElementById("custom-alert-close");
             const titleEl = document.getElementById("custom-modal-title");
 
-            if (titleEl) titleEl.textContent = title || "SteaMRogue";
+            const finalTitle = title || (window.t ? window.t("modal_alert_title") : "SteaMRogue");
+            const finalOk = window.t ? window.t("btn_ok") : "Tamam";
+
+            if (titleEl) titleEl.textContent = finalTitle;
             if (msgEl) msgEl.textContent = message;
             if (btnCancel) btnCancel.style.display = "none";
-            if (btnConfirm) btnConfirm.textContent = "Tamam";
+            if (btnConfirm) btnConfirm.textContent = finalOk;
 
             if (modal) modal.classList.add("active");
 
@@ -173,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function showCustomConfirm(message, title = "Onay Gerekli", okText = "Tamam", cancelText = "İptal") {
+    function showCustomConfirm(message, title = null, okText = null, cancelText = null) {
         return new Promise((resolve) => {
             const modal = document.getElementById("custom-alert-modal");
             const msgEl = document.getElementById("custom-modal-message");
@@ -182,13 +188,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const btnClose = document.getElementById("custom-alert-close");
             const titleEl = document.getElementById("custom-modal-title");
 
-            if (titleEl) titleEl.textContent = title || "Onay Gerekli";
+            const finalTitle = title || (window.t ? window.t("modal_confirm_title") : "Onay Gerekli");
+            const finalOk = okText || (window.t ? window.t("btn_ok") : "Tamam");
+            const finalCancel = cancelText || (window.t ? window.t("btn_cancel") : "İptal");
+
+            if (titleEl) titleEl.textContent = finalTitle;
             if (msgEl) msgEl.textContent = message;
             if (btnCancel) {
                 btnCancel.style.display = "block";
-                btnCancel.textContent = cancelText || "İptal";
+                btnCancel.textContent = finalCancel;
             }
-            if (btnConfirm) btnConfirm.textContent = okText || "Tamam";
+            if (btnConfirm) btnConfirm.textContent = finalOk;
 
             if (modal) modal.classList.add("active");
 
@@ -244,7 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const settingsBadge = document.getElementById("settings-app-version-badge");
         if (settingsBadge) settingsBadge.textContent = `v${cleanVer}`;
         const splashBadge = document.querySelector('.splash-version-pill');
-        if (splashBadge) splashBadge.textContent = `v${cleanVer} • Yeni Nesil Steam Kiti`;
+        const subtitleText = window.t ? window.t("splash_subtitle") : "Yeni Nesil Steam Kiti";
+        if (splashBadge) splashBadge.textContent = `v${cleanVer} • ${subtitleText}`;
     };
 
     if (window.electronAPI && typeof window.electronAPI.getAppVersion === 'function') {
@@ -3034,7 +3045,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "var(--text-secondary)";
             }
         } else if (data.status === "not-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.9';
+            const ver = data.version ? `v${data.version}` : 'v1.2.0';
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`;
                 updateStatusText.style.color = "#10b981";
@@ -3044,7 +3055,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.9';
+            const ver = data.version ? `v${data.version}` : 'v1.2.0';
             isHotfixAction = true;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #a78bfa;"></i> GitHub'da güncellenmiş yeni bir paket (${ver}) yayınlandı!`;
@@ -3123,7 +3134,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
             }
         } else if (data.status === "downloaded") {
-            const ver = data.version ? `v${data.version}` : 'v1.1.9';
+            const ver = data.version ? `v${data.version}` : 'v1.2.0';
             isHotfixAction = false;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (${ver})! Yeniden başlatabilirsiniz.`;
