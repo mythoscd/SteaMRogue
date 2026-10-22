@@ -155,15 +155,72 @@ class ManifestFinder:
 
     @classmethod
     def find_online(cls, appid: str, repos: List[str], progress_callback: Optional[Callable[[int, int, str], None]] = None) -> Optional[Dict[str, Any]]:
-        """Searches through repositories for the game manifest zip, downloads, and processes it."""
-        for index, repo in enumerate(repos):
-            repo_name = repo.split("/")[-1]
-            
-            # Simple wrapper to update progress UI with repo name
+        """Searches through repositories in parallel for the game manifest, then downloads and processes it."""
+        import concurrent.futures
+
+        if progress_callback:
+            progress_callback(10, 100, f"Topluluk depoları taranıyor ({len(repos)} kaynak)...")
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SteaMRogue/1.2.1",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        }
+
+        def check_branch_exists(repo_url: str) -> Optional[str]:
+            tree_url = f"{repo_url}/tree/{appid}"
+            try:
+                r = requests.get(tree_url, headers=headers, timeout=8, allow_redirects=False)
+                if r.status_code in (200, 301, 302):
+                    return repo_url
+            except Exception as ex:
+                logger.debug(f"Branch check error for {repo_url}: {ex}")
+            return None
+
+        # 1. Fast parallel check preserving priority order
+        found_repo = None
+        checked_repos = set()
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(4, len(repos))) as executor:
+                futures = [executor.submit(check_branch_exists, repo) for repo in repos]
+                for future, repo in zip(futures, repos):
+                    try:
+                        res = future.result()
+                        checked_repos.add(repo)
+                        if res and not found_repo:
+                            found_repo = res
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.debug(f"Parallel branch check exception: {e}")
+
+        # 2. If found via fast check, download and extract
+        if found_repo:
+            repo_name = found_repo.split("/")[-1]
+            if progress_callback:
+                progress_callback(40, 100, f"Manifest bulundu ({repo_name}), indiriliyor...")
+
             p_cb = None
             if progress_callback:
-                p_cb = lambda cur, tot: progress_callback(cur, tot, f"[{index+1}/{len(repos)}] Checking {repo_name}...")
-            
+                p_cb = lambda cur, tot: progress_callback(cur, tot, f"[{repo_name}] Manifest indiriliyor...")
+
+            zip_data = cls.download_repo_zip(found_repo, appid, progress_callback=p_cb)
+            if zip_data:
+                processed = cls.extract_and_process_zip(zip_data, found_repo)
+                if processed["manifests"] or processed["luas"]:
+                    return {
+                        "source": "online",
+                        "repo": found_repo,
+                        "manifests": processed["manifests"],
+                        "luas": processed["luas"]
+                    }
+
+        # 3. Fallback sequential check: ONLY for any repo that could not be verified in step 1
+        unchecked_repos = [r for r in repos if r not in checked_repos]
+        for index, repo in enumerate(unchecked_repos):
+            repo_name = repo.split("/")[-1]
+            p_cb = None
+            if progress_callback:
+                p_cb = lambda cur, tot: progress_callback(cur, tot, f"[{index+1}/{len(unchecked_repos)}] Kontrol ediliyor: {repo_name}...")
             zip_data = cls.download_repo_zip(repo, appid, progress_callback=p_cb)
             if zip_data:
                 processed = cls.extract_and_process_zip(zip_data, repo)
@@ -174,6 +231,7 @@ class ManifestFinder:
                         "manifests": processed["manifests"],
                         "luas": processed["luas"]
                     }
+
         return None
 
     @staticmethod

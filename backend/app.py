@@ -155,7 +155,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.1"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -253,7 +253,7 @@ def manage_config():
         "steam_path": config.steam_path,
         "default_library": config.default_library,
         "manifest_repos": config.manifest_repos,
-        "version": "1.1.6"
+        "version": "1.2.1"
     })
 
 # %%
@@ -2734,10 +2734,19 @@ def add_game_thread_worker(appid: str, requested_library_idx: Optional[str] = No
 
         # If no manifest and no lua was found, inform the user clearly that this game cannot be added
         if not manifests and not luas:
-            raise SteamToolsException(
-                f"'{game_name}' (AppID: {valid_id}) için sunucularda veya yerel önbellekte indirilebilir manifest/yapılandırma dosyası bulunamadı.\n\n"
-                "Bu oyun için gerekli dosyalar topluluk depolarında mevcut olmadığı için kütüphaneye eklenemiyor."
+            err_msg = (
+                f"'{game_name}' (AppID: {valid_id}) için henüz topluluk dosyaları yayınlanmamış.\n\n"
+                "Eğer elinizde manifest dosyası var ise 'İçe Aktar' sekmesinden ekleyebilirsiniz."
             )
+            with task_lock:
+                task_statuses[valid_id] = {
+                    "status": "failed",
+                    "error": err_msg,
+                    "error_code": "NO_COMMUNITY_MANIFEST",
+                    "game_name": game_name,
+                    "progress": 100
+                }
+            raise SteamToolsException(err_msg)
 
         # 3. Save manifest & bypass configuration files
         update_status("Manifest ve kilit açıcı dosyaları kaydediliyor...", 85)
@@ -2835,9 +2844,12 @@ def add_game_thread_worker(appid: str, requested_library_idx: Optional[str] = No
     except Exception as e:
         logger.error(f"Error adding game {appid}: {e}", exc_info=True)
         with task_lock:
+            prev_info = task_statuses.get(appid, {})
             task_statuses[appid] = {
                 "status": "failed",
                 "error": str(e),
+                "error_code": prev_info.get("error_code"),
+                "game_name": prev_info.get("game_name"),
                 "progress": 100
             }
 

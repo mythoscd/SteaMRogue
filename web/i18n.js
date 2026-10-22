@@ -339,6 +339,8 @@
             "btn_cancel": "İptal",
             "modal_confirm_title": "Onay Gerekli",
             "modal_alert_title": "SteaMRogue",
+            "alert_game_failed_title": "Oyun Eklenemedi",
+            "msg_no_community_manifest": "'{name}' (AppID: {appid}) için henüz topluluk dosyaları yayınlanmamış.\n\nEğer elinizde manifest dosyası var ise 'İçe Aktar' sekmesinden ekleyebilirsiniz.",
 
             // --- ONLINEFIX DYNAMIC TEXTS ---
             "of_badge_multiplayer": "Multiplayer Fix",
@@ -740,6 +742,8 @@
             "btn_cancel": "Cancel",
             "modal_confirm_title": "Confirmation Required",
             "modal_alert_title": "SteaMRogue",
+            "alert_game_failed_title": "Failed to Add Game",
+            "msg_no_community_manifest": "No community files have been published for '{name}' (AppID: {appid}) yet.\n\nIf you have the manifest file, you can add it via the 'Import' tab.",
 
             // --- ONLINEFIX DYNAMIC TEXTS ---
             "of_badge_multiplayer": "Multiplayer Fix",

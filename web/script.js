@@ -641,7 +641,8 @@ function initAppLogic() {
 
     // Install SteamTools
     document.getElementById("btn-install-st").addEventListener("click", () => {
-        loadingMessage.textContent = "SteamTools kanca durumu kontrol ediliyor ve kuruluyor...";
+        const isEnST = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+        loadingMessage.textContent = isEnST ? "Checking and installing SteamTools hooks..." : "SteamTools kanca durumu kontrol ediliyor ve kuruluyor...";
         loadingOverlay.classList.add("active");
         
         fetch("/api/install_steamtools", { method: "POST" })
@@ -786,7 +787,8 @@ function initAppLogic() {
             return;
         }
         
-        loadingMessage.textContent = "SteamTools kanca dosyaları kaldırılıyor...";
+        const isEnRem = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+        loadingMessage.textContent = isEnRem ? "Removing SteamTools hook files..." : "SteamTools kanca dosyaları kaldırılıyor...";
         loadingOverlay.classList.add("active");
         
         fetch("/api/uninstall_steamtools", { method: "POST" })
@@ -823,7 +825,8 @@ function initAppLogic() {
             if (!await window.showCustomConfirm("Steam indirme önbelleği temizlenip Steam yeniden başlatılacak. Bu işlem 'İnternet bağlantısı yok' hatalarını çözer. Devam edilsin mi?")) {
                 return;
             }
-            loadingMessage.textContent = "Steam indirme önbelleği temizleniyor ve Steam yeniden başlatılıyor...";
+            const isEnCache = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+            loadingMessage.textContent = isEnCache ? "Clearing Steam download cache and restarting Steam..." : "Steam indirme önbelleği temizleniyor ve Steam yeniden başlatılıyor...";
             loadingOverlay.classList.add("active");
             fetch("/api/clear_steam_cache", { method: "POST" })
                 .then(res => res.json())
@@ -865,14 +868,16 @@ function initAppLogic() {
         if (nukeConfirm) {
             nukeConfirm.addEventListener("click", async () => {
                 closeNukeModal();
-                loadingMessage.textContent = "Sistem imha ediliyor ve SteaMRogue sistemden kaldırılıyor... Lütfen bekleyin.";
+                const isEnNuke = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+                loadingMessage.textContent = isEnNuke ? "Nuking system and removing SteaMRogue... Please wait." : "Sistem imha ediliyor ve SteaMRogue sistemden kaldırılıyor... Lütfen bekleyin.";
                 loadingOverlay.classList.add("active");
 
                 try {
                     const res = await fetch("/api/self_destruct", { method: "POST" });
                     const data = await res.json();
                     
-                    loadingMessage.textContent = "İmha işlemi tamamlandı. Uygulama kapatılıyor...";
+                    const isEnNuke2 = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+                    loadingMessage.textContent = isEnNuke2 ? "Nuke complete. Closing application..." : "İmha işlemi tamamlandı. Uygulama kapatılıyor...";
                     
                     setTimeout(() => {
                         try {
@@ -1237,7 +1242,8 @@ function initAppLogic() {
 
         // Show overlay
         loadingOverlay.classList.add("active");
-        loadingMessage.textContent = `AppID ${appid} sorgulanıyor...`;
+        const isEnAdd = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+        loadingMessage.textContent = isEnAdd ? `Querying AppID ${appid}...` : `AppID ${appid} sorgulanıyor...`;
         loadingProgress.style.width = "0%";
         loadingPercent.textContent = "0%";
 
@@ -1262,6 +1268,53 @@ function initAppLogic() {
         });
     });
 
+    function localizeAddStatusMessage(rawMsg) {
+        if (!rawMsg) return "";
+        const isEn = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+
+        if (rawMsg.includes("Initializing") || rawMsg.includes("başlatılıyor")) {
+            return isEn ? "Initializing game addition task..." : "Oyun ekleme işlemi başlatılıyor...";
+        }
+        if (rawMsg.includes("Validating AppID") || rawMsg.includes("doğrulanıyor")) {
+            return isEn ? "Validating AppID..." : "AppID doğrulanıyor...";
+        }
+        if (rawMsg.includes("Retrieving game information") || rawMsg.includes("bilgileri alınıyor")) {
+            return isEn ? "Retrieving game information from Steam Store API..." : "Steam API'den oyun bilgileri alınıyor...";
+        }
+        if (rawMsg.includes("Searching manifest repositories") || rawMsg.includes("depoları taranıyor")) {
+            const countMatch = rawMsg.match(/\((\d+)\s*(?:kaynak|sources?)\)/i);
+            if (countMatch) {
+                return isEn ? `Scanning community repositories (${countMatch[1]} sources)...` : `Topluluk depoları taranıyor (${countMatch[1]} kaynak)...`;
+            }
+            return isEn ? "Scanning community manifest repositories..." : "Topluluk manifest depoları taranıyor...";
+        }
+        if (rawMsg.includes("Manifest bulundu") || rawMsg.includes("Manifest found")) {
+            const repoMatch = rawMsg.match(/\(([^)]+)\)/);
+            const rName = repoMatch ? repoMatch[1] : "";
+            return isEn ? `Manifest found (${rName}), downloading...` : `Manifest bulundu (${rName}), indiriliyor...`;
+        }
+        if (rawMsg.includes("Manifest indiriliyor") || rawMsg.includes("Downloading manifest")) {
+            const tagMatch = rawMsg.match(/\[([^\]]+)\]/);
+            const prefix = tagMatch ? `[${tagMatch[1]}] ` : "";
+            return isEn ? `${prefix}Downloading manifest package...` : `${prefix}Manifest paketi indiriliyor...`;
+        }
+        if (rawMsg.includes("Kontrol ediliyor") || rawMsg.includes("Checking")) {
+            const tagMatch = rawMsg.match(/\[([^\]]+)\]/);
+            const prefix = tagMatch ? `[${tagMatch[1]}] ` : "";
+            return isEn ? `${prefix}Checking repository...` : `${prefix}Depo kontrol ediliyor...`;
+        }
+        if (rawMsg.includes("Scanning local cache") || rawMsg.includes("önbellek veritabanı")) {
+            return isEn ? "Scanning local cache database..." : "Yerel önbellek veritabanı taranıyor...";
+        }
+        if (rawMsg.includes("Manifest ve kilit açıcı") || rawMsg.includes("Saving manifest")) {
+            return isEn ? "Saving manifest and unlocker configuration..." : "Manifest ve kilit açıcı dosyaları kaydediliyor...";
+        }
+        if (rawMsg.includes("Kütüphane dizini") || rawMsg.includes("Resolving target library")) {
+            return isEn ? "Resolving target library folder..." : "Kütüphane dizini belirleniyor...";
+        }
+        return rawMsg;
+    }
+
     // Polling Status of Adding Game
     function pollAddStatus(appid) {
         let pollCount = 0;
@@ -1271,7 +1324,9 @@ function initAppLogic() {
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "running") {
-                        loadingMessage.textContent = data.message || `AppID ${appid} işleniyor...`;
+                        const isEn = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+                        const defaultMsg = isEn ? `Processing AppID ${appid}...` : `AppID ${appid} işleniyor...`;
+                        loadingMessage.textContent = localizeAddStatusMessage(data.message) || defaultMsg;
                         loadingProgress.style.width = `${Math.max(5, data.progress)}%`;
                         loadingPercent.textContent = `${data.progress}%`;
                     } else if (data.status === "success") {
@@ -1279,8 +1334,18 @@ function initAppLogic() {
                         loadingOverlay.classList.remove("active");
                         appidInput.value = "";
                         loadLibrary(); // Reload list
-                        const successMsg = data.message || "Oyun kütüphaneye başarıyla eklendi!";
-                        showCustomConfirm(`${successMsg}\n\nSteam'in oyunu algılaması için Steam istemcisini şimdi yeniden başlatmak ister misiniz?`).then((yes) => {
+                        const isEn = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+                        let successMsg = isEn ? "Game successfully added to Steam!" : "Oyun kütüphaneye başarıyla eklendi!";
+                        if (data.game_name || data.name) {
+                            const gName = data.game_name || data.name;
+                            successMsg = isEn ? `'${gName}' successfully added to Steam!` : `'${gName}' başarıyla Steam'e eklendi!`;
+                        } else if (data.message) {
+                            successMsg = data.message;
+                        }
+                        const confirmPrompt = isEn 
+                            ? `${successMsg}\n\nWould you like to restart Steam client now for the game to appear in your library?`
+                            : `${successMsg}\n\nSteam'in oyunu algılaması için Steam istemcisini şimdi yeniden başlatmak ister misiniz?`;
+                        showCustomConfirm(confirmPrompt).then((yes) => {
                             if (yes) {
                                 btnRestartSteam.click();
                             }
@@ -1288,7 +1353,12 @@ function initAppLogic() {
                     } else if (data.status === "failed") {
                         clearInterval(pollInterval);
                         loadingOverlay.classList.remove("active");
-                        alert(`Oyun Eklenemedi:\n\n${data.error || "Bilinmeyen bir hata oluştu."}`);
+                        let errMsg = data.error || "Bilinmeyen bir hata oluştu.";
+                        if (data.error_code === "NO_COMMUNITY_MANIFEST" && window.t) {
+                            errMsg = window.t("msg_no_community_manifest", { name: data.game_name || "Oyun", appid: appid });
+                        }
+                        const alertTitle = window.t ? window.t("alert_game_failed_title") : "Oyun Eklenemedi";
+                        alert(`${alertTitle}:\n\n${errMsg}`);
                     } else if (data.status === "idle") {
                         // If idle after at least a few checks, the backend might have finished or aborted
                         if (pollCount > 10) {
@@ -2295,7 +2365,8 @@ function initAppLogic() {
     function installDeal(appid, title, btnEl) {
         // Show loading overlay
         loadingOverlay.classList.add("active");
-        loadingMessage.textContent = `${title} (AppID ${appid}) sorgulanıyor...`;
+        const isEnDeal = (window.getCurrentLang && window.getCurrentLang() === "en") || (localStorage.getItem("steamrogue_lang") === "en");
+        loadingMessage.textContent = isEnDeal ? `Querying ${title} (AppID ${appid})...` : `${title} (AppID ${appid}) sorgulanıyor...`;
         loadingProgress.style.width = "0%";
         loadingPercent.textContent = "0%";
         
@@ -3081,7 +3152,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "var(--text-secondary)";
             }
         } else if (data.status === "not-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.2.0';
+            const ver = data.version ? `v${data.version}` : 'v1.2.1';
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${window.t ? window.t("set_update_latest", { ver: ver }) : `Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`}`;
                 updateStatusText.style.color = "#10b981";
@@ -3091,7 +3162,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.2.0';
+            const ver = data.version ? `v${data.version}` : 'v1.2.1';
             isHotfixAction = true;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #a78bfa;"></i> GitHub'da güncellenmiş yeni bir paket (${ver}) yayınlandı!`;
@@ -3170,7 +3241,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
             }
         } else if (data.status === "downloaded") {
-            const ver = data.version ? `v${data.version}` : 'v1.2.0';
+            const ver = data.version ? `v${data.version}` : 'v1.2.1';
             isHotfixAction = false;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (${ver})! Yeniden başlatabilirsiniz.`;
