@@ -134,9 +134,9 @@ def kill_steam(steam_path: Optional[str] = None) -> bool:
             except Exception:
                 pass
                 
-        # 2. Wait up to 8 seconds for graceful shutdown to finish
+        # 2. Wait up to 2.5 seconds for graceful shutdown to finish
         import time
-        for _ in range(16):
+        for _ in range(5):
             if not is_steam_running():
                 logger.info("Steam exited gracefully via -shutdown.")
                 if steam_exe:
@@ -518,13 +518,13 @@ def launch_steam(steam_exe: str) -> bool:
         except Exception as ex:
             logger.error(f"Failed to launch Steam via detached subprocess: {ex}")
 
-    # 6. Verification: Wait up to 6 seconds to verify Steam process is running
+    # 6. Verification: Wait up to 2.4 seconds to verify Steam process is running
     import time
-    for _ in range(12):
+    for _ in range(8):
         if is_steam_running():
             logger.info("Verified Steam process is actively running.")
             return True
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     return launched
 

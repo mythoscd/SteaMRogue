@@ -3152,7 +3152,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 updateStatusText.style.color = "var(--text-secondary)";
             }
         } else if (data.status === "not-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.2.1';
+            const ver = data.version ? `v${data.version}` : 'v1.2.2';
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${window.t ? window.t("set_update_latest", { ver: ver }) : `Harika! Zaten en güncel sürümü (${ver}) kullanıyorsunuz.`}`;
                 updateStatusText.style.color = "#10b981";
@@ -3162,7 +3162,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 isManualCheck = false;
             }
         } else if (data.status === "hotfix-available") {
-            const ver = data.version ? `v${data.version}` : 'v1.2.1';
+            const ver = data.version ? `v${data.version}` : 'v1.2.2';
             isHotfixAction = true;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-sparkles" style="color: #a78bfa;"></i> GitHub'da güncellenmiş yeni bir paket (${ver}) yayınlandı!`;
@@ -3241,7 +3241,7 @@ if (window.electronAPI && typeof window.electronAPI.onUpdaterStatus === 'functio
                 if (desc) desc.textContent = `Kurulum paketi indiriliyor (%${percent})...`;
             }
         } else if (data.status === "downloaded") {
-            const ver = data.version ? `v${data.version}` : 'v1.2.1';
+            const ver = data.version ? `v${data.version}` : 'v1.2.2';
             isHotfixAction = false;
             if (updateStatusText) {
                 updateStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Kurulum paketi hazır (${ver})! Yeniden başlatabilirsiniz.`;

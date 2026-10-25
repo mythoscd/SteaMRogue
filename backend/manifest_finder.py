@@ -13,6 +13,15 @@ from logger import logger
 # %%
 class ManifestFinder:
     """Discovers and downloads manifest/LUA configurations from community databases."""
+    _session = None
+
+    @classmethod
+    def get_session(cls) -> requests.Session:
+        if cls._session is None:
+            s = requests.Session()
+            s.trust_env = False
+            cls._session = s
+        return cls._session
 
     @staticmethod
     def filter_lua_content(content_str: str, repo_url: str) -> str:
@@ -53,12 +62,13 @@ class ManifestFinder:
             "Accept": "application/zip,application/octet-stream,*/*"
         }
         
+        session = cls.get_session()
         try:
             try:
-                response = requests.get(zip_url, headers=headers, stream=True, timeout=15)
+                response = session.get(zip_url, headers=headers, stream=True, timeout=6)
             except requests.exceptions.SSLError:
                 logger.debug("SSL verification failed; retrying download without verification.")
-                response = requests.get(zip_url, headers=headers, stream=True, timeout=15, verify=False)
+                response = session.get(zip_url, headers=headers, stream=True, timeout=6, verify=False)
             
             if response.status_code != 200:
                 logger.debug(f"Repo branch not found (HTTP {response.status_code}) for: {zip_url}")
@@ -162,14 +172,18 @@ class ManifestFinder:
             progress_callback(10, 100, f"Topluluk depoları taranıyor ({len(repos)} kaynak)...")
 
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SteaMRogue/1.2.1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) SteaMRogue/1.2.2",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         }
 
+        session = cls.get_session()
         def check_branch_exists(repo_url: str) -> Optional[str]:
             tree_url = f"{repo_url}/tree/{appid}"
             try:
-                r = requests.get(tree_url, headers=headers, timeout=8, allow_redirects=False)
+                try:
+                    r = session.get(tree_url, headers=headers, timeout=3.5, allow_redirects=False)
+                except requests.exceptions.SSLError:
+                    r = session.get(tree_url, headers=headers, timeout=3.5, allow_redirects=False, verify=False)
                 if r.status_code in (200, 301, 302):
                     return repo_url
             except Exception as ex:

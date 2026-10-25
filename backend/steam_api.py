@@ -12,6 +12,15 @@ class SteamAPI:
     """Client for fetching game information from the official Steam Store API."""
     
     BASE_URL = "https://store.steampowered.com/api/appdetails"
+    _session = None
+
+    @classmethod
+    def get_session(cls) -> requests.Session:
+        if cls._session is None:
+            s = requests.Session()
+            s.trust_env = False
+            cls._session = s
+        return cls._session
     
     @classmethod
     def get_app_details(cls, appid: str) -> Optional[Dict[str, Any]]:
@@ -31,11 +40,12 @@ class SteamAPI:
             
             cookies = {"birthtime": "0", "mature_content": "1"}
             
+            session = cls.get_session()
             try:
-                response = requests.get(cls.BASE_URL, params=params, headers=headers, cookies=cookies, timeout=10)
+                response = session.get(cls.BASE_URL, params=params, headers=headers, cookies=cookies, timeout=5)
             except requests.exceptions.SSLError:
                 logger.debug("SSL verification failed; retrying without verification.")
-                response = requests.get(cls.BASE_URL, params=params, headers=headers, cookies=cookies, timeout=10, verify=False)
+                response = session.get(cls.BASE_URL, params=params, headers=headers, cookies=cookies, timeout=5, verify=False)
             
             if response.status_code != 200:
                 logger.error(f"Steam API returned HTTP status {response.status_code}")

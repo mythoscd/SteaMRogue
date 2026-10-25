@@ -155,7 +155,7 @@ def add_header(response):
         response.headers["Expires"] = "0"
     return response
 
-APP_VERSION = "1.2.1"
+APP_VERSION = "1.2.2"
 
 # Global dictionary to track add/download task status
 task_statuses: Dict[str, Dict[str, Any]] = {}
@@ -253,7 +253,7 @@ def manage_config():
         "steam_path": config.steam_path,
         "default_library": config.default_library,
         "manifest_repos": config.manifest_repos,
-        "version": "1.2.1"
+        "version": "1.2.2"
     })
 
 # %%
@@ -1114,14 +1114,12 @@ def restart_steam():
         if validator.is_steam_running():
             logger.info("Closing Steam and child processes for restart...")
             validator.kill_steam(config.steam_path)
-            validator.wait_for_steam_exit(timeout=10.0)
-            time.sleep(2.0)  # Critical for Windows OS to release named mutexes, IPC sockets & file handles
+            time.sleep(0.5)  # Fast release of named mutexes
 
-        # 3. Auto-repair LUA manifest pinning, sync depotcache manifests, sync ACFs & adapt signatures
+        # 3. Fast auto-repair LUA manifest pinning, sync local depotcache manifests & adapt signatures
         if config.steam_path and os.path.isdir(config.steam_path):
             FileManager.repair_stplugin_luas(config.steam_path)
             sync_depotcache_manifests(config.steam_path)
-            ensure_all_unlocked_acfs(config.steam_path)
             validator.ensure_opensteamtool_signatures(config.steam_path)
 
         # 4. Launch Steam cleanly with interactive GUI
@@ -2701,36 +2699,38 @@ def add_game_thread_worker(appid: str, requested_library_idx: Optional[str] = No
         update_status("Validating AppID...", 20)
         valid_id = validator.validate_appid(appid)
             
-        # 1. Fetch Store API details
+        # 1. Fetch Store API details (check memory cache first for instant response)
         update_status("Retrieving game information from Steam API...", 30)
-        game_details = SteamAPI.get_app_details(valid_id)
-        game_name = game_details["name"] if game_details else f"Steam App {valid_id}"
+        names_cache = get_in_memory_names_cache()
+        cached_entry = names_cache.get(valid_id)
+        if cached_entry:
+            game_name = cached_entry["name"] if isinstance(cached_entry, dict) else str(cached_entry)
+            game_details = {"name": game_name}
+        else:
+            game_details = SteamAPI.get_app_details(valid_id)
+            game_name = game_details["name"] if game_details else f"Steam App {valid_id}"
         
-        # 2. Search Manifest
-        update_status("Searching manifest repositories...", 40)
-        
-        def download_progress_cb(downloaded, total, status_text):
-            pct = 40 + int((downloaded / max(1, total)) * 30)  # spans 40% to 70%
-            update_status(status_text, pct)
-            
-        found_data = ManifestFinder.find_online(valid_id, config.manifest_repos, progress_callback=download_progress_cb)
-        
+        # 2. Search Manifest (Check local depotcache first for instant 0.01s addition)
         manifests = []
         luas = []
-        
-        if found_data:
-            manifests = found_data["manifests"]
-            luas = found_data["luas"]
-        else:
-            update_status("Scanning local cache database...", 72)
+        if config.steam_path:
             local_manifests = ManifestFinder.scan_local_depotcache(config.steam_path, valid_id)
             if local_manifests:
                 manifests = local_manifests
+                logger.info(f"[add_game] Found {len(manifests)} manifest(s) in local depotcache instantly!")
+
+        if not manifests:
+            update_status("Searching manifest repositories...", 40)
+            
+            def download_progress_cb(downloaded, total, status_text):
+                pct = 40 + int((downloaded / max(1, total)) * 30)  # spans 40% to 70%
+                update_status(status_text, pct)
                 
-        if not manifests and config.steam_path:
-            local_manifests = ManifestFinder.scan_local_depotcache(config.steam_path, valid_id)
-            if local_manifests:
-                manifests = local_manifests
+            found_data = ManifestFinder.find_online(valid_id, config.manifest_repos, progress_callback=download_progress_cb)
+            
+            if found_data:
+                manifests = found_data["manifests"]
+                luas = found_data["luas"]
 
         # If no manifest and no lua was found, inform the user clearly that this game cannot be added
         if not manifests and not luas:
